@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airsoft Ops - Controle</title>
+  <script src="airsoft-shared.js?v=20260925-bomb-alert-1"></script>
+  <style>
+    body { margin: 0; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
+    main { max-width: 1240px; margin: auto; padding: 18px; display: grid; gap: 14px; }
+    h1, h2 { margin: 0; text-transform: uppercase; }
+    .controlTitle { display: flex; justify-content: space-between; gap: 16px; align-items: end; border: 1px solid #2b3a3d; background: linear-gradient(135deg, rgba(52,211,153,.08), rgba(78,167,255,.06)); padding: 16px; }
+    .controlTitle p { margin: 4px 0 0; color: #8fa09a; font-size: 13px; }
+    .opsStatus { border: 1px solid #44574a; background: #071a13; color: #34d399; padding: 8px 10px; font: 900 12px Consolas, monospace; text-transform: uppercase; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 14px; align-items: start; }
+    .panel, .stat { border: 1px solid #2b3a3d; background: #10171a; padding: 14px; }
+    .section { display: grid; gap: 12px; border: 1px solid #2b3a3d; background: #081012; padding: 14px; margin-top: 12px; }
+    .sectionHead { display: flex; justify-content: space-between; gap: 12px; align-items: end; border-bottom: 1px solid rgba(143,160,154,.18); padding-bottom: 10px; }
+    .sectionHead p { margin: 4px 0 0; color: #8fa09a; font-size: 12px; line-height: 1.4; }
+    .sectionTag { color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; white-space: nowrap; }
+    .two { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    label { display: grid; gap: 6px; color: #8fa09a; font-size: 12px; text-transform: uppercase; }
+    input, select, textarea, button { min-height: 42px; border: 1px solid #2b3a3d; background: #172024; color: #e8f0ed; padding: 8px; font: inherit; }
+    textarea { resize: vertical; line-height: 1.45; }
+    button { cursor: pointer; font-weight: 800; }
+    .primary { background: #34d399; color: #03110c; } .danger { background: #fb4e4e; color: #190404; } .warn { background: #f2b84b; color: #171003; } .blue { background: #4ea7ff; color: #04111f; }
+    .stat { display: grid; gap: 4px; } .stat span { color: #8fa09a; font-size: 12px; text-transform: uppercase; } .stat b { font-size: 24px; }
+    .statusDeck { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .phaseStrip { margin-top: 10px; border-color: #5f7a52; background: linear-gradient(90deg, rgba(52,211,153,.08), rgba(78,167,255,.06)); }
+    .modeHero { border: 1px solid #44574a; background: linear-gradient(135deg, rgba(217,184,75,.13), rgba(52,211,153,.06)); padding: 14px; display: grid; gap: 10px; }
+    .modeHero label { grid-template-columns: minmax(180px, .65fr) 1fr; align-items: center; }
+    .modeHero select { min-height: 54px; font-size: 18px; font-weight: 900; text-transform: uppercase; }
+    .modeSummaryBox { min-height: 54px; display: grid; align-content: center; border: 1px solid #2b3a3d; background: #050708; padding: 10px 12px; color: #e8f0ed; font-weight: 800; }
+    .folderChooser { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .folderInput { border: 1px solid #2b3a3d; background: rgba(5,7,8,.48); padding: 10px; display: grid; gap: 8px; }
+    .folderInput span { color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; }
+    .quickActions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .commandCenter { position: sticky; top: 10px; z-index: 4; border-color: #6d5b31; background: linear-gradient(135deg, rgba(242,184,75,.14), rgba(52,211,153,.06)); }
+    .commandCenter .sectionHead { align-items: center; }
+    .commandCenter button { min-height: 52px; }
+    .timeGroup { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .timeGroup input { width: 100%; text-align: center; font-family: Consolas, monospace; font-weight: 900; }
+    .timeGroup span { color: #8fa09a; font-size: 11px; text-align: center; text-transform: uppercase; }
+    .checkOption { min-height: 58px; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; border: 1px solid #2b3a3d; background: rgba(5,7,8,.48); padding: 10px 12px; cursor: pointer; box-sizing: border-box; }
+    .checkOption input[type="checkbox"] { appearance: none; width: 26px; height: 26px; min-height: 26px; margin: 0; padding: 0; border: 2px solid #806b35; background: #080a08; display: grid; place-content: center; cursor: pointer; }
+    .checkOption input[type="checkbox"]::before { content: ""; width: 13px; height: 7px; border-left: 3px solid #101607; border-bottom: 3px solid #101607; transform: rotate(-45deg) scale(0); transition: transform .12s ease; }
+    .checkOption input[type="checkbox"]:checked { border-color: #b99b43; background: #c0a446; box-shadow: 0 0 12px rgba(192,164,70,.25); }
+    .checkOption input[type="checkbox"]:checked::before { transform: rotate(-45deg) scale(1); }
+    .checkOption input[type="checkbox"]:focus-visible { outline: 2px solid #f2b84b; outline-offset: 2px; }
+    .checkOption span { color: #d8d5c1; line-height: 1.35; }
+    .sideHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid rgba(143,160,154,.18); padding-bottom: 10px; margin-bottom: 10px; }
+    .briefBox { display: grid; gap: 10px; margin-bottom: 16px; }
+    .briefList { display: grid; gap: 8px; }
+    .briefList div { border: 1px solid #2b3a3d; background: rgba(5,7,8,.42); padding: 10px; color: #c4d2ce; font-size: 13px; line-height: 1.35; }
+    .briefList b { display: block; color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; margin-bottom: 4px; }
+    aside.panel { position: sticky; top: 18px; }
+    .log { display: grid; gap: 8px; max-height: 720px; overflow: auto; font-size: 13px; }
+    .log div { border-bottom: 1px solid #2b3a3d; padding-bottom: 7px; }
+    .muted { color: #8fa09a; font-size: 12px; }
+    .qrPair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .teamQr { border: 1px solid #2b3a3d; background: #050708; padding: 12px; display: grid; justify-items: center; gap: 8px; text-align: center; }
+    .qrMock { width: 120px; height: 120px; padding: 8px; background: #e8f0ed; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .qrMock span { background: #050708; }
+    .winner { border-color: #34d399; background: #071a13; }
+    body.locked button:not(#cancelStage):not(#end), body.locked input, body.locked select, body.locked textarea { pointer-events: none; filter: grayscale(1); opacity: .55; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.58); z-index: 10; }
+    .popupLayer[hidden] { display: none; }
+    .popup { width: min(100%, 500px); border: 1px solid #f2b84b; background: #10171a; padding: 20px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; }
+    .popup strong { color: #f2b84b; text-transform: uppercase; font-size: 12px; }
+    .popup h2 { margin: 0; font-size: 22px; }
+    .popup p { margin: 0; color: #c4d2ce; line-height: 1.45; }
+    [hidden] { display: none !important; }
+    @media (max-width: 980px) { .controlTitle { align-items: start; flex-direction: column; } .grid, .two, .three, .four, .qrPair, .statusDeck, .folderChooser, .quickActions { grid-template-columns: 1fr; } .modeHero label { grid-template-columns: 1fr; } aside.panel, .commandCenter { position: static; } }
+  </style>
+  <link rel="stylesheet" href="airsoft-theme.css?v=20260925-bomb-alert-1">
+</head>
+<body>
+<main>
+  <div class="controlTitle">
+    <div>
+      <h1>Controle do Controlador</h1>
+      <p>Console operacional para configurar, iniciar e acompanhar os modos de jogo.</p>
+    </div>
+    <span class="opsStatus">Controlador online</span>
+  </div>
+  <div class="grid">
+    <section class="panel">
+      <div class="statusDeck">
+        <div class="stat"><span>Tempo de jogo</span><b id="game">18:00</b></div>
+        <div class="stat"><span id="bombStatLabel">Tempo da bomba</span><b id="bomb">--:--</b></div>
+        <div class="stat"><span>Estado</span><b id="state">Preparação</b></div>
+        <div class="stat"><span>Vencedor</span><b id="winner">----</b></div>
+      </div>
+      <div class="stat phaseStrip" id="phaseBox"><span>Fase atual</span><b id="phase">Aguardando</b></div>
+      <div class="section modeHero">
+        <div class="sectionHead">
+          <div>
+            <h2>Modo de jogo</h2>
+            <p>Escolha primeiro o modo para o painel mostrar somente as configurações mais importantes daquele cenário.</p>
+          </div>
+          <span class="sectionTag">Etapa 01</span>
+        </div>
+        <div>
+          <label>Escolher modo
+            <select id="mode"><option>Bomba clássica</option><option>Roubo de dados</option><option>Dominação de terminal</option><option>Localização de artefato</option></select>
+          </label>
+          <div class="modeSummaryBox" id="modeSummary">Bomba clássica</div>
+        </div>
+      </div>
+      <div class="section commandCenter">
+        <div class="sectionHead">
+          <div>
+            <h2>Centro de comando</h2>
+            <p>Use estes comandos durante a partida. Quando uma barra estiver em andamento, o painel trava para evitar conflito.</p>
+          </div>
+          <span class="sectionTag">Ao vivo</span>
+        </div>
+        <div class="quickActions">
+          <button class="primary" id="start">Iniciar jogo</button>
+          <button class="danger" id="end">Encerrar jogo</button>
+          <button class="danger" id="armMaster">Armar pelo Controlador</button>
+          <button class="warn" id="applyPenalty">Aplicar penalidade</button>
+          <button class="warn" id="cancelStage">Cancelar etapa</button>
+          <button id="reset">Reiniciar tudo</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2>Cadastro de celulares</h2>
+            <p>Defina os nomes dos times e use os QRs cenográficos para travar cada celular no papel correto.</p>
+          </div>
+          <span class="sectionTag">Times</span>
+        </div>
+        <div class="two">
+          <label>Nome do Time 1 / CT <input id="team1Name" maxlength="24" value="Time 1 - CT"></label>
+          <label>Nome do Time 2 / Terrorista <input id="team2Name" maxlength="24" value="Time 2 - Terrorista"></label>
+        </div>
+        <div class="qrPair">
+          <div class="teamQr">
+            <div class="qrMock" aria-label="QR cadastro CT">
+              <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
+              <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
+              <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
+              <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
+              <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+              <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
+              <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
+            </div>
+            <b id="team1QrName">Time 1 - CT</b>
+            <span class="muted">No protótipo, o jogador toca em cadastrar CT.</span>
+          </div>
+          <div class="teamQr">
+            <div class="qrMock" aria-label="QR cadastro Terrorista">
+              <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
+              <span></span><span></span><i></i><span></span><i></i><i></i><span></span>
+              <i></i><span></span><span></span><i></i><span></span><i></i><span></span>
+              <span></span><i></i><span></span><i></i><span></span><span></span><i></i>
+              <i></i><span></span><i></i><span></span><span></span><i></i><span></span>
+              <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+              <span></span><span></span><i></i><span></span><i></i><span></span><span></span>
+            </div>
+            <b id="team2QrName">Time 2 - Terrorista</b>
+            <span class="muted">No protótipo, o jogador toca em cadastrar Terrorista.</span>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2 id="timeTitle">Tempo e penalidade</h2>
+            <p id="timeHelp">Controle o ritmo geral da partida e o impacto de senha incorreta.</p>
+          </div>
+          <span class="sectionTag">Ritmo</span>
+        </div>
+        <div class="four">
+          <label id="gameTimeField">Tempo de jogo
+            <div class="timeGroup">
+              <input id="gameHours" type="number" min="0" max="12" value="0" inputmode="numeric"><input id="gameMinutes" type="number" min="0" max="59" value="18" inputmode="numeric">
+              <span>Horas</span><span>Minutos</span>
+            </div>
+          </label>
+          <label id="actionTimeField">Tempo de ação
+            <div class="timeGroup">
+              <input id="actionMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="actionRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label id="resultTimeField"><span id="resultConfigLabel">Tempo da bomba</span>
+            <div class="timeGroup">
+              <input id="resultHours" type="number" min="0" max="12" value="0" inputmode="numeric"><input id="resultMinutes" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Horas</span><span>Minutos</span>
+            </div>
+          </label>
+          <label id="penaltyTimeField">Penalidade senha errada
+            <div class="timeGroup">
+              <input id="penaltyMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="penaltyRemainSeconds" type="number" min="0" max="59" value="5" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2 id="accessTitle">Senhas e fatores</h2>
+            <p id="accessHelp">Configure as credenciais principais e quantos jogadores precisam validar presença por QR.</p>
+          </div>
+          <span class="sectionTag">Acesso</span>
+        </div>
+        <div class="two" id="accessCodeRow">
+          <label><span id="armCodeLabel">Senha de arme</span> <input id="armCode" maxlength="6" value="4072"></label>
+          <label><span id="defuseCodeLabel">Senha de desarme</span> <input id="defuseCode" maxlength="6" value="7294"></label>
+        </div>
+        <div class="two" id="accessFactorRow">
+          <label><span id="armFactorsLabel">Fatores para armar</span> <select id="armFactors"><option value="1">1 jogador</option><option value="2">2 jogadores</option></select></label>
+          <label><span id="defuseFactorsLabel">Fatores para desarmar</span> <select id="defuseFactors"><option value="1">1 jogador</option><option value="2">2 jogadores</option></select></label>
+          <label class="checkOption"><input id="qrRequired" type="checkbox" checked><span>Exigir QR nas etapas</span></label>
+        </div>
+        <div class="two" id="accessGiveRow">
+          <button class="primary" id="giveCt">Passar senha CT</button>
+          <button class="warn" id="giveT">Passar senha Terrorista</button>
+        </div>
+      </div>
+      <div class="section" id="dataConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Alvo do roubo de dados</h2>
+            <p>Monte o notebook cenográfico: pastas falsas, arquivo alvo, senha de descriptografia e destino do envio.</p>
+          </div>
+          <span class="sectionTag">Notebook</span>
+        </div>
+        <div class="two">
+          <label>Nome do notebook <input id="dataNotebookName" maxlength="28" value="NBK-17 Operações"></label>
+          <label>Pasta correta
+            <select id="dataCorrectFolder"><option value="0">Pasta 1</option><option value="1" selected>Pasta 2</option><option value="2">Pasta 3</option><option value="3">Pasta 4</option></select>
+          </label>
+        </div>
+        <div class="folderChooser">
+          <label class="folderInput"><span>Pasta 1</span><input id="dataFolder0" maxlength="24" value="SYSTEM_CACHE"></label>
+          <label class="folderInput"><span>Pasta 2</span><input id="dataFolder1" maxlength="24" value="OP_BLACKBOX"></label>
+          <label class="folderInput"><span>Pasta 3</span><input id="dataFolder2" maxlength="24" value="FIELD_LOGS"></label>
+          <label class="folderInput"><span>Pasta 4</span><input id="dataFolder3" maxlength="24" value="ARCHIVE_09"></label>
+        </div>
+        <div class="two">
+          <label>Arquivo criptografado <input id="dataFileName" maxlength="28" value="rotas-extracao.enc"></label>
+          <label>Destino do envio <input id="dataRecipient" maxlength="32" value="relay@darknet.ops"></label>
+        </div>
+        <div class="two">
+          <label>Tamanho do pacote <input id="dataPayloadSize" maxlength="12" value="48 MB"></label>
+          <label>Senha de descriptografia <input id="dataDecryptCode" maxlength="6" value="9137"></label>
+        </div>
+        <div class="four">
+          <label>Tempo para acessar
+            <div class="timeGroup">
+              <input id="dataAccessMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataAccessRemainSeconds" type="number" min="0" max="59" value="6" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para baixar
+            <div class="timeGroup">
+              <input id="dataDownloadMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataDownloadRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para descriptografar
+            <div class="timeGroup">
+              <input id="dataDecryptMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataDecryptRemainSeconds" type="number" min="0" max="59" value="12" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para enviar
+            <div class="timeGroup">
+              <input id="dataSendMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataSendRemainSeconds" type="number" min="0" max="59" value="8" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="two">
+          <label>Regra visual
+            <select id="dataVisualRule"><option>Notebook travado / pastas / arquivo / envio</option></select>
+          </label>
+        </div>
+        <p class="muted">Validações: acesso pede senha do notebook, download roda no notebook, descriptografia pede senha diferente e barra na bomba, envio pede o email correto no teclado do notebook.</p>
+      </div>
+      <div class="section" id="terminalConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Dominação de terminal</h2>
+            <p>Configure captura, guarda do terminal e a validação periódica que mantém o domínio ativo.</p>
+          </div>
+          <span class="sectionTag">Terminal</span>
+        </div>
+        <div class="two">
+          <label>Nome do terminal <input id="terminalName" maxlength="28" value="TERMINAL AX-07"></label>
+          <label>Tempo de domínio para vencer
+            <div class="timeGroup">
+              <input id="terminalWinMinutes" type="number" min="0" max="59" value="5" inputmode="numeric"><input id="terminalWinRemainSeconds" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="three">
+          <label>Tempo para capturar
+            <div class="timeGroup">
+              <input id="terminalCaptureMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="terminalCaptureRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Validar a cada
+            <div class="timeGroup">
+              <input id="terminalValidationIntervalMinutes" type="number" min="0" max="59" value="1" inputmode="numeric"><input id="terminalValidationIntervalRemainSeconds" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Janela para validar
+            <div class="timeGroup">
+              <input id="terminalValidationWindowMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="terminalValidationWindowRemainSeconds" type="number" min="0" max="59" value="15" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="three">
+          <label>Senha para capturar <input id="terminalCaptureCode" maxlength="8" value="2468" inputmode="numeric"></label>
+          <label class="checkOption"><input id="terminalCaptureNeedsCode" type="checkbox" checked><span>Exigir senha na captura</span></label>
+          <label class="checkOption"><input id="terminalRandomRevalidateCode" type="checkbox" checked><span>Senha randômica na revalidação</span></label>
+        </div>
+        <div class="two">
+          <label>Senha atual de revalidação <input id="terminalValidationCodeView" value="----" readonly></label>
+          <p class="muted">Na opção randômica, a senha muda a cada revalidação e o jogador precisa decodificar no celular antes de validar o domínio.</p>
+        </div>
+        <p class="muted">Toda captura e toda validação exigem dupla conferência: leitura de QR no celular e OK no terminal. Se houver senha ativa, o teclado do terminal abre depois do OK. Se a validação periódica não for concluída dentro da janela, o terminal volta para neutro.</p>
+      </div>
+      <div class="section" id="playerBriefingConfig">
+        <div class="sectionHead">
+          <div>
+            <h2>Objetivos dos jogadores</h2>
+            <p>Este texto aparece imediatamente na aba Objetivos de todos os celulares cadastrados.</p>
+          </div>
+          <span class="sectionTag">Mensagem</span>
+        </div>
+        <label>Ordem da missão
+          <textarea id="gameObjectives" rows="5" maxlength="800" placeholder="Descreva os objetivos, prioridades e regras da missão."></textarea>
+        </label>
+      </div>
+      <div class="section" id="locatorConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Localização de artefato</h2>
+            <p>Configure um ponto GPS opcional para os celulares localizarem artefatos em qualquer modo de jogo.</p>
+          </div>
+          <span class="sectionTag">GPS</span>
+        </div>
+        <div class="two">
+          <label>Nome do artefato <input id="locatorArtifactName" maxlength="28" value="Artefato AX-07"></label>
+          <label class="checkOption"><input id="locatorEnabled" type="checkbox"><span>GPS da bomba transmitindo</span></label>
+        </div>
+        <div class="three">
+          <label>Latitude <input id="locatorArtifactLat" type="number" step="0.000001" placeholder="-15.000000"></label>
+          <label>Longitude <input id="locatorArtifactLng" type="number" step="0.000001" placeholder="-56.000000"></label>
+          <label>Raio de encontro
+            <div class="timeGroup">
+              <input id="locatorProximityMeters" type="number" min="1" max="999" value="12" inputmode="numeric">
+              <input value="metros" readonly>
+            </div>
+          </label>
+        </div>
+        <div class="two">
+          <label class="checkOption"><input id="locatorMovementAlertEnabled" type="checkbox" checked><span>Alerta no primeiro deslocamento</span></label>
+          <label>Deslocamento mínimo para alertar
+            <div class="timeGroup">
+              <input id="locatorMovementThresholdMeters" type="number" min="5" max="500" value="25" inputmode="numeric">
+              <input value="metros" readonly>
+            </div>
+          </label>
+        </div>
+        <div class="two" id="bombActivationOptions">
+          <label class="checkOption">
+            <input id="bombActivationAlertEnabled" type="checkbox" checked>
+            <span>Alerta de bomba ativada nos celulares</span>
+          </label>
+          <label class="checkOption">
+            <input id="locatorOnBombActivated" type="checkbox">
+            <span>Ativar localizador ao armar a bomba</span>
+          </label>
+        </div>
+        <div class="two">
+          <button class="blue" id="captureMasterGps" type="button">Definir posição manual por GPS</button>
+          <button class="primary" id="toggleLocator" type="button">Ligar GPS da bomba</button>
+        </div>
+        <p class="muted" id="locatorFixInfo">Quando a transmissão estiver ligada, a bomba publica sua posição a cada 10 segundos. A posição manual funciona como alternativa ao GPS do artefato.</p>
+      </div>
+    </section>
+    <aside class="panel">
+      <div class="briefBox">
+        <div class="sideHead">
+          <h2>Briefing</h2>
+          <span class="sectionTag">Modo</span>
+        </div>
+        <div class="briefList" id="briefList"></div>
+      </div>
+      <div class="sideHead">
+        <h2>Eventos</h2>
+        <span class="sectionTag">Log</span>
+      </div>
+      <div class="log" id="log"></div>
+    </aside>
+  </div>
+</main>
+<div class="popupLayer" id="popupLayer" hidden>
+  <section class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <strong id="popupKind">Controlador</strong>
+    <h2 id="popupTitle">Aviso</h2>
+    <p id="popupBody"></p>
+    <button id="popupClose">Fechar</button>
+  </section>
+</div>
+<script>
+  let ticker = null;
+  let popupTimer = null;
+  function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
+  function isDataMode(s) { return s.mode === 'Roubo de dados'; }
+  function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
+  function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function clampNumber(value, min, max) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return min;
+    return Math.min(max, Math.max(min, Math.floor(n)));
+  }
+  function setHoursMinutes(prefix, totalSeconds) {
+    const totalMinutes = Math.max(0, Math.ceil(Number(totalSeconds || 0) / 60));
+    window[prefix + 'Hours'].value = String(Math.floor(totalMinutes / 60));
+    window[prefix + 'Minutes'].value = String(totalMinutes % 60);
+  }
+  function readHoursMinutes(prefix, fallbackSeconds) {
+    const hours = clampNumber(window[prefix + 'Hours'].value, 0, 12);
+    const minutes = clampNumber(window[prefix + 'Minutes'].value, 0, 59);
+    const seconds = (hours * 60 + minutes) * 60;
+    return seconds > 0 ? seconds : fallbackSeconds;
+  }
+  function setMinutesSeconds(prefix, totalSeconds) {
+    const total = Math.max(0, Number(totalSeconds || 0));
+    window[prefix + 'Minutes'].value = String(Math.floor(total / 60));
+    window[prefix + 'RemainSeconds'].value = String(total % 60);
+  }
+  function readMinutesSeconds(prefix, fallbackSeconds, allowZero = false) {
+    const minutes = clampNumber(window[prefix + 'Minutes'].value, 0, 59);
+    const secondsPart = clampNumber(window[prefix + 'RemainSeconds'].value, 0, 59);
+    const seconds = minutes * 60 + secondsPart;
+    if (allowZero) return seconds;
+    return seconds > 0 ? seconds : fallbackSeconds;
+  }
+  function hidePopup() { popupLayer.hidden = true; clearTimeout(popupTimer); }
+  function showPopup(title, body, kind = 'Controlador') {
+    clearTimeout(popupTimer);
+    popupKind.textContent = kind;
+    popupTitle.textContent = title;
+    popupBody.textContent = body;
+    popupLayer.hidden = false;
+    popupTimer = setTimeout(hidePopup, 15000);
+  }
+  popupClose.onclick = hidePopup;
+  popupLayer.addEventListener('click', e => { if (e.target === popupLayer) hidePopup(); });
+  function briefItems(s) {
+    if (isDataMode(s)) return [
+      ['Objetivo', 'Time 2 acessa o notebook, escolhe a pasta correta, baixa, descriptografa e envia os dados.'],
+      ['Defesa', 'Time 1 pode mudar senha, apagar download ou deletar arquivo descriptografado conforme a etapa.'],
+      ['Atenção', 'Configure quatro pastas, escolha a correta, defina senha de notebook, senha de descriptografia e email de destino.']
+    ];
+    if (isTerminalMode(s)) return [
+      ['Objetivo', 'Os times disputam o domínio do terminal e acumulam tempo até vencer.'],
+      ['Validação', 'Captura e revalidação pedem QR no celular e confirmação no terminal.'],
+      ['Atenção', 'Senha de captura e senha randômica de revalidação podem ser ligadas no bloco Terminal.']
+    ];
+    if (isLocatorMode(s)) return [
+      ['Objetivo', 'Os celulares recebem direção e distância aproximada até o artefato configurado pelo Controlador.'],
+      ['GPS', 'O Controlador define latitude/longitude manualmente ou captura a posição deste aparelho.'],
+      ['Atenção', 'Em navegador local, a permissão de localização pode depender do Chrome/Live Server; no app real virá do GPS dos aparelhos.']
+    ];
+    return [
+      ['Objetivo', 'Time 2 arma a bomba; Time 1 vence por desarme ou por fim do tempo de jogo.'],
+      ['Validação', 'Jogador escaneia QR, aguarda ação no celular e digita a senha na bomba.'],
+      ['Atenção', 'Configure senha de arme, senha de desarme, fatores de QR e penalidade.']
+    ];
+  }
+  function renderBrief(s) {
+    briefList.innerHTML = briefItems(s).map(item => '<div><b>' + item[0] + '</b>' + item[1] + '</div>').join('');
+  }
+  function pullForm(s) {
+    setHoursMinutes('game', s.gameSeconds);
+    setMinutesSeconds('action', s.actionSeconds);
+    setHoursMinutes('result', s.resultSeconds);
+    mode.value = s.mode; armCode.value = s.armCode; defuseCode.value = s.defuseCode; armFactors.value = String(s.armFactors); defuseFactors.value = String(s.defuseFactors); qrRequired.checked = s.qrRequired !== false;
+    setMinutesSeconds('penalty', s.penaltyEnabled ? s.penaltySeconds : 0);
+    team1Name.value = s.team1Name;
+    team2Name.value = s.team2Name;
+    dataNotebookName.value = s.dataNotebookName;
+    const folders = s.dataFolderOptions || ['SYSTEM_CACHE', 'OP_BLACKBOX', 'FIELD_LOGS', 'ARCHIVE_09'];
+    dataFolder0.value = folders[0] || 'SYSTEM_CACHE';
+    dataFolder1.value = folders[1] || 'OP_BLACKBOX';
+    dataFolder2.value = folders[2] || 'FIELD_LOGS';
+    dataFolder3.value = folders[3] || 'ARCHIVE_09';
+    dataCorrectFolder.value = String(Number.isInteger(s.dataCorrectFolder) ? s.dataCorrectFolder : 1);
+    dataFileName.value = s.dataFileName;
+    dataRecipient.value = s.dataRecipient;
+    dataPayloadSize.value = s.dataPayloadSize;
+    dataDecryptCode.value = s.dataDecryptCode;
+    setMinutesSeconds('dataAccess', s.dataAccessSeconds);
+    setMinutesSeconds('dataDownload', s.dataDownloadSeconds);
+    setMinutesSeconds('dataDecrypt', s.dataDecryptSeconds);
+    setMinutesSeconds('dataSend', s.dataSendSeconds);
+    terminalName.value = s.terminalName;
+    setMinutesSeconds('terminalCapture', s.terminalCaptureSeconds);
+    setMinutesSeconds('terminalValidationInterval', s.terminalValidationIntervalSeconds);
+    setMinutesSeconds('terminalValidationWindow', s.terminalValidationWindowSeconds);
+    setMinutesSeconds('terminalWin', s.terminalWinSeconds);
+    terminalCaptureCode.value = s.terminalCaptureCode || '2468';
+    terminalCaptureNeedsCode.checked = Boolean(s.terminalCaptureNeedsCode);
+    terminalRandomRevalidateCode.checked = Boolean(s.terminalRandomRevalidateCode);
+    terminalValidationCodeView.value = s.terminalValidationCode || '----';
+    locatorArtifactName.value = s.locatorArtifactName || 'Artefato AX-07';
+    gameObjectives.value = s.gameObjectives || '';
+    locatorEnabled.checked = Boolean(s.locatorEnabled);
+    bombActivationAlertEnabled.checked = s.bombActivationAlertEnabled !== false;
+    locatorOnBombActivated.checked = Boolean(s.locatorOnBombActivated);
+    locatorArtifactLat.value = s.locatorArtifactLat == null ? '' : s.locatorArtifactLat;
+    locatorArtifactLng.value = s.locatorArtifactLng == null ? '' : s.locatorArtifactLng;
+    locatorProximityMeters.value = s.locatorProximityMeters || 12;
+    locatorMovementAlertEnabled.checked = Boolean(s.locatorMovementAlertEnabled);
+    locatorMovementThresholdMeters.value = s.locatorMovementThresholdMeters || 25;
+  }
+  function render(s) {
+    document.body.classList.toggle('dataMode', isDataMode(s));
+    document.body.classList.toggle('terminalMode', isTerminalMode(s));
+    document.body.classList.toggle('locatorMode', isLocatorMode(s));
+    document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
+    renderBrief(s);
+    const bombMode = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
+    game.textContent = fmt(s.gameSeconds); bomb.textContent = fmt(s.bombSeconds); state.textContent = s.bombState; phase.textContent = s.phase;
+    winner.textContent = s.winner || '----';
+    modeSummary.textContent = isDataMode(s) ? 'Roubo de dados: notebook, pastas, download, descriptografia e envio' : isTerminalMode(s) ? 'Dominação: capturar, guardar e revalidar por QR antes de voltar a neutro' : isLocatorMode(s) ? 'Localização: celulares recebem distância e direção aproximada do artefato' : s.mode;
+    team1QrName.textContent = s.team1Name;
+    team2QrName.textContent = s.team2Name;
+    bombStatLabel.textContent = isDataMode(s) ? 'Progresso local' : isTerminalMode(s) ? 'Validação terminal' : isLocatorMode(s) ? 'Localizador' : 'Tempo da bomba';
+    resultConfigLabel.textContent = isDataMode(s) ? 'Tempo de resultado' : isTerminalMode(s) ? 'Tempo do terminal' : 'Tempo da bomba';
+    actionTimeField.hidden = isLocatorMode(s);
+    resultTimeField.hidden = !bombMode;
+    penaltyTimeField.hidden = isTerminalMode(s) || isLocatorMode(s);
+    timeTitle.textContent = isTerminalMode(s) || isLocatorMode(s) ? 'Tempos do jogo' : 'Tempos e penalidade';
+    timeHelp.textContent = isLocatorMode(s) ? 'Controle a duração geral da busca. O GPS e o raio de encontro ficam no bloco Localização.' : isTerminalMode(s) ? 'Controle a duração geral da partida. Os tempos específicos de captura e revalidação ficam no bloco Terminal.' : isDataMode(s) ? 'Controle o tempo total, a ação base para QR/decodificação e a penalidade de senha incorreta.' : 'Controle o tempo total, tempo da bomba, tempo de ação e penalidade de senha incorreta.';
+    accessCodeRow.hidden = isTerminalMode(s) || isLocatorMode(s);
+    accessFactorRow.hidden = isLocatorMode(s);
+    accessGiveRow.hidden = isLocatorMode(s);
+    accessTitle.textContent = isLocatorMode(s) ? 'Sem senhas neste modo' : isTerminalMode(s) ? 'Fatores de QR e apoio' : isDataMode(s) ? 'Credenciais e fatores' : 'Senhas e fatores';
+    accessHelp.textContent = isLocatorMode(s) ? 'A busca por GPS usa apenas cadastro dos celulares e ativação do Controlador.' : isTerminalMode(s) ? 'Configure quantos celulares validam presença por time. A senha de captura fica no bloco Terminal.' : isDataMode(s) ? 'Configure senha do notebook, senha administrativa CT e fatores de presença.' : 'Configure senhas de arme/desarme e quantos jogadores precisam validar presença por QR.';
+    armCodeLabel.textContent = isDataMode(s) ? 'Senha do notebook' : isTerminalMode(s) ? 'Código reserva Time 2' : 'Senha de arme';
+    defuseCodeLabel.textContent = isDataMode(s) ? 'Senha administrativa CT' : isTerminalMode(s) ? 'Código reserva Time 1' : 'Senha de desarme';
+    armFactorsLabel.textContent = isDataMode(s) ? 'Fatores para invasão' : isTerminalMode(s) ? 'Fatores QR Time 2' : 'Fatores para armar';
+    defuseFactorsLabel.textContent = isDataMode(s) ? 'Fatores para defesa' : isTerminalMode(s) ? 'Fatores QR Time 1' : 'Fatores para desarmar';
+    dataConfig.hidden = !isDataMode(s);
+    terminalConfig.hidden = !isTerminalMode(s);
+    locatorConfig.hidden = false;
+    bombActivationOptions.hidden = !bombMode;
+    locatorEnabled.checked = Boolean(s.locatorEnabled);
+    toggleLocator.textContent = s.locatorEnabled ? 'Desligar GPS da bomba' : 'Ligar GPS da bomba';
+    locatorFixInfo.textContent = s.locatorArtifactLat == null || s.locatorArtifactLng == null ? 'Ligue a transmissão para a bomba publicar o próprio GPS a cada 10 segundos, ou informe uma posição inicial manual.' : 'Última posição: ' + Number(s.locatorArtifactLat).toFixed(6) + ', ' + Number(s.locatorArtifactLng).toFixed(6) + (s.locatorLastArtifactFix ? ' · bomba atualizada às ' + s.locatorLastArtifactFix : '.');
+    if (typeof terminalValidationCodeView !== 'undefined') terminalValidationCodeView.value = s.terminalValidationCode || '----';
+    giveCt.textContent = isDataMode(s) ? 'Passar senha administrativa' : isTerminalMode(s) ? 'Passar senha captura T1' : 'Passar senha CT';
+    giveT.textContent = isDataMode(s) ? 'Passar senha do notebook' : isTerminalMode(s) ? 'Passar senha captura T2' : 'Passar senha Terrorista';
+    armMaster.textContent = isDataMode(s) ? 'Forçar envio pelo Controlador' : isTerminalMode(s) ? 'Neutralizar terminal' : isLocatorMode(s) ? 'Marcar encontrado' : 'Armar pelo Controlador';
+    phaseBox.classList.toggle('winner', Boolean(s.winner));
+    document.body.classList.toggle('locked', Boolean(s.operation));
+    log.innerHTML = (s.log || []).map(item => '<div><b>' + item.time + '</b> ' + item.text + '</div>').join('');
+  }
+  function saveConfig() {
+    AirsoftBus.update(s => {
+      const nextQrRequired = qrRequired.checked;
+      if (s.qrRequired !== nextQrRequired) {
+        s.qrArm = 0;
+        s.qrDefuse = 0;
+        s.qrArmAt = null;
+        s.qrDefuseAt = null;
+        s.qrStageNonce = Number(s.qrStageNonce || 0) + 1;
+        s.qrStageName = nextQrRequired ? 'validacao-ativada' : 'validacao-dispensada';
+      }
+      if (!s.running) s.gameSeconds = readHoursMinutes('game', 60);
+      s.actionSeconds = readMinutesSeconds('action', 1);
+      s.resultSeconds = readHoursMinutes('result', 60);
+      s.mode = mode.value;
+      s.team1Name = team1Name.value.trim() || 'Time 1 - CT';
+      s.team2Name = team2Name.value.trim() || 'Time 2 - Terrorista';
+      s.penaltySeconds = readMinutesSeconds('penalty', 0, true);
+      s.penaltyEnabled = s.penaltySeconds > 0;
+      s.dataNotebookName = dataNotebookName.value.trim() || 'NBK-17 Operações';
+      s.dataFolderOptions = [
+        dataFolder0.value.trim() || 'SYSTEM_CACHE',
+        dataFolder1.value.trim() || 'OP_BLACKBOX',
+        dataFolder2.value.trim() || 'FIELD_LOGS',
+        dataFolder3.value.trim() || 'ARCHIVE_09'
+      ];
+      s.dataCorrectFolder = Number(dataCorrectFolder.value);
+      s.dataFolderName = s.dataFolderOptions[s.dataCorrectFolder] || s.dataFolderOptions[1] || 'OP_BLACKBOX';
+      s.dataFileName = dataFileName.value.trim() || 'rotas-extracao.enc';
+      s.dataRecipient = dataRecipient.value.trim() || 'relay@darknet.ops';
+      s.dataPayloadSize = dataPayloadSize.value.trim() || '48 MB';
+      s.dataDecryptCode = dataDecryptCode.value.trim() || '9137';
+      s.dataAccessSeconds = readMinutesSeconds('dataAccess', 1);
+      s.dataDownloadSeconds = readMinutesSeconds('dataDownload', 1);
+      s.dataDecryptSeconds = readMinutesSeconds('dataDecrypt', 1);
+      s.dataSendSeconds = readMinutesSeconds('dataSend', 1);
+      s.terminalName = terminalName.value.trim() || 'TERMINAL AX-07';
+      s.terminalCaptureSeconds = readMinutesSeconds('terminalCapture', 1);
+      s.terminalValidationIntervalSeconds = readMinutesSeconds('terminalValidationInterval', 1);
+      s.terminalValidationWindowSeconds = readMinutesSeconds('terminalValidationWindow', 1);
+      s.terminalWinSeconds = readMinutesSeconds('terminalWin', 60);
+      s.terminalCaptureCode = terminalCaptureCode.value.trim() || '2468';
+      s.terminalCaptureNeedsCode = terminalCaptureNeedsCode.checked;
+      s.terminalRandomRevalidateCode = terminalRandomRevalidateCode.checked;
+      s.locatorArtifactName = locatorArtifactName.value.trim() || 'Artefato AX-07';
+      s.gameObjectives = gameObjectives.value.trim() || 'Aguarde os objetivos enviados pelo Controlador.';
+      s.locatorEnabled = locatorEnabled.checked;
+      s.bombActivationAlertEnabled = bombActivationAlertEnabled.checked;
+      s.locatorOnBombActivated = locatorOnBombActivated.checked;
+      s.locatorArtifactLat = locatorArtifactLat.value === '' ? null : Number(locatorArtifactLat.value);
+      s.locatorArtifactLng = locatorArtifactLng.value === '' ? null : Number(locatorArtifactLng.value);
+      s.locatorProximityMeters = clampNumber(locatorProximityMeters.value, 1, 999);
+      s.locatorMovementAlertEnabled = locatorMovementAlertEnabled.checked;
+      s.locatorMovementThresholdMeters = clampNumber(locatorMovementThresholdMeters.value, 5, 500);
+      if (s.armCode !== armCode.value) {
+        s.armCode = armCode.value;
+        s.terroristHasCode = false;
+        s.terroristKnownCode = '----';
+        s.terroristBombValidated = false;
+      }
+      if (s.defuseCode !== defuseCode.value) {
+        s.defuseCode = defuseCode.value;
+        s.ctHasCode = false;
+        s.ctKnownCode = '----';
+        s.ctBombValidated = false;
+      }
+      s.armFactors = Number(armFactors.value); s.defuseFactors = Number(defuseFactors.value); s.qrRequired = nextQrRequired;
+    });
+  }
+  document.querySelectorAll('input,select,textarea').forEach(el => {
+    el.addEventListener('change', saveConfig);
+    el.addEventListener('input', saveConfig);
+  });
+  start.onclick = () => {
+    saveConfig();
+    AirsoftBus.update(s => {
+      s.running = true;
+      s.finished = false;
+      s.bombState = s.mode === 'Roubo de dados' ? 'Notebook travado' : s.mode === 'Dominação de terminal' ? 'Terminal neutro' : s.mode === 'Localização de artefato' ? 'Localizador pronto' : 'Jogo ativo';
+      s.phase = s.mode === 'Roubo de dados' ? 'Aguardando invasão' : s.mode === 'Dominação de terminal' ? 'Aguardando captura' : s.mode === 'Localização de artefato' ? 'Aguardando sinal GPS' : 'Partida em andamento';
+      s.winner = null;
+      s.bombSeconds = null;
+      s.dataStage = 'locked';
+      s.dataDownloaded = false;
+      s.dataDecrypted = false;
+      s.dataSent = false;
+      s.terminalOwner = null;
+      s.terminalValidationRequired = false;
+      s.terminalValidationTeam = null;
+      s.terminalTeam1Seconds = 0;
+      s.terminalTeam2Seconds = 0;
+      s.terminalValidationCode = '----';
+      s.pending = null;
+      s.operation = null;
+      s.qrArm = 0;
+      s.qrDefuse = 0;
+      s.qrArmAt = null;
+      s.qrDefuseAt = null;
+      s.qrStageNonce = 0;
+      s.qrStageName = 'inicio';
+      s.ctHasCode = false;
+      s.terroristHasCode = false;
+      s.ctBombValidated = false;
+      s.terroristBombValidated = false;
+      s.ctKnownCode = '----';
+      s.terroristKnownCode = '----';
+      s.notice = null;
+      s.locatorOriginLat = null;
+      s.locatorOriginLng = null;
+      s.locatorMovementDetected = false;
+      s.locatorMovementMeters = 0;
+    });
+    AirsoftBus.log('Controlador iniciou o jogo.');
+    const current = AirsoftBus.read();
+    showPopup('Jogo iniciado', isDataMode(current) ? 'O notebook travado está no ar. Jogadores já podem validar QR e iniciar invasão ou defesa.' : isTerminalMode(current) ? 'O terminal está neutro. Os times podem capturar com QR no celular e OK no terminal.' : isLocatorMode(current) ? 'O localizador está pronto. Ative o sinal e confirme as coordenadas do artefato.' : 'A bomba e os celulares já podem receber ações dos jogadores.');
+  };
+  end.onclick = () => { AirsoftBus.update(s => { s.running = false; s.finished = true; s.bombState = 'Fim de jogo'; s.phase = 'Encerrado pelo Controlador'; s.winner = 'Sem vencedor'; s.pending = null; s.operation = null; }); AirsoftBus.log('Controlador encerrou o jogo.'); showPopup('Jogo encerrado', 'A partida foi finalizada manualmente pelo controlador.'); };
+  reset.onclick = () => {
+    const keepTeam1Name = team1Name.value.trim() || 'Time 1 - CT';
+    const keepTeam2Name = team2Name.value.trim() || 'Time 2 - Terrorista';
+    AirsoftBus.reset();
+    AirsoftBus.update(s => {
+      s.team1Name = keepTeam1Name;
+      s.team2Name = keepTeam2Name;
+    });
+    pullForm(AirsoftBus.read());
+    showPopup('Sistema reiniciado', 'As telas voltaram para o estado inicial e os celulares precisam ser cadastrados novamente.');
+  };
+  cancelStage.onclick = () => {
+    AirsoftBus.update(s => {
+      s.pending = null;
+      s.operation = null;
+      if (isTerminalMode(s)) {
+        if (s.terminalOwner) {
+          s.phase = s.terminalValidationRequired ? 'Confirme no celular e no terminal' : 'Domínio ativo';
+          s.bombState = s.terminalValidationRequired ? 'Validação necessária' : (s.terminalOwner === 'ct' ? s.team1Name + ' dominando' : s.team2Name + ' dominando');
+        } else {
+          s.phase = 'Aguardando captura';
+          s.bombState = 'Terminal neutro';
+          s.bombSeconds = null;
+        }
+      } else if (isDataMode(s)) {
+        if (s.dataStage === 'sent') {
+          s.phase = 'Fim de jogo';
+          s.bombState = 'Dados enviados';
+        } else if (s.dataStage === 'decrypted') {
+          s.phase = 'Arquivo descriptografado';
+          s.bombState = 'Arquivo aberto';
+        } else if (s.dataStage === 'decryptQr') {
+          s.phase = 'Validar descriptografia pelo celular';
+          s.bombState = 'Validação pendente';
+        } else if (s.dataStage === 'downloaded') {
+          s.phase = 'Dados salvos no notebook';
+          s.bombState = 'Dados baixados';
+        } else if (s.dataStage === 'folderPick') {
+          s.phase = 'Selecione a pasta correta no notebook';
+          s.bombState = 'Escolha a pasta';
+        } else if (s.dataStage === 'accessed') {
+          s.phase = 'Pronto para download';
+          s.bombState = 'Pasta alvo aberta';
+        } else {
+          s.phase = 'Aguardando invasão';
+          s.bombState = 'Notebook travado';
+        }
+      } else {
+        s.phase = s.bombSeconds == null ? 'Partida em andamento' : 'Contagem da bomba';
+        s.bombState = s.bombSeconds == null ? 'Jogo ativo' : 'Armada';
+      }
+    });
+    AirsoftBus.log('Controlador cancelou a etapa pendente.');
+    showPopup('Etapa cancelada', 'A operação em andamento e a solicitação de senha foram limpas.');
+  };
+  applyPenalty.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    if (!current.running || current.finished) { showPopup('Penalidade bloqueada', 'A penalidade só pode ser aplicada com jogo ativo.', 'Bloqueado'); return; }
+    if (!current.penaltyEnabled || current.penaltySeconds <= 0) { showPopup('Penalidade desligada', 'Ative um tempo de penalidade na configuração.', 'Bloqueado'); return; }
+    AirsoftBus.update(s => {
+      if (s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - s.penaltySeconds);
+      else s.gameSeconds = Math.max(0, s.gameSeconds - s.penaltySeconds);
+    });
+    AirsoftBus.log('Controlador aplicou penalidade de ' + current.penaltySeconds + ' segundos.');
+    showPopup('Penalidade aplicada', current.bombSeconds != null ? 'A contagem da bomba foi acelerada.' : 'O tempo de jogo foi reduzido.');
+  };
+  captureMasterGps.onclick = () => {
+    if (!navigator.geolocation) { showPopup('GPS indisponível', 'Este navegador não disponibilizou leitura de localização.', 'GPS'); return; }
+    showPopup('Buscando GPS', 'Autorize o navegador para usar a posição atual como localização do artefato.', 'GPS');
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = Number(pos.coords.latitude.toFixed(6));
+      const lng = Number(pos.coords.longitude.toFixed(6));
+      AirsoftBus.update(s => {
+        s.locatorArtifactLat = lat;
+        s.locatorArtifactLng = lng;
+        s.locatorLastMasterFix = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      });
+      pullForm(AirsoftBus.read());
+      AirsoftBus.log('Controlador definiu posição GPS do artefato.');
+      showPopup('GPS capturado', 'Coordenadas do artefato atualizadas para ' + lat + ', ' + lng + '.', 'GPS');
+    }, () => {
+      showPopup('GPS bloqueado', 'Não foi possível obter a posição. Preencha latitude e longitude manualmente.', 'GPS');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 });
+  };
+  toggleLocator.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    AirsoftBus.update(s => {
+      s.locatorEnabled = !s.locatorEnabled;
+      if (isLocatorMode(s)) {
+        s.bombState = s.locatorEnabled ? 'Localizador ativo' : 'Localizador desligado';
+        s.phase = s.locatorEnabled ? 'Sinal GPS liberado aos celulares' : 'Sinal oculto pelo Controlador';
+      }
+    });
+    const next = AirsoftBus.read();
+    pullForm(next);
+    AirsoftBus.log('Controlador ' + (next.locatorEnabled ? 'ligou' : 'desligou') + ' a transmissão GPS da bomba.');
+    showPopup(next.locatorEnabled ? 'GPS da bomba ligado' : 'GPS da bomba desligado', next.locatorEnabled ? 'A bomba publicará sua posição a cada 10 segundos para os celulares cadastrados.' : 'A bomba parou de transmitir e os celulares deixam de receber novas coordenadas.', 'GPS');
+  };
+  giveCt.onclick = () => {
+    saveConfig();
+    AirsoftBus.update(s => {
+      s.ctHasCode = true;
+      s.ctKnownCode = isTerminalMode(s) ? s.terminalCaptureCode : s.defuseCode;
+    });
+    const current = AirsoftBus.read();
+    AirsoftBus.log(isDataMode(current) ? 'Controlador passou a senha administrativa ao Time 1.' : isTerminalMode(current) ? 'Controlador passou a senha de captura ao Time 1.' : 'Controlador passou a senha de desarme ao CT.');
+    showPopup(isDataMode(current) ? 'Senha administrativa entregue' : isTerminalMode(current) ? 'Senha de captura entregue' : 'Senha entregue ao CT', isDataMode(current) ? 'O Time 1 pode usar essa senha para mudar o acesso do notebook e bloquear o avanço hostil.' : isTerminalMode(current) ? 'O celular do Time 1 agora mostra a senha para capturar o terminal.' : 'O celular CT agora possui a senha de desarme configurada.');
+  };
+  giveT.onclick = () => {
+    saveConfig();
+    AirsoftBus.update(s => {
+      s.terroristHasCode = true;
+      s.terroristKnownCode = isTerminalMode(s) ? s.terminalCaptureCode : s.armCode;
+    });
+    const current = AirsoftBus.read();
+    AirsoftBus.log(isDataMode(current) ? 'Controlador passou a senha do notebook ao Time 2.' : isTerminalMode(current) ? 'Controlador passou a senha de captura ao Time 2.' : 'Controlador passou a senha de arme ao Terrorista.');
+    showPopup(isDataMode(current) ? 'Senha do notebook entregue' : isTerminalMode(current) ? 'Senha de captura entregue' : 'Senha entregue ao Terrorista', isDataMode(current) ? 'O Time 2 pode acessar o notebook e iniciar download, descriptografia e envio.' : isTerminalMode(current) ? 'O celular do Time 2 agora mostra a senha para capturar o terminal.' : 'O celular Terrorista agora possui a senha de arme configurada.');
+  };
+  armMaster.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    if (!current.running || current.finished) { showPopup('Comando bloqueado', isDataMode(current) ? 'Inicie a partida antes de vazar dados pelo Controlador.' : isTerminalMode(current) ? 'Inicie a partida antes de neutralizar o terminal.' : isLocatorMode(current) ? 'Inicie a partida antes de marcar o artefato como encontrado.' : 'Inicie a partida antes de armar a bomba pelo Controlador.', 'Bloqueado'); return; }
+    if (!isDataMode(current) && !isTerminalMode(current) && !isLocatorMode(current) && current.bombSeconds != null) { showPopup('Bomba já armada', 'A contagem da bomba já está ativa.', 'Bloqueado'); return; }
+    if (current.pending || current.operation) { showPopup('Operação pendente', 'Existe uma etapa de jogador em andamento. Finalize ou reinicie antes deste comando.', 'Bloqueado'); return; }
+    AirsoftBus.update(s => {
+      if (isDataMode(s)) {
+        s.dataStage = 'sent';
+        s.dataDownloaded = true;
+        s.dataDecrypted = true;
+        s.dataSent = true;
+        s.bombState = 'Dados enviados';
+        s.phase = 'Fim de jogo';
+        s.winner = s.team2Name + ' venceu';
+        s.running = false;
+        s.finished = true;
+      } else if (isTerminalMode(s)) {
+        s.terminalOwner = null;
+        s.terminalValidationRequired = false;
+        s.terminalValidationTeam = null;
+        s.bombSeconds = null;
+        s.bombState = 'Terminal neutro';
+        s.phase = 'Neutralizado pelo Controlador';
+      } else if (isLocatorMode(s)) {
+        s.bombState = 'Artefato encontrado';
+        s.phase = 'Busca finalizada pelo Controlador';
+        s.winner = s.team1Name + ' venceu';
+        s.running = false;
+        s.finished = true;
+        s.pending = null;
+        s.operation = null;
+      } else {
+        s.bombState = 'Armada';
+        s.phase = 'Contagem da bomba';
+        s.bombSeconds = s.resultSeconds;
+        s.bombActivationId = Number(s.bombActivationId || 0) + 1;
+        s.bombActivatedAt = Date.now();
+        if (s.locatorOnBombActivated) s.locatorEnabled = true;
+      }
+    });
+    AirsoftBus.log(isDataMode(current) ? 'Controlador forçou envio dos dados.' : isTerminalMode(current) ? 'Controlador neutralizou o terminal.' : isLocatorMode(current) ? 'Controlador marcou o artefato como encontrado.' : 'Controlador armou a bomba cenográfica.');
+    showPopup(isDataMode(current) ? 'Envio forçado pelo Controlador' : isTerminalMode(current) ? 'Terminal neutralizado' : isLocatorMode(current) ? 'Artefato encontrado' : 'Bomba armada pelo Controlador', isDataMode(current) ? 'O jogo foi encerrado com os dados enviados pelo Time 2.' : isTerminalMode(current) ? 'O terminal voltou ao estado neutro.' : isLocatorMode(current) ? 'A busca foi encerrada pelo Controlador.' : 'A contagem da bomba começou usando o tempo de resultado configurado.');
+  };
+  ticker = setInterval(() => {
+    AirsoftBus.update(s => {
+      if (!s.running || s.finished) return;
+      s.gameSeconds = Math.max(0, s.gameSeconds - 1);
+      if (isTerminalMode(s)) {
+        if (s.terminalOwner === 'ct') s.terminalTeam1Seconds += 1;
+        if (s.terminalOwner === 'terrorist') s.terminalTeam2Seconds += 1;
+        if (s.terminalOwner && s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - 1);
+        if (s.terminalOwner && !s.terminalValidationRequired && s.bombSeconds === 0) {
+          const validationCode = String(Math.floor(1000 + Math.random() * 9000));
+          s.terminalValidationRequired = true;
+          s.terminalValidationTeam = s.terminalOwner;
+          s.terminalValidationCode = s.terminalRandomRevalidateCode ? validationCode : '----';
+          if (s.terminalRandomRevalidateCode && s.terminalOwner === 'ct') s.ctKnownCode = '----';
+          if (s.terminalRandomRevalidateCode && s.terminalOwner === 'terrorist') s.terroristKnownCode = '----';
+          s.bombSeconds = s.terminalValidationWindowSeconds;
+          s.bombState = 'Validação necessária';
+          s.phase = s.terminalRandomRevalidateCode ? 'Decodifique a senha de revalidação' : 'Confirme no celular e no terminal';
+        } else if (s.terminalOwner && s.terminalValidationRequired && s.bombSeconds === 0) {
+          const oldOwner = s.terminalOwner;
+          s.terminalOwner = null;
+          s.terminalValidationRequired = false;
+          s.terminalValidationTeam = null;
+          s.terminalValidationCode = '----';
+          s.pending = null;
+          s.operation = null;
+          s.bombSeconds = null;
+          s.bombState = 'Terminal neutro';
+          s.phase = 'Validação falhou';
+          s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: 'Validação não concluída. Terminal voltou a neutro.' }, ...(s.log || [])].slice(0, 80);
+        }
+        if (s.terminalTeam1Seconds >= s.terminalWinSeconds || s.terminalTeam2Seconds >= s.terminalWinSeconds) {
+          s.running = false;
+          s.finished = true;
+          s.winner = (s.terminalTeam1Seconds >= s.terminalWinSeconds ? s.team1Name : s.team2Name) + ' venceu';
+          s.bombState = 'Domínio completo';
+          s.phase = 'Fim de jogo';
+          s.pending = null;
+          s.operation = null;
+        }
+      } else if (s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - 1);
+      if (s.bombSeconds === 0) {
+        if (isTerminalMode(s)) return;
+        s.running = false; s.finished = true; s.bombState = isDataMode(s) ? 'Dados vazados' : 'Explosão cenográfica'; s.phase = 'Fim de jogo';
+        s.winner = s.team2Name + ' venceu';
+        s.pending = null; s.operation = null;
+        s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: (isDataMode(s) ? 'Dados vazados. ' : 'Explosão cenográfica registrada. ') + s.team2Name + ' venceu.' }, ...(s.log || [])].slice(0, 80);
+      } else if (s.gameSeconds === 0) {
+        s.running = false; s.finished = true; s.bombState = 'Fim de jogo'; s.phase = 'Tempo encerrado';
+        s.winner = s.team1Name + ' venceu';
+        s.pending = null; s.operation = null;
+        s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: 'Tempo de jogo encerrado. ' + s.team1Name + ' venceu.' }, ...(s.log || [])].slice(0, 80);
+      }
+    });
+  }, 1000);
+  AirsoftBus.subscribe(s => { render(s); });
+  pullForm(AirsoftBus.read());
+</script>
+</body>
+</html>

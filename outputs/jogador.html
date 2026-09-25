@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airsoft Ops - Jogador</title>
+  <script src="airsoft-shared.js?v=20260925-bomb-alert-1"></script>
+  <style>
+    body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: center; padding: 14px; box-sizing: border-box; }
+    .phone { width: min(100%, 430px); min-height: 720px; border: 1px solid #2b3a3d; background: #081012; box-shadow: inset 0 0 0 4px #111719, 0 24px 80px rgba(0,0,0,.5); display: grid; grid-template-rows: auto auto 1fr; }
+    header, .tabs, .module { padding: 14px; }
+    header { border-bottom: 1px solid #2b3a3d; display: flex; justify-content: space-between; gap: 10px; }
+    h1, h2, p { margin: 0; } h1 { font-size: 20px; text-transform: uppercase; } h2 { font-size: 15px; text-transform: uppercase; }
+    .muted { color: #8fa09a; font-size: 13px; }
+    .badge { border: 1px solid #2b3a3d; background: #172024; padding: 7px 9px; text-transform: uppercase; font-size: 12px; }
+    .green { color: #34d399; } .red { color: #fb4e4e; } .amber { color: #f2b84b; } .blue { color: #4ea7ff; }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; border-bottom: 1px solid #2b3a3d; }
+    button, select { min-height: 46px; border: 1px solid #2b3a3d; background: #172024; color: #e8f0ed; font: inherit; font-weight: 800; cursor: pointer; }
+    button.active, .primary { background: #34d399; color: #03110c; } .danger { background: #fb4e4e; color: #190404; } .warn { background: #f2b84b; color: #171003; } .blueBtn { background: #4ea7ff; color: #04111f; }
+    .module { display: none; align-content: start; gap: 12px; } .module.active { display: grid; }
+    .stat { border: 1px solid #2b3a3d; background: #10171a; padding: 12px; display: grid; gap: 4px; } .stat span { color: #8fa09a; font-size: 12px; text-transform: uppercase; } .stat b { font-size: 24px; }
+    .big { min-height: 70px; width: 100%; text-transform: uppercase; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.62); z-index: 10; }
+    .popupLayer[hidden] { display: none; }
+    .popup { width: min(100%, 390px); border: 1px solid #4ea7ff; background: #10171a; padding: 18px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; }
+    .popup strong { color: #4ea7ff; text-transform: uppercase; font-size: 12px; }
+    .popup p { color: #c4d2ce; line-height: 1.45; }
+    .progressWrap { display: grid; gap: 8px; }
+    .progressTrack { height: 18px; border: 1px solid #2b3a3d; background: #050708; overflow: hidden; }
+    .progressFill { width: 0%; height: 100%; background: #34d399; transition: width .2s linear; }
+    .progressMeta { display: flex; justify-content: space-between; align-items: center; color: #8fa09a; font-size: 12px; text-transform: uppercase; }
+    .locatorCard { display: grid; gap: 12px; justify-items: center; text-align: center; }
+    .locatorArrow { width: 128px; height: 128px; display: grid; place-items: center; border: 2px solid #4ea7ff; border-radius: 50%; color: #8ed5f1; font-size: 56px; transition: transform .25s ease; box-shadow: inset 0 0 30px rgba(78,167,255,.18); }
+    .locatorMetrics { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .locatorMetrics div { border: 1px solid #2b3a3d; background: #10171a; padding: 10px; display: grid; gap: 4px; }
+    .locatorMetrics span { color: #8fa09a; font-size: 11px; text-transform: uppercase; }
+    .locatorMetrics b { font-size: 20px; }
+    .objectiveText { white-space: pre-wrap; line-height: 1.55; font-size: 16px; color: #dce7e3; }
+    .movementAlert { border-color: #f2b84b; background: rgba(242,184,75,.1); }
+    .setup { display: grid; gap: 12px; padding: 14px; }
+    .setup[hidden] { display: none; }
+    .teamLock { color: #34d399; font-weight: 900; text-transform: uppercase; }
+    body.locked .phone button:not(#popupClose), body.locked .phone select { pointer-events: none; filter: grayscale(1); opacity: .45; }
+  </style>
+  <link rel="stylesheet" href="airsoft-theme.css?v=20260925-bomb-alert-1">
+</head>
+<body class="playerPage">
+<section class="phone">
+  <header>
+    <div><h1>Jogador</h1><p class="muted">Celular operacional</p></div>
+    <div>
+      <span class="badge" id="roleBadge">Sem time</span>
+      <select id="role" hidden><option value="ct">CT</option><option value="terrorist">Terrorista</option></select>
+    </div>
+  </header>
+  <div class="setup" id="setup">
+    <h2>Cadastrar celular</h2>
+    <p class="muted">Escaneie no controle o QR do time deste aparelho.</p>
+    <button class="primary big" id="registerCt">Cadastrar Time 1 - CT</button>
+    <button class="warn big" id="registerTerrorist">Cadastrar Time 2 - Terrorista</button>
+  </div>
+  <nav class="tabs">
+    <button class="active" data-tab="objectives">Objetivos</button>
+    <button data-tab="terminal">Terminal</button>
+    <button data-tab="locator">Localizador</button>
+  </nav>
+  <main>
+    <div class="module active" id="objectives">
+      <h2>Objetivos da missão</h2>
+      <div class="stat"><span>Ordem do controlador</span><p class="objectiveText" id="objectiveText">Aguardando instruções do Controlador.</p></div>
+      <div class="stat"><span>Modo atual</span><b id="objectiveMode">Preparação</b></div>
+    </div>
+    <div class="module" id="terminal">
+      <h2>Terminal operacional</h2>
+      <div class="stat"><span id="artifactLabel">Estado da bomba</span><b id="bombState">Preparação</b></div>
+      <div class="stat" id="dataStageCard" hidden><span>Etapa dos dados</span><b id="dataStageText">Travado</b></div>
+      <div class="stat" id="nextStepCard" hidden><span>Próxima ação</span><b id="nextStepText">----</b></div>
+      <div class="stat" id="knownCodeCard"><span>Senha no celular</span><b id="knownCode">----</b></div>
+      <div class="stat" id="validatedCard"><span>Validação na bomba</span><b id="validated">Não</b></div>
+      <h2>Decodificação</h2>
+      <p class="muted" id="decodeHelp">Use se o Controlador não passou a senha manualmente.</p>
+      <button class="warn big" id="requestDecode">Pedir decodificação</button>
+      <h2 id="actionTitle">Desarme CT</h2>
+      <p class="muted" id="actionHelp">Ao pedir a ação, o sistema abre a validação de QR em popup. Depois siga a etapa no celular e no artefato.</p>
+      <button class="primary big" id="execute">Pedir ação</button>
+    </div>
+    <div class="module" id="locator">
+      <h2>Localização</h2>
+      <p class="muted">Use quando o Controlador esconder um artefato físico no campo e liberar o sinal GPS.</p>
+      <div class="stat locatorCard" id="locatorCard">
+        <span>Localizador GPS</span>
+        <div class="locatorArrow" id="locatorArrow">↑</div>
+        <b id="locatorDistance">----</b>
+        <p class="muted" id="locatorDirection">Aguardando sinal do Controlador.</p>
+        <div class="locatorMetrics">
+          <div><span>Precisão</span><b id="locatorAccuracy">----</b></div>
+          <div><span>Status</span><b id="locatorStatus">Off</b></div>
+        </div>
+        <p class="muted" id="locatorUpdated">Sem atualização do artefato.</p>
+      </div>
+      <div class="stat movementAlert" id="movementAlert" hidden>
+        <span>Alerta operacional</span>
+        <b>Artefato encontrado</b>
+        <p class="muted" id="movementAlertText">O artefato foi deslocado da posição inicial.</p>
+      </div>
+      <button class="blueBtn big" id="locatorRefresh">Ativar localizador</button>
+    </div>
+  </main>
+</section>
+<div class="popupLayer" id="popupLayer" hidden>
+  <section class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <strong id="popupKind">Sistema</strong>
+    <h2 id="popupTitle">Aviso</h2>
+    <p id="popupBody"></p>
+    <div class="progressWrap" id="popupProgress" hidden>
+      <div class="progressMeta"><span id="progressLabel">Progresso</span><span id="progressTime">--s</span></div>
+      <div class="progressTrack"><div class="progressFill" id="progressFill"></div></div>
+    </div>
+    <button id="popupClose">Fechar</button>
+  </section>
+</div>
+<script>
+  let actionTimer = null;
+  let popupTimer = null;
+  let progressTimer = null;
+  let progressActive = false;
+  let locatorWatchId = null;
+  let locatorPosition = null;
+  let locatorError = null;
+  let lastMovementNoticeId = Number(sessionStorage.getItem('airsoft-locator-alert-v1') || 0);
+  const playerKey = 'airsoft-player-role-v1';
+  const playerResetKey = 'airsoft-player-reset-v1';
+  function hidePopup() {
+    if (progressActive) return;
+    popupLayer.hidden = true;
+    popupProgress.hidden = true;
+    clearTimeout(popupTimer);
+  }
+  function showPopup(title, body, kind = 'Sistema') {
+    clearTimeout(popupTimer);
+    progressActive = false;
+    popupClose.hidden = false;
+    popupKind.textContent = kind;
+    popupTitle.textContent = title;
+    popupBody.textContent = body;
+    popupProgress.hidden = true;
+    popupLayer.hidden = false;
+    popupTimer = setTimeout(hidePopup, 15000);
+  }
+  function showProgress(title, seconds, onComplete) {
+    const total = Math.max(1, Number(seconds) || 1);
+    const startedAt = Date.now();
+    clearTimeout(actionTimer);
+    clearTimeout(popupTimer);
+    clearInterval(progressTimer);
+    progressActive = true;
+    popupClose.hidden = true;
+    popupKind.textContent = 'Operação';
+    popupTitle.textContent = title;
+    popupBody.textContent = 'Permaneça perto do artefato até a ação terminar.';
+    popupProgress.hidden = false;
+    popupLayer.hidden = false;
+    function tick() {
+      const elapsed = Math.min(total, (Date.now() - startedAt) / 1000);
+      const percent = Math.round((elapsed / total) * 100);
+      progressFill.style.width = percent + '%';
+      progressTime.textContent = percent + '%';
+      progressLabel.textContent = elapsed >= total ? 'Processo concluído' : 'Processando arquivo';
+    }
+    tick();
+    popupTimer = setTimeout(hidePopup, 15000);
+    progressTimer = setInterval(tick, 250);
+    actionTimer = setTimeout(() => {
+      clearInterval(progressTimer);
+      progressFill.style.width = '100%';
+      progressTime.textContent = '100%';
+      progressLabel.textContent = 'Processo concluído';
+      const completed = onComplete() !== false;
+      progressActive = false;
+      popupClose.hidden = false;
+      if (completed) showPopup('Operação concluída', 'A etapa foi finalizada e o sistema foi atualizado.', 'Resultado');
+      document.body.classList.remove('locked');
+    }, total * 1000);
+    document.body.classList.add('locked');
+  }
+  popupClose.onclick = hidePopup;
+  popupLayer.addEventListener('click', e => { if (e.target === popupLayer) hidePopup(); });
+  document.querySelectorAll('[data-tab]').forEach(btn => btn.onclick = () => {
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    document.querySelector('.phone > main').scrollTop = 0;
+  });
+  function currentType() { return role.value === 'ct' ? 'defuse' : 'arm'; }
+  function isDataMode(s) { return s.mode === 'Roubo de dados'; }
+  function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
+  function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function toRad(v) { return Number(v) * Math.PI / 180; }
+  function toDeg(v) { return v * 180 / Math.PI; }
+  function distanceMeters(aLat, aLng, bLat, bLng) {
+    const r = 6371000;
+    const dLat = toRad(bLat - aLat);
+    const dLng = toRad(bLng - aLng);
+    const lat1 = toRad(aLat);
+    const lat2 = toRad(bLat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * r * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+  function bearingDegrees(aLat, aLng, bLat, bLng) {
+    const lat1 = toRad(aLat);
+    const lat2 = toRad(bLat);
+    const dLng = toRad(bLng - aLng);
+    const y = Math.sin(dLng) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+  function compassLabel(deg) {
+    const labels = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+    return labels[Math.round(deg / 45) % 8];
+  }
+  function startLocatorWatch() {
+    if (locatorWatchId != null) return;
+    if (!navigator.geolocation) {
+      locatorError = 'GPS indisponível neste navegador.';
+      return;
+    }
+    locatorWatchId = navigator.geolocation.watchPosition(pos => {
+      locatorPosition = pos;
+      locatorError = null;
+      render(AirsoftBus.read());
+    }, err => {
+      locatorError = err.message || 'Permissão de GPS bloqueada.';
+      render(AirsoftBus.read());
+    }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+  }
+  function stopLocatorWatch() {
+    if (locatorWatchId == null) return;
+    navigator.geolocation.clearWatch(locatorWatchId);
+    locatorWatchId = null;
+  }
+  function actionLabel(type, s) {
+    if (isDataMode(s)) return type === 'arm' ? 'extração de dados' : 'bloqueio de dados';
+    return type === 'arm' ? 'arme' : 'desarme';
+  }
+  function actionVerb(type, s) {
+    if (isDataMode(s)) return type === 'arm' ? 'Extrair dados' : 'Bloquear dados';
+    return type === 'arm' ? 'Armar bomba' : 'Desarmar bomba';
+  }
+  function dataStageLabel(s) {
+    if (s.dataStage === 'accessed') return 'Notebook aberto';
+    if (s.dataStage === 'folderPick') return 'Escolher pasta';
+    if (s.dataStage === 'downloaded') return 'Dados baixados';
+    if (s.dataStage === 'decryptQr') return 'Validar descriptografia';
+    if (s.dataStage === 'decrypted') return 'Arquivo aberto';
+    if (s.dataStage === 'sent') return 'Email enviado';
+    return 'Notebook travado';
+  }
+  function dataActionFor(s) {
+    const ct = role.value === 'ct';
+    if (!ct) {
+      if (s.dataStage === 'locked') return { key: 'access', title: 'Acessar notebook', label: 'acesso ao notebook', needsCode: true };
+      if (s.dataStage === 'folderPick') return { key: 'waitFolder', title: 'Aguardando pasta', label: 'escolha de pasta' };
+      if (s.dataStage === 'accessed') return { key: 'download', title: 'Baixar dados', label: 'download de dados' };
+      if (s.dataStage === 'downloaded') return { key: 'decrypt', title: 'Descriptografar dados', label: 'descriptografia' };
+      if (s.dataStage === 'decryptQr') return { key: 'validateDecryptQr', title: 'Validar descriptografia', label: 'validação da descriptografia' };
+      if (s.dataStage === 'decrypted') return { key: 'send', title: 'Enviar dados', label: 'envio de dados' };
+      return { key: 'done', title: 'Dados enviados', label: 'operação concluída' };
+    }
+    if (s.dataStage === 'locked') return { key: 'changePassword', title: 'Mudar senha do notebook', label: 'mudança de senha' };
+    if (s.dataStage === 'folderPick') return { key: 'changePassword', title: 'Expulsar acesso e mudar senha', label: 'mudança de senha' };
+    if (s.dataStage === 'accessed') return { key: 'changePassword', title: 'Expulsar acesso e mudar senha', label: 'mudança de senha' };
+    if (s.dataStage === 'downloaded') return { key: 'wipePhone', title: 'Apagar dados baixados', label: 'apagamento remoto' };
+    if (s.dataStage === 'decrypted') return { key: 'deleteDecrypted', title: 'Deletar dados descriptografados', label: 'deleção segura' };
+    return { key: 'done', title: 'Dados já enviados', label: 'operação encerrada' };
+  }
+  function terminalActionFor(s) {
+    const team = role.value;
+    if (s.terminalValidationRequired) {
+      if (s.terminalValidationTeam === team) {
+        const needsCode = s.terminalRandomRevalidateCode && knownTerminalValidationCode(s) !== s.terminalValidationCode;
+        return { key: 'validate', title: needsCode ? 'Decodificar e validar' : 'Validar domínio', label: 'validação de domínio' };
+      }
+      return { key: 'waitEnemy', title: 'Aguardar falha rival', label: 'validação rival' };
+    }
+    if (!s.terminalOwner) return { key: 'capture', title: 'Capturar terminal', label: 'captura de terminal' };
+    if (s.terminalOwner === team) return { key: 'guard', title: 'Guardar domínio', label: 'guarda de domínio' };
+    return { key: 'capture', title: 'Tomar terminal', label: 'captura de terminal' };
+  }
+  function codeLabel(type, s) {
+    if (isDataMode(s) && type === 'arm' && s.dataStage === 'downloaded') return 'senha de descriptografia';
+    if (isDataMode(s)) return type === 'arm' ? 'senha do notebook' : 'senha administrativa';
+    return type === 'arm' ? 'senha de arme' : 'senha de desarme';
+  }
+  function knownTerminalValidationCode(s) {
+    return role.value === 'ct' ? s.ctKnownCode : s.terroristKnownCode;
+  }
+  function terminalDecodeAvailable(s) {
+    return isTerminalMode(s) && s.terminalRandomRevalidateCode && s.terminalValidationRequired && s.terminalValidationTeam === role.value;
+  }
+  function currentTeamName(s = AirsoftBus.read()) { return role.value === 'ct' ? s.team1Name : s.team2Name; }
+  function setPlayerRole(nextRole) {
+    const s = AirsoftBus.read();
+    sessionStorage.setItem(playerKey, nextRole);
+    sessionStorage.setItem(playerResetKey, String(s.resetId));
+    role.value = nextRole;
+    setup.hidden = true;
+    document.querySelector('.tabs').hidden = false;
+    document.querySelector('main').hidden = false;
+    roleBadge.textContent = currentTeamName(s);
+    roleBadge.className = nextRole === 'ct' ? 'badge blue' : 'badge amber';
+    AirsoftBus.log(currentTeamName(s) + ' cadastrado no módulo jogador.');
+    showPopup('Celular cadastrado', 'Este aparelho ficou travado como ' + currentTeamName(s) + '.', 'Cadastro');
+    render(s);
+  }
+  function requireRegistered() {
+    if (sessionStorage.getItem(playerKey)) return true;
+    showPopup('Celular sem time', 'Cadastre este aparelho pelo QR do controle antes de jogar.', 'Bloqueado');
+    return false;
+  }
+  function applyRegistration() {
+    const state = AirsoftBus.read();
+    if (sessionStorage.getItem(playerResetKey) !== String(state.resetId)) {
+      sessionStorage.removeItem(playerKey);
+      sessionStorage.setItem(playerResetKey, String(state.resetId));
+    }
+    const saved = sessionStorage.getItem(playerKey);
+    if (saved === 'ct' || saved === 'terrorist') {
+      role.value = saved;
+      setup.hidden = true;
+      document.querySelector('.tabs').hidden = false;
+      document.querySelector('main').hidden = false;
+      roleBadge.textContent = currentTeamName(state);
+      roleBadge.className = saved === 'ct' ? 'badge blue' : 'badge amber';
+    } else {
+      setup.hidden = false;
+      document.querySelector('.tabs').hidden = true;
+      document.querySelector('main').hidden = true;
+      roleBadge.textContent = 'Sem time';
+      roleBadge.className = 'badge';
+    }
+  }
+  let lastBombActivationToken = sessionStorage.getItem('airsoft-bomb-activation-alert-v1') || '';
+  function render(s) {
+    actionHelp.textContent = s.qrRequired === false
+      ? 'A validação por QR foi dispensada pelo Controlador. A ação seguirá diretamente para a próxima etapa.'
+      : 'Ao pedir a ação, o sistema abre a validação do QR desta etapa. Depois siga as instruções no celular e no artefato.';
+    applyRegistration();
+    const ct = role.value === 'ct';
+    document.body.classList.toggle('dataMode', isDataMode(s));
+    document.body.classList.toggle('terminalMode', isTerminalMode(s));
+    document.body.classList.toggle('locatorMode', isLocatorMode(s));
+    document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
+    document.body.classList.toggle('locked', Boolean(s.operation));
+    if (s.locatorEnabled) startLocatorWatch(); else stopLocatorWatch();
+    registerCt.textContent = 'Cadastrar ' + s.team1Name;
+    registerTerrorist.textContent = 'Cadastrar ' + s.team2Name;
+    if (sessionStorage.getItem(playerKey)) roleBadge.textContent = currentTeamName(s);
+    objectiveText.textContent = (s.gameObjectives || 'Aguardando instruções do Controlador.').replace(/Mestre/gi, 'Controlador');
+    objectiveMode.textContent = s.mode;
+    artifactLabel.textContent = isDataMode(s) ? 'Estado do terminal' : isTerminalMode(s) ? 'Estado do domínio' : isLocatorMode(s) ? 'Estado do localizador' : 'Estado da bomba';
+    bombState.textContent = s.bombState;
+    dataStageCard.hidden = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
+    nextStepCard.hidden = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
+    knownCodeCard.hidden = isLocatorMode(s);
+    validatedCard.hidden = isLocatorMode(s);
+    if (isDataMode(s)) {
+      const nextAction = dataActionFor(s);
+      dataStageCard.querySelector('span').textContent = 'Etapa dos dados';
+      nextStepCard.querySelector('span').textContent = 'Próxima ação';
+      dataStageText.textContent = dataStageLabel(s);
+      nextStepText.textContent = nextAction.key === 'done' ? 'Encerrado' : nextAction.title;
+    } else if (isTerminalMode(s)) {
+      const nextAction = terminalActionFor(s);
+      dataStageCard.querySelector('span').textContent = 'Controle atual';
+      nextStepCard.querySelector('span').textContent = 'Próxima ação';
+      dataStageText.textContent = s.terminalOwner === 'ct' ? s.team1Name : s.terminalOwner === 'terrorist' ? s.team2Name : 'Neutro';
+      nextStepText.textContent = nextAction.title;
+    } else if (isLocatorMode(s)) {
+      dataStageCard.querySelector('span').textContent = 'Artefato alvo';
+      nextStepCard.querySelector('span').textContent = 'Sinal';
+      dataStageText.textContent = s.locatorArtifactName || 'Artefato AX-07';
+      nextStepText.textContent = s.locatorEnabled ? 'Localizador ativo' : 'Desligado pelo Controlador';
+    } else {
+      dataStageCard.querySelector('span').textContent = 'Etapa dos dados';
+      nextStepCard.querySelector('span').textContent = 'Próxima ação';
+    }
+    knownCode.textContent = ct ? s.ctKnownCode : s.terroristKnownCode;
+    renderLocator(s);
+    validated.textContent = ct ? (s.ctBombValidated ? 'Sim' : 'Não') : (s.terroristBombValidated ? 'Sim' : 'Não');
+    actionTitle.textContent = isDataMode(s) ? (ct ? 'Contramedidas CT' : 'Invasão Terrorista') : isTerminalMode(s) ? 'Dominação de Terminal' : isLocatorMode(s) ? 'Localização de Artefato' : (ct ? 'Desarme CT' : 'Arme Terrorista');
+    execute.textContent = isDataMode(s) ? dataActionFor(s).title : isTerminalMode(s) ? terminalActionFor(s).title : isLocatorMode(s) ? 'Atualizar GPS' : 'Pedir ' + actionLabel(currentType(), s);
+    execute.className = ct ? 'primary big' : 'danger big';
+    decodeHelp.textContent = isLocatorMode(s) ? 'Este modo usa GPS do aparelho, sem senha para decodificar.' : isTerminalMode(s) ? (terminalDecodeAvailable(s) ? 'Decodifique a senha randômica antes de validar o domínio.' : 'A decodificação só aparece quando o terminal pedir revalidação randômica.') : 'Use se o Controlador não passou a senha manualmente.';
+    requestDecode.textContent = isLocatorMode(s) ? 'Sem decodificação' : isTerminalMode(s) ? (terminalDecodeAvailable(s) ? 'Decodificar revalidação' : 'Sem decodificação') : 'Pedir decodificação';
+    movementAlert.hidden = !s.locatorMovementDetected;
+    movementAlertText.textContent = 'O ' + (s.locatorArtifactName || 'artefato') + ' foi deslocado aproximadamente ' + Math.round(Number(s.locatorMovementMeters || 0)) + ' m da posição inicial.';
+    if (s.locatorMovementDetected && s.locatorMovementNoticeId > lastMovementNoticeId && sessionStorage.getItem(playerKey)) {
+      lastMovementNoticeId = s.locatorMovementNoticeId;
+      sessionStorage.setItem('airsoft-locator-alert-v1', String(lastMovementNoticeId));
+      showPopup('Artefato encontrado', 'O artefato foi deslocado pela primeira vez. Consulte o Localizador para acompanhar sua posição.', 'Alerta GPS');
+    }
+    const bombActivationToken = String(s.resetId || 0) + ':' + String(s.bombActivationId || 0);
+    if (s.bombActivationAlertEnabled !== false && s.bombActivationId > 0 && bombActivationToken !== lastBombActivationToken && sessionStorage.getItem(playerKey)) {
+      lastBombActivationToken = bombActivationToken;
+      sessionStorage.setItem('airsoft-bomb-activation-alert-v1', bombActivationToken);
+      showPopup(
+        'Bomba ativada',
+        s.locatorOnBombActivated
+          ? 'A bomba foi ativada. O localizador do artefato também foi liberado na aba Localizador.'
+          : 'A bomba foi ativada e a contagem regressiva começou.',
+        'Alerta geral'
+      );
+    }
+  }
+  function renderLocator(s) {
+    const hasTarget = s.locatorArtifactLat != null && s.locatorArtifactLng != null;
+    if (!s.locatorEnabled) {
+      locatorDistance.textContent = 'DESLIGADO';
+      locatorDirection.textContent = 'O GPS da bomba está desligado pelo Controlador.';
+      locatorAccuracy.textContent = '----';
+      locatorStatus.textContent = 'Off';
+      locatorUpdated.textContent = 'A bomba não está enviando coordenadas.';
+      locatorArrow.style.transform = 'rotate(0deg)';
+      return;
+    }
+    if (!hasTarget) {
+      locatorDistance.textContent = 'SEM ALVO';
+      locatorDirection.textContent = 'O Controlador precisa configurar latitude e longitude.';
+      locatorAccuracy.textContent = '----';
+      locatorStatus.textContent = 'Sem GPS';
+      locatorUpdated.textContent = 'Aguardando o GPS do artefato.';
+      return;
+    }
+    if (!locatorPosition) {
+      locatorDistance.textContent = 'BUSCANDO';
+      locatorDirection.textContent = locatorError || 'Autorize o GPS do navegador para localizar o artefato.';
+      locatorAccuracy.textContent = '----';
+      locatorStatus.textContent = locatorError ? 'Bloqueado' : 'Busca';
+      locatorUpdated.textContent = s.locatorLastArtifactFix ? 'Artefato atualizado às ' + s.locatorLastArtifactFix + '.' : 'Aguardando a primeira posição do artefato.';
+      return;
+    }
+    const lat = locatorPosition.coords.latitude;
+    const lng = locatorPosition.coords.longitude;
+    const distance = distanceMeters(lat, lng, Number(s.locatorArtifactLat), Number(s.locatorArtifactLng));
+    const bearing = bearingDegrees(lat, lng, Number(s.locatorArtifactLat), Number(s.locatorArtifactLng));
+    const close = distance <= Number(s.locatorProximityMeters || 12);
+    locatorDistance.textContent = distance >= 1000 ? (distance / 1000).toFixed(2) + ' km' : Math.round(distance) + ' m';
+    locatorDirection.textContent = close ? 'Artefato dentro do raio de encontro.' : 'Siga para ' + compassLabel(bearing) + ' / ' + Math.round(bearing) + ' graus.';
+    locatorAccuracy.textContent = Math.round(locatorPosition.coords.accuracy || 0) + ' m';
+    locatorStatus.textContent = close ? 'Encontrado' : 'Rastreando';
+    locatorUpdated.textContent = 'Artefato atualizado às ' + (s.locatorLastArtifactFix || s.locatorLastMasterFix || '----') + (s.locatorArtifactAccuracy != null ? ' · precisão do artefato ±' + s.locatorArtifactAccuracy + ' m.' : '.');
+    locatorArrow.style.transform = 'rotate(' + bearing + 'deg)';
+  }
+  function resetQr(st, type) {
+    if (type === 'arm') {
+      st.qrArm = 0;
+      st.qrArmAt = null;
+    } else {
+      st.qrDefuse = 0;
+      st.qrDefuseAt = null;
+    }
+  }
+  function scan(type, onReady) {
+    if (!requireRegistered()) return;
+    const s = AirsoftBus.read();
+    if (!s.running || s.finished) { showPopup('Jogo inativo', 'O controlador precisa iniciar a partida antes desta ação.', 'Bloqueado'); return; }
+    const decodeDuringDecrypt = isDataMode(s) && s.pending && s.pending.type === 'dataDecrypt' && type === 'arm';
+    if (s.operation || (s.pending && !decodeDuringDecrypt)) { showPopup('Etapa pendente', 'Aguarde a etapa atual terminar antes de validar outro QR.', 'Bloqueado'); return; }
+    if (s.qrRequired === false) {
+      AirsoftBus.update(st => {
+        st.phase = 'QR dispensado pelo Controlador';
+        st.qrStageName = 'dispensado';
+      });
+      showPopup('QR dispensado', 'O Controlador desativou a validação por QR para esta partida.', 'Presença');
+      if (typeof onReady === 'function') onReady(AirsoftBus.read());
+      return;
+    }
+    AirsoftBus.update(st => {
+      st.qrStageNonce = Number(st.qrStageNonce || 0) + 1;
+      st.qrStageName = [st.mode, st.dataStage || '', st.terminalValidationRequired ? 'revalidacao' : '', type].filter(Boolean).join('-');
+    });
+    showProgress('Validando QR', 2, () => {
+      let scanCount = 1;
+      let scanGoal = type === 'arm' ? AirsoftBus.read().armFactors : AirsoftBus.read().defuseFactors;
+      let scanReady = false;
+      let scanMessage = 'QR confirmado. A etapa foi liberada.';
+      AirsoftBus.update(st => {
+      const now = Date.now();
+      if (type === 'arm') {
+        if (st.armFactors <= 1 || !st.qrArmAt || now - st.qrArmAt > 3000) {
+          st.qrArm = 1;
+          st.qrArmAt = now;
+        } else {
+          st.qrArm = Math.min(st.armFactors, st.qrArm + 1);
+        }
+        scanCount = st.qrArm;
+        scanGoal = st.armFactors;
+      } else {
+        if (st.defuseFactors <= 1 || !st.qrDefuseAt || now - st.qrDefuseAt > 3000) {
+          st.qrDefuse = 1;
+          st.qrDefuseAt = now;
+        } else {
+          st.qrDefuse = Math.min(st.defuseFactors, st.qrDefuse + 1);
+        }
+        scanCount = st.qrDefuse;
+        scanGoal = st.defuseFactors;
+      }
+      scanReady = scanCount >= scanGoal;
+      st.phase = scanReady ? 'QR validado pelo jogador' : 'Aguardando segundo fator';
+      });
+      AirsoftBus.log(currentTeamName() + ' validou QR operacional.');
+      if (scanCount < scanGoal) scanMessage = 'Primeiro fator registrado. O segundo QR precisa ser validado em até 3 segundos.';
+      showPopup(scanCount >= scanGoal ? 'QR validado' : 'Primeiro fator', scanMessage, 'Presença');
+      if (scanReady && typeof onReady === 'function') onReady(AirsoftBus.read());
+      return false;
+    });
+  }
+  function startDecode() {
+    const type = currentType();
+    const s = AirsoftBus.read();
+    if (isTerminalMode(s)) { showPopup('Sem decodificação', 'Dominação de terminal usa captura e validação por QR, sem senha para decodificar.', 'Terminal'); return; }
+    const decodeDuringDecrypt = isDataMode(s) && s.pending && s.pending.type === 'dataDecrypt' && type === 'arm';
+    if (s.operation || (s.pending && !decodeDuringDecrypt)) { showPopup('Etapa pendente', 'Aguarde a etapa atual terminar antes de iniciar outra.', 'Bloqueado'); return; }
+    AirsoftBus.update(st => {
+      resetQr(st, type);
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type, kind: 'decode' };
+      st.noticeId += 1;
+      st.notice = { kind: 'Decodificação', title: isDataMode(st) ? 'Quebra de credencial' : 'Decodificação solicitada', body: isDataMode(st) ? currentTeamName(st) + ' iniciou tentativa de descobrir ' + codeLabel(type, st) + '.' : currentTeamName(st) + ' iniciou decodificação da ' + codeLabel(type, st) + '.' };
+      st.phase = isDataMode(st) ? 'Quebrando senha do notebook' : 'Decodificação solicitada';
+    });
+    const opId = AirsoftBus.read().operationId;
+    AirsoftBus.log('Jogador solicitou decodificação.');
+    showProgress('Decodificação em progresso', s.actionSeconds, () => {
+      let completed = false;
+      AirsoftBus.update(st => {
+      if (!st.operation || st.operation.id !== opId) return;
+      st.operation = null;
+      if (isDataMode(st)) {
+        const credential = type === 'defuse' ? 'defuse' : st.dataStage === 'downloaded' ? 'decrypt' : 'arm';
+        st.pending = { type: 'dataDecodeConfirm', label: 'confirmar credencial', credential };
+        st.bombState = 'Credencial aguardando OK';
+        st.phase = 'Confirme a credencial no notebook';
+        st.noticeId += 1;
+        st.notice = { kind: 'Credencial', title: 'Quebra concluída', body: 'Operador deve confirmar OK no notebook para liberar a senha no celular ou cancelar a tentativa.' };
+        AirsoftBus.log('Quebra de credencial concluída no celular. Aguardando OK no notebook.');
+      } else {
+        if (type === 'arm') { st.terroristHasCode = true; st.terroristKnownCode = st.armCode; }
+        else { st.ctHasCode = true; st.ctKnownCode = st.defuseCode; }
+        st.phase = 'Senha enviada ao celular';
+        AirsoftBus.log('Senha enviada ao celular após decodificação.');
+      }
+      completed = true;
+      });
+      return completed;
+    });
+  }
+  function startTerminalDecode() {
+    const s = AirsoftBus.read();
+    const team = role.value;
+    if (!terminalDecodeAvailable(s)) { showPopup('Sem senha randômica', 'O terminal ainda não pediu uma revalidação randômica para o seu time.', 'Terminal'); return; }
+    if (knownTerminalValidationCode(s) === s.terminalValidationCode) { showPopup('Senha já decodificada', 'Use a aba Ação para validar o domínio no terminal.', 'Terminal'); return; }
+    if (s.operation || s.pending) { showPopup('Etapa pendente', 'Aguarde a etapa atual terminar antes de decodificar.', 'Bloqueado'); return; }
+    AirsoftBus.update(st => {
+      resetQr(st, currentType());
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type: team, kind: 'terminalDecode' };
+      st.bombState = 'Revalidação protegida';
+      st.phase = 'Celular decodificando senha randômica';
+      st.noticeId += 1;
+      st.notice = { kind: 'Terminal', title: 'Decodificação de revalidação', body: currentTeamName(st) + ' iniciou quebra da senha randômica de domínio.' };
+    });
+    const opId = AirsoftBus.read().operationId;
+    AirsoftBus.log(currentTeamName(s) + ' iniciou decodificação da senha randômica do terminal.');
+    showProgress('Decodificando revalidação', s.actionSeconds, () => {
+      let completed = false;
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        if (team === 'ct') {
+          st.ctHasCode = true;
+          st.ctKnownCode = st.terminalValidationCode;
+        } else {
+          st.terroristHasCode = true;
+          st.terroristKnownCode = st.terminalValidationCode;
+        }
+        st.phase = 'Senha randômica liberada no celular';
+        st.noticeId += 1;
+        st.notice = { kind: 'Terminal', title: 'Senha decodificada', body: 'A senha randômica foi enviada ao celular. Valide o domínio antes da janela acabar.' };
+        AirsoftBus.log('Senha randômica do terminal liberada para ' + currentTeamName(st) + '.');
+        completed = true;
+      });
+      return completed;
+    });
+  }
+  requestDecode.onclick = () => {
+    const s = AirsoftBus.read();
+    if (isLocatorMode(s)) { showPopup('Sem decodificação', 'Localização de artefato usa GPS do aparelho e não possui etapa de senha.', 'GPS'); return; }
+    if (isTerminalMode(s)) {
+      if (!terminalDecodeAvailable(s)) { showPopup('Sem decodificação', 'A senha randômica só aparece quando o seu time precisa revalidar o terminal.', 'Terminal'); return; }
+      scan(currentType(), startTerminalDecode);
+      return;
+    }
+    scan(currentType(), startDecode);
+  };
+  locatorRefresh.onclick = () => {
+    const s = AirsoftBus.read();
+    if (!requireRegistered()) return;
+    if (!s.locatorEnabled) { showPopup('GPS da bomba desligado', 'O Controlador precisa ligar a transmissão GPS da bomba.', 'GPS'); return; }
+    startLocatorWatch();
+    renderLocator(s);
+    showPopup('GPS atualizado', 'O celular está buscando a posição atual e recalculando distância e direção.', 'GPS');
+  };
+  execute.onclick = () => {
+    const s = AirsoftBus.read();
+    if (!requireRegistered()) return;
+    if (isLocatorMode(s)) {
+      if (!s.locatorEnabled) { showPopup('GPS da bomba desligado', 'O Controlador precisa ligar a transmissão GPS da bomba.', 'GPS'); return; }
+      startLocatorWatch();
+      renderLocator(s);
+      showPopup('GPS atualizado', 'O celular está buscando a posição atual e recalculando distância e direção.', 'GPS');
+      return;
+    }
+    if (isTerminalMode(s)) {
+      const action = terminalActionFor(s);
+      if (action.key === 'waitEnemy') { showPopup('Validação rival', 'Aguarde o time controlador validar ou perder o domínio pelo tempo.', 'Bloqueado'); return; }
+      if (action.key === 'validate' && s.terminalRandomRevalidateCode && knownTerminalValidationCode(s) !== s.terminalValidationCode) {
+        showPopup('Senha randômica necessária', 'Use a aba Decodificar para descobrir a senha desta revalidação antes de ler o QR de confirmação.', 'Bloqueado');
+        return;
+      }
+      scan(currentType(), executeTerminalMode);
+      return;
+    }
+    if (isDataMode(s)) {
+      const action = dataActionFor(s);
+      if (action.key === 'done' || action.key === 'waitFolder') { showPopup('Aguarde o notebook', 'A próxima etapa precisa ser feita na tela do notebook.', 'Bloqueado'); return; }
+      scan(currentType(), executeDataMode);
+      return;
+    }
+    scan(currentType(), executeBombMode);
+  };
+  function executeTerminalMode(s) {
+    const team = role.value;
+    const action = terminalActionFor(s);
+    if (!s.running || s.finished) { showPopup('Jogo inativo', 'O controlador precisa iniciar a partida antes desta ação.', 'Bloqueado'); return; }
+    if (s.operation || s.pending) { showPopup('Etapa pendente', 'Já existe uma confirmação aguardando no terminal.', 'Bloqueado'); return; }
+    if (action.key === 'guard') { showPopup('Domínio ativo', 'Seu time já controla o terminal. Aguarde a próxima validação obrigatória.', 'Terminal'); return; }
+    if (action.key === 'validate' && s.terminalRandomRevalidateCode && knownTerminalValidationCode(s) !== s.terminalValidationCode) {
+      showPopup('Senha randômica necessária', 'Use a aba Decodificar para descobrir a senha desta revalidação antes de confirmar no terminal.', 'Bloqueado');
+      return;
+    }
+    AirsoftBus.update(st => {
+      resetQr(st, currentType());
+      st.pending = { type: action.key === 'validate' ? 'terminalValidationConfirm' : 'terminalCaptureConfirm', label: action.label, team };
+      st.bombState = action.key === 'validate' ? 'Validação aguardando OK' : 'Captura aguardando OK';
+      st.phase = action.key === 'validate' && st.terminalRandomRevalidateCode ? 'Confirme no terminal e digite a senha randômica' : 'Confirme no terminal para iniciar a barra de guarda';
+      st.noticeId += 1;
+      st.notice = { kind: 'Terminal', title: action.title, body: action.key === 'validate' && st.terminalRandomRevalidateCode ? 'QR confirmado no celular. Agora confirme OK no terminal e digite a senha randômica.' : 'QR confirmado no celular. Agora confirme OK no terminal ou cancele.' };
+      AirsoftBus.log(currentTeamName(st) + ' pediu ' + action.label + '.');
+    });
+    showPopup(action.title, 'QR validado. Agora confirme a etapa na tela do terminal.', 'Terminal');
+  }
+  function executeBombMode() {
+    const s = AirsoftBus.read();
+    const type = currentType();
+    if (!s.running || s.finished) { showPopup('Jogo inativo', 'O controlador precisa iniciar a partida antes desta ação.', 'Bloqueado'); return; }
+    if (s.operation || s.pending) { showPopup('Etapa pendente', 'Já existe uma operação ou senha aguardando finalização na bomba.', 'Bloqueado'); return; }
+    if (type === 'arm' && s.bombSeconds != null) { showPopup(isDataMode(s) ? 'Dados vulneráveis' : 'Bomba já armada', isDataMode(s) ? 'A extração já abriu a janela de vazamento. Agora somente o Time 1 pode tentar bloquear.' : 'A bomba já está em contagem. Agora somente o CT pode tentar o desarme.', 'Bloqueado'); return; }
+    if (type === 'defuse' && s.bombSeconds == null) { showPopup(isDataMode(s) ? 'Sem vazamento ativo' : 'Bomba não armada', isDataMode(s) ? 'O bloqueio só fica disponível depois que os dados entram em janela de vazamento.' : 'O desarme só fica disponível depois que a bomba entra em contagem.', 'Bloqueado'); return; }
+    AirsoftBus.update(st => {
+      resetQr(st, type);
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type, kind: 'action' };
+      st.phase = 'Pedido de ' + actionLabel(type, st) + ' em progresso';
+      st.pending = null;
+      st.noticeId += 1;
+      st.notice = { kind: 'Ação', title: 'Pedido de ' + actionLabel(type, st), body: 'Jogador iniciou a etapa de ação. O teclado será liberado após a barra.' };
+    });
+    const opId = AirsoftBus.read().operationId;
+    AirsoftBus.log(currentTeamName(s) + ' pediu ' + actionLabel(type, s) + '.');
+    showProgress('Pedido de ' + actionLabel(type, s), s.actionSeconds, () => {
+      let completed = false;
+      AirsoftBus.update(st => {
+      if (!st.operation || st.operation.id !== opId) return;
+      st.operation = null;
+      st.pending = { type, label: codeLabel(type, st) };
+      st.phase = 'Aguardando ' + codeLabel(type, st);
+      st.bombState = isDataMode(st) ? (type === 'arm' ? 'Terminal pronto para extração' : 'Terminal pronto para bloqueio') : (type === 'arm' ? 'Liberada para arme' : 'Liberada para desarme');
+      st.noticeId += 1;
+      st.notice = { kind: 'Senha', title: 'Digite a ' + codeLabel(type, st), body: 'O teclado do artefato está liberado para receber a senha.' };
+      AirsoftBus.log('Teclado liberado para ' + codeLabel(type, st) + '.');
+      completed = true;
+      });
+      return completed;
+    });
+  }
+  function executeDataMode(s) {
+    const type = currentType();
+    const action = dataActionFor(s);
+    if (!s.running || s.finished) { showPopup('Jogo inativo', 'O controlador precisa iniciar a partida antes desta ação.', 'Bloqueado'); return; }
+    if (s.operation || s.pending) { showPopup('Etapa pendente', 'Já existe uma operação aguardando finalização.', 'Bloqueado'); return; }
+    if (action.key === 'done' || action.key === 'waitFolder') { showPopup('Aguarde o notebook', 'A próxima etapa precisa ser feita na tela do notebook.', 'Bloqueado'); return; }
+    if (action.needsCode && !s.terroristHasCode) { showPopup('Senha necessária', 'Descubra a senha do notebook ou receba a senha do Controlador antes de acessar.', 'Bloqueado'); return; }
+    AirsoftBus.update(st => {
+      resetQr(st, type);
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type, kind: 'data', dataAction: action.key };
+      st.phase = action.label + ' em progresso';
+      st.noticeId += 1;
+      st.notice = { kind: 'Terminal', title: action.title, body: currentTeamName(st) + ' iniciou ' + action.label + '.' };
+    });
+    const opId = AirsoftBus.read().operationId;
+    AirsoftBus.log(currentTeamName(s) + ' iniciou ' + action.label + '.');
+    if (action.key === 'decrypt') {
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        st.pending = { type: 'dataDecrypt', label: 'senha de descriptografia' };
+        st.bombState = 'Senha de descriptografia';
+        st.phase = 'Digite a senha de descriptografia';
+        st.noticeId += 1;
+        st.notice = { kind: 'Notebook', title: 'Senha de descriptografia', body: 'Digite a senha de descriptografia no notebook. Se o jogador não tiver a senha, pode usar o decodificador durante esta etapa.' };
+      });
+      showPopup('Descriptografia solicitada', 'Digite a senha de descriptografia no notebook ou use o decodificador para tentar obtê-la.', 'Terminal');
+      return;
+    }
+    if (action.key === 'send') {
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        st.pending = { type: 'dataEmail', label: 'email de destino' };
+        st.bombState = 'Email aguardando';
+        st.phase = 'Digite o email correto no notebook';
+        st.noticeId += 1;
+        st.notice = { kind: 'Notebook', title: 'Email de destino', body: 'Digite o email correto no notebook para enviar o pacote.' };
+      });
+      showPopup('Envio solicitado', 'Digite o email correto no notebook para concluir o envio.', 'Terminal');
+      return;
+    }
+    if (action.key === 'download') {
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        st.pending = { type: 'dataDownloadConfirm', label: 'confirmar download' };
+        st.bombState = 'Download aguardando OK';
+        st.phase = 'Confirme o download no notebook';
+        st.noticeId += 1;
+        st.notice = { kind: 'Notebook', title: 'Iniciar download', body: 'Operador deve confirmar OK no notebook para baixar os dados ou cancelar.' };
+      });
+      showPopup('Download solicitado', 'O operador precisa confirmar no notebook. A barra de download roda na bomba.', 'Terminal');
+      return;
+    }
+    if (action.key === 'validateDecryptQr') {
+      showProgress(action.title, 2, () => {
+        let completed = false;
+        AirsoftBus.update(st => {
+          if (!st.operation || st.operation.id !== opId) return;
+          st.operation = null;
+          st.dataStage = 'decrypted';
+          st.dataDecrypted = true;
+          st.bombState = 'Arquivo aberto';
+          st.phase = 'Dados descriptografados';
+          st.noticeId += 1;
+          st.notice = { kind: 'Descriptografia', title: 'Descriptografia validada', body: 'O arquivo foi aberto após a validação final.' };
+          AirsoftBus.log('Descriptografia validada pelo celular.');
+          completed = true;
+        });
+        return completed;
+      });
+      return;
+    }
+    const seconds = action.key === 'access' || action.key === 'changePassword' ? s.dataAccessSeconds : action.key === 'download' || action.key === 'wipePhone' ? s.dataDownloadSeconds : action.key === 'deleteDecrypted' ? s.dataDecryptSeconds : s.actionSeconds;
+    showProgress(action.title, seconds, () => {
+      let completed = false;
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        if (action.key === 'access') {
+          st.pending = { type: 'dataAccess', label: 'senha do notebook' };
+          st.bombState = 'Notebook aguardando senha';
+          st.phase = 'Digite a senha no notebook';
+          st.noticeId += 1;
+          st.notice = { kind: 'Notebook', title: 'Senha do notebook', body: 'Digite a senha no teclado do notebook para abrir o acesso.' };
+        } else if (action.key === 'changePassword') {
+          st.pending = { type: 'dataAdmin', label: 'senha administrativa' };
+          st.bombState = 'Admin aguardando senha';
+          st.phase = 'Digite a senha administrativa';
+          st.noticeId += 1;
+          st.notice = { kind: 'Notebook', title: 'Senha administrativa', body: 'Digite a senha administrativa no notebook para alterar o acesso.' };
+        } else if (action.key === 'wipePhone') {
+          st.dataStage = 'accessed';
+          st.dataDownloaded = false;
+          st.terroristHasCode = false;
+          st.bombState = 'Download apagado';
+          st.phase = 'Download apagado do notebook';
+        } else if (action.key === 'deleteDecrypted') {
+          st.dataStage = 'downloaded';
+          st.dataDecrypted = false;
+          st.bombState = 'Dados criptografados restaurados';
+          st.phase = 'Descriptografia deletada';
+        }
+        if (!st.pending) {
+          st.noticeId += 1;
+          st.notice = { kind: 'Terminal', title: action.title + ' concluído', body: st.phase };
+        }
+        AirsoftBus.log(action.title + ' concluído.');
+        completed = true;
+      });
+      return completed;
+    });
+  }
+  registerCt.onclick = () => setPlayerRole('ct');
+  registerTerrorist.onclick = () => setPlayerRole('terrorist');
+  role.onchange = () => render(AirsoftBus.read());
+  applyRegistration();
+  AirsoftBus.subscribe(render);
+</script>
+</body>
+</html>

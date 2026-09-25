@@ -1,0 +1,4219 @@
+:root {
+  --ops-black: #050706;
+  --ops-panel: #0d1210;
+  --ops-panel-2: #121914;
+  --ops-line: #3b4a3f;
+  --ops-line-hot: #8ea36f;
+  --ops-text: #eef3e8;
+  --ops-muted: #a7b29a;
+  --ops-green: #7fb069;
+  --ops-green-bright: #a7f06d;
+  --ops-amber: #d9a441;
+  --ops-red: #e05243;
+  --ops-blue: #5d9fb8;
+  --ops-shadow: rgba(0, 0, 0, .62);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  color: var(--ops-text) !important;
+  background:
+    linear-gradient(135deg, rgba(127, 176, 105, .08) 0 12%, transparent 12% 24%, rgba(217, 164, 65, .06) 24% 36%, transparent 36% 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 34px),
+    #050706 !important;
+  font-family: "Segoe UI", "Arial", sans-serif !important;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 100% 5px, 5px 100%;
+  mix-blend-mode: screen;
+  opacity: .13;
+  z-index: 1000;
+}
+
+main {
+  position: relative;
+}
+
+h1, h2 {
+  color: var(--ops-text);
+  font-weight: 900;
+}
+
+h1::before {
+  content: "OPS // ";
+  color: var(--ops-amber);
+}
+
+.panel,
+.device,
+.phone,
+.section,
+.stat,
+.timerBox,
+.teamQr,
+.popup {
+  border: 1px solid var(--ops-line) !important;
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 34%),
+    linear-gradient(135deg, var(--ops-panel), var(--ops-panel-2)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 18px 52px var(--ops-shadow) !important;
+}
+
+.device {
+  border-width: 2px !important;
+  outline: 1px solid rgba(127,176,105,.22);
+  outline-offset: -8px;
+}
+
+.device,
+.panel,
+.phone {
+  position: relative;
+  overflow: visible;
+}
+
+.device::before,
+.panel::before,
+.phone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 18%, transparent 82%, rgba(255,255,255,.04)),
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 22%);
+  opacity: .5;
+}
+
+.device > *,
+.panel > *,
+.phone > * {
+  position: relative;
+  z-index: 1;
+}
+
+.phone {
+  border-radius: 22px;
+  outline: 4px solid #050706;
+  outline-offset: -10px;
+}
+
+header,
+.tabs {
+  border-color: var(--ops-line) !important;
+  background: rgba(5, 7, 6, .28);
+}
+
+.badge,
+label,
+.label,
+.muted,
+.stat span,
+.progressMeta {
+  color: var(--ops-muted) !important;
+}
+
+.badge {
+  border-color: var(--ops-line) !important;
+  border-radius: 4px;
+  background: #172017 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+}
+
+.primary,
+.ok {
+  color: #071007 !important;
+}
+
+.green {
+  color: var(--ops-green-bright) !important;
+}
+
+.red {
+  color: #ff7b6f !important;
+}
+
+.amber {
+  color: #ffd27a !important;
+}
+
+.blue {
+  color: #8ed5f1 !important;
+}
+
+input,
+select,
+button {
+  border-color: var(--ops-line) !important;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent),
+    #172017 !important;
+  color: var(--ops-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+button {
+  text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--ops-line-hot) !important;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    0 10px 24px rgba(0,0,0,.38);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primary,
+button.active {
+  background: linear-gradient(180deg, #b4e07a, var(--ops-green)) !important;
+  color: #081006 !important;
+  border-color: #c7f28c !important;
+}
+
+.danger {
+  background: linear-gradient(180deg, #ff7d70, var(--ops-red)) !important;
+  color: #180504 !important;
+  border-color: #ff9b91 !important;
+}
+
+.warn {
+  background: linear-gradient(180deg, #f1c76c, var(--ops-amber)) !important;
+  color: #181003 !important;
+  border-color: #ffe09a !important;
+}
+
+.blueBtn,
+.blue {
+  background: linear-gradient(180deg, #8fcce0, var(--ops-blue)) !important;
+  color: #041116 !important;
+  border-color: #a9e5f7 !important;
+}
+
+.stat b,
+.timer,
+.display {
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer {
+  color: #ff6d61 !important;
+  text-shadow: 0 0 24px rgba(224, 82, 67, .35);
+}
+
+.timerBox {
+  border-color: #5f7a52 !important;
+  background:
+    linear-gradient(180deg, rgba(167,240,109,.05), transparent),
+    #050806 !important;
+}
+
+.timerBox .label::before,
+.stat span::before {
+  content: "[ ";
+  color: var(--ops-amber);
+}
+
+.timerBox .label::after,
+.stat span::after {
+  content: " ]";
+  color: var(--ops-amber);
+}
+
+.timer.small {
+  color: #ffd16d !important;
+  text-shadow: 0 0 20px rgba(217, 164, 65, .35);
+}
+
+.display {
+  border-color: #5f7a52 !important;
+  background: #030503 !important;
+  color: var(--ops-green-bright) !important;
+  text-shadow: 0 0 18px rgba(167,240,109,.42);
+}
+
+.keys button {
+  min-height: 60px;
+  font-size: 18px;
+}
+
+.keys.emailKeys {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.keys.emailKeys .keyRow {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.keys.emailKeys .midRow {
+  padding-inline: 16px;
+}
+
+.keys.emailKeys .lowRow {
+  padding-inline: 34px;
+}
+
+.keys.emailKeys button {
+  flex: 1 1 0;
+  max-width: 42px;
+  min-height: 42px;
+  padding: 6px;
+  font-size: 13px;
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  text-transform: none;
+}
+
+.keys.emailKeys .actionRow button {
+  max-width: 72px;
+}
+
+.qr,
+.qrMock {
+  border: 4px solid #101510;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.18),
+    0 14px 34px rgba(0,0,0,.48);
+}
+
+.popupLayer {
+  background:
+    radial-gradient(circle at center, rgba(127,176,105,.12), rgba(0,0,0,.78)) !important;
+  backdrop-filter: blur(4px);
+}
+
+.popup {
+  border-color: var(--ops-amber) !important;
+}
+
+.popup strong {
+  color: var(--ops-amber) !important;
+}
+
+.progressTrack {
+  position: relative;
+  height: 18px !important;
+  border-color: var(--ops-line) !important;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 16px),
+    #030503 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.72);
+}
+
+.progressTrack::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 45%, rgba(0,0,0,.18));
+  opacity: .55;
+}
+
+.progressFill {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.20) 0 8px, transparent 8px 16px),
+    linear-gradient(90deg, var(--ops-green), var(--ops-green-bright)) !important;
+  box-shadow:
+    0 0 22px rgba(167,240,109,.45),
+    inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+.progressMeta span:last-child {
+  min-width: 52px;
+  padding: 2px 6px;
+  border: 1px solid rgba(167,240,109,.22);
+  background: rgba(3,5,3,.72);
+  color: var(--ops-green-bright) !important;
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  text-align: right;
+}
+
+.winnerText,
+.winner b,
+#winner {
+  color: var(--ops-green-bright) !important;
+  text-shadow: 0 0 24px rgba(167,240,109,.42);
+}
+
+.statusDeck .stat {
+  min-height: 96px;
+  align-content: center;
+}
+
+.phaseStrip {
+  min-height: 78px;
+  margin-top: 10px;
+  border-color: #6b7f4c !important;
+  background:
+    linear-gradient(90deg, rgba(167,240,109,.12), rgba(93,159,184,.06)),
+    #070b08 !important;
+}
+
+.sectionHead {
+  border-color: rgba(167,240,109,.18) !important;
+}
+
+.sectionHead h2 {
+  font-size: 16px;
+}
+
+.sectionHead p {
+  color: var(--ops-muted) !important;
+}
+
+.sectionTag {
+  padding: 5px 8px;
+  border: 1px solid rgba(217,164,65,.42);
+  background: rgba(217,164,65,.08);
+  border-radius: 3px;
+  color: #ffd27a !important;
+}
+
+.modeHero {
+  border-color: #7c8d54 !important;
+  background:
+    linear-gradient(135deg, rgba(217,164,65,.14), transparent 38%),
+    linear-gradient(180deg, rgba(167,240,109,.06), transparent),
+    #0b100c !important;
+}
+
+.modeHero select {
+  border-color: #d9a441 !important;
+  color: #ffd27a !important;
+  background:
+    linear-gradient(180deg, rgba(217,164,65,.14), transparent),
+    #13170c !important;
+}
+
+.modeSummaryBox {
+  border-color: #52664a !important;
+  background:
+    linear-gradient(90deg, rgba(167,240,109,.11), rgba(93,159,184,.08)),
+    #050806 !important;
+  color: var(--ops-text) !important;
+  font-size: 14px;
+}
+
+.folderChooser {
+  align-items: stretch;
+}
+
+.folderInput {
+  border-color: #52664a !important;
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), transparent),
+    rgba(5, 8, 6, .72) !important;
+}
+
+.folderInput:focus-within {
+  border-color: var(--ops-green-bright) !important;
+  box-shadow: 0 0 0 1px rgba(167,240,109,.2), 0 0 24px rgba(127,176,105,.12);
+}
+
+.folderInput span {
+  color: #ffd27a !important;
+}
+
+.quickActions button {
+  min-height: 50px;
+}
+
+.log div {
+  padding: 9px 0;
+  color: #dbe6df;
+}
+
+.log b {
+  color: #ffd27a;
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  margin-right: 6px;
+}
+
+body.bombMode {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(224,82,67,.18), transparent 24rem),
+    linear-gradient(135deg, rgba(81, 94, 54, .18) 0 16%, transparent 16% 30%, rgba(217, 164, 65, .08) 30% 42%, transparent 42% 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 42px),
+    #050706 !important;
+}
+
+body.dataMode {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(93,159,184,.22), transparent 28rem),
+    linear-gradient(180deg, #03090d, #07100f 48%, #020403),
+    repeating-linear-gradient(90deg, rgba(93,159,184,.06) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(0deg, rgba(93,159,184,.04) 0 1px, transparent 1px 22px) !important;
+}
+
+body.dataMode h1::before {
+  content: "NET // ";
+  color: #8ed5f1;
+}
+
+body.bombMode .device {
+  background:
+    linear-gradient(180deg, rgba(224,82,67,.08), transparent 26%),
+    linear-gradient(135deg, #11140f, #090b08) !important;
+  border-color: #6f4437 !important;
+  box-shadow:
+    inset 0 0 0 8px rgba(0,0,0,.22),
+    inset 0 0 80px rgba(224,82,67,.08),
+    0 24px 90px rgba(0,0,0,.74) !important;
+}
+
+body.bombMode .device .center::before {
+  content: "ARMED DEVICE";
+  display: block;
+  color: rgba(255,125,112,.24);
+  font: 900 12px "Consolas", monospace;
+}
+
+body.bombMode .qr {
+  border-color: #d9a441 !important;
+}
+
+body.bombMode .keypad {
+  border: 1px solid #4d3329;
+  padding: 12px;
+  background: linear-gradient(180deg, #17110c, #080604);
+}
+
+body.bombMode .display {
+  color: #ff6d61 !important;
+  border-color: #804337 !important;
+  text-shadow: 0 0 18px rgba(224,82,67,.48);
+}
+
+body.dataMode .panel,
+body.dataMode .phone,
+body.dataMode .section,
+body.dataMode .stat,
+body.dataMode .teamQr,
+body.dataMode .popup {
+  border-color: #315d70 !important;
+  background:
+    linear-gradient(180deg, rgba(93,159,184,.085), transparent 35%),
+    linear-gradient(135deg, #07151b, #07100f) !important;
+}
+
+body.dataMode .device.notebookMode {
+  width: min(100%, 1060px);
+  min-height: 680px;
+  border-radius: 12px;
+  border-color: #315d70 !important;
+  outline: 10px solid #070b0c;
+  outline-offset: -18px;
+  background:
+    linear-gradient(180deg, rgba(93,159,184,.16), rgba(4,10,12,.08) 20%, transparent),
+    #030608 !important;
+  box-shadow:
+    inset 0 0 0 18px rgba(0,0,0,.28),
+    inset 0 0 120px rgba(93,159,184,.12),
+    0 28px 100px rgba(0,0,0,.78) !important;
+}
+
+body.dataMode .device.notebookMode::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: -18px;
+  height: 18px;
+  background: linear-gradient(180deg, #172229, #050708);
+  border: 1px solid #315d70;
+  border-radius: 0 0 16px 16px;
+}
+
+body.dataMode .device.notebookMode .center {
+  min-height: 470px;
+  border: 1px solid #315d70 !important;
+  border-radius: 4px;
+  background:
+    linear-gradient(rgba(93,159,184,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(93,159,184,.05) 1px, transparent 1px),
+    #03080a !important;
+  background-size: 100% 6px, 6px 100%, auto;
+  box-shadow:
+    inset 0 0 0 1px rgba(142,213,241,.12),
+    inset 0 0 90px rgba(93,159,184,.14) !important;
+}
+
+body.dataMode .device.notebookMode .center::before {
+  content: "SECURE LAPTOP // AUTH REQUIRED";
+  display: block;
+  color: rgba(142,213,241,.58);
+  font: 900 13px "Consolas", monospace;
+}
+
+body.dataMode .timer,
+body.dataMode .timer.small,
+body.dataMode .display,
+body.dataMode .winnerText {
+  color: #8ed5f1 !important;
+  text-shadow: 0 0 22px rgba(93,159,184,.55);
+}
+
+body.dataMode .display {
+  border-color: #315d70 !important;
+  background: #020709 !important;
+}
+
+body.dataMode .qr,
+body.dataMode .qrMock {
+  border-color: #8ed5f1 !important;
+  box-shadow:
+    0 0 0 1px rgba(142,213,241,.32),
+    0 0 34px rgba(93,159,184,.25),
+    0 14px 34px rgba(0,0,0,.48);
+}
+
+body.dataMode .primary,
+body.dataMode button.active {
+  background: linear-gradient(180deg, #9adcf0, #5d9fb8) !important;
+  border-color: #b9effb !important;
+  color: #031217 !important;
+}
+
+body.dataMode .danger {
+  background: linear-gradient(180deg, #f08d6f, #b85d45) !important;
+  border-color: #ffc0aa !important;
+}
+
+body.dataMode .progressFill {
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.20) 0 8px, transparent 8px 16px),
+    linear-gradient(90deg, #5d9fb8, #8ed5f1) !important;
+  box-shadow: 0 0 22px rgba(93,159,184,.55);
+}
+
+.laptopScreen[hidden] {
+  display: none !important;
+}
+
+.terminalScreen[hidden] {
+  display: none !important;
+}
+
+.locatorScreen[hidden] {
+  display: none !important;
+}
+
+body.terminalMode {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(167,240,109,.18), transparent 26rem),
+    linear-gradient(180deg, #050706, #10140b 52%, #030403),
+    repeating-linear-gradient(90deg, rgba(167,240,109,.045) 0 1px, transparent 1px 34px) !important;
+}
+
+body.terminalMode h1::before {
+  content: "TERM // ";
+}
+
+body.terminalMode .terminalScreen {
+  width: min(100%, 780px);
+  min-height: 330px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  border: 2px solid #7fb069;
+  background:
+    radial-gradient(circle at center, rgba(167,240,109,.12), transparent 16rem),
+    linear-gradient(rgba(167,240,109,.05) 1px, transparent 1px),
+    #050806;
+  background-size: auto, 100% 6px, auto;
+  box-shadow: inset 0 0 90px rgba(167,240,109,.1), 0 24px 70px rgba(0,0,0,.72);
+}
+
+body.terminalMode .terminalHeader,
+body.terminalMode .terminalScores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #3b4a3f;
+  font-family: "Consolas", "Cascadia Mono", monospace;
+  text-transform: uppercase;
+}
+
+body.terminalMode .terminalHeader b {
+  text-align: right;
+  color: #a7f06d;
+}
+
+body.terminalMode .terminalCore {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 22px;
+}
+
+body.terminalMode .captureRing {
+  width: 190px;
+  height: 190px;
+  border: 3px solid #a7f06d;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #a7f06d;
+  font: 900 22px "Consolas", monospace;
+  box-shadow: inset 0 0 45px rgba(167,240,109,.16), 0 0 36px rgba(167,240,109,.18);
+}
+
+body.terminalMode .terminalCore p {
+  margin: 0;
+  color: #c4d2ce;
+}
+
+body.terminalMode .terminalScores {
+  border-top: 1px solid #3b4a3f;
+  border-bottom: 0;
+}
+
+body.terminalMode .terminalScores div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #3b4a3f;
+  background: rgba(5,8,6,.72);
+}
+
+body.terminalMode .terminalScores span {
+  color: #a7b29a;
+  font-size: 12px;
+}
+
+body.terminalMode .terminalScores b {
+  color: #a7f06d;
+  font-size: 24px;
+}
+
+body.locatorMode {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(93,159,184,.18), transparent 26rem),
+    linear-gradient(180deg, #050706, #071318 52%, #030403) !important;
+}
+
+body.locatorMode h1::before {
+  content: "GPS // ";
+}
+
+body.locatorMode .locatorScreen {
+  width: min(100%, 780px);
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  border: 2px solid #5d9fb8;
+  background:
+    radial-gradient(circle at center, rgba(93,159,184,.18), transparent 15rem),
+    repeating-radial-gradient(circle at center, rgba(142,213,241,.12) 0 1px, transparent 1px 42px),
+    linear-gradient(rgba(142,213,241,.05) 1px, transparent 1px),
+    #03090d;
+  background-size: auto, auto, 100% 6px, auto;
+  box-shadow: inset 0 0 90px rgba(93,159,184,.13), 0 24px 70px rgba(0,0,0,.72);
+  text-align: center;
+}
+
+body.locatorMode .locatorBeacon {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(142,213,241,.72);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 45px rgba(93,159,184,.22),
+    0 0 35px rgba(93,159,184,.20);
+}
+
+body.locatorMode .locatorBeacon span,
+body.locatorMode .locatorBeacon i {
+  position: absolute;
+  border-radius: 50%;
+}
+
+body.locatorMode .locatorBeacon span {
+  width: 22px;
+  height: 22px;
+  background: #8ed5f1;
+  box-shadow: 0 0 26px rgba(142,213,241,.84);
+}
+
+body.locatorMode .locatorBeacon i {
+  width: 76px;
+  height: 76px;
+  border: 2px solid rgba(142,213,241,.48);
+}
+
+body.locatorMode .locatorScreen.activeSignal .locatorBeacon::before,
+body.locatorMode .locatorScreen.activeSignal .locatorBeacon::after {
+  content: "";
+  position: absolute;
+  inset: 26px;
+  border: 1px solid rgba(142,213,241,.52);
+  border-radius: 50%;
+  animation: locatorPulse 2.2s infinite;
+}
+
+body.locatorMode .locatorScreen.activeSignal .locatorBeacon::after {
+  animation-delay: 1.1s;
+}
+
+@keyframes locatorPulse {
+  from {
+    transform: scale(.45);
+    opacity: .85;
+  }
+  to {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+body.locatorMode .locatorScreen h2 {
+  margin: 0;
+  color: #8ed5f1;
+  text-transform: uppercase;
+}
+
+body.locatorMode .locatorScreen p {
+  margin: 0;
+  color: #c4d2ce;
+}
+
+body.locatorMode .locatorCoords {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 520px);
+}
+
+body.locatorMode .locatorCoords span {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid #315d70;
+  background: rgba(3,9,13,.82);
+  color: #a7b29a;
+  font: 900 11px "Consolas", monospace;
+}
+
+body.locatorMode .locatorCoords b {
+  color: #8ed5f1;
+  font-size: 18px;
+}
+
+body.dataMode .laptopScreen {
+  width: min(100%, 780px);
+  min-height: 330px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border: 8px solid #071116;
+  border-radius: 8px;
+  background:
+    linear-gradient(rgba(142,213,241,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142,213,241,.04) 1px, transparent 1px),
+    #031014;
+  background-size: 100% 5px, 5px 100%, auto;
+  box-shadow:
+    0 0 0 1px #315d70,
+    inset 0 0 80px rgba(93,159,184,.18),
+    0 24px 70px rgba(0,0,0,.72);
+  overflow: visible;
+  text-align: left;
+}
+
+body.dataMode .laptopTopbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #315d70;
+  background: linear-gradient(180deg, #10252e, #071217);
+  color: #8ed5f1;
+  font: 900 12px "Consolas", monospace;
+  text-transform: uppercase;
+}
+
+body.dataMode .laptopView {
+  display: none;
+  min-height: 286px;
+  padding: 18px;
+}
+
+body.dataMode .laptopView.active {
+  display: grid;
+}
+
+body.dataMode .loginPanel {
+  width: min(100%, 420px);
+  place-self: center;
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid #315d70;
+  background: rgba(2, 8, 10, .78);
+  box-shadow: inset 0 0 40px rgba(93,159,184,.08);
+  text-align: center;
+}
+
+body.dataMode .terminalTag {
+  color: #8ed5f1;
+  font: 900 12px "Consolas", monospace;
+  letter-spacing: 0;
+}
+
+body.dataMode .loginPanel h2,
+body.dataMode .laptopView h2 {
+  margin: 0;
+  color: #eef3e8;
+  text-transform: uppercase;
+}
+
+body.dataMode .loginPanel p,
+body.dataMode .laptopView p {
+  margin: 0;
+  color: #a7b29a;
+}
+
+body.dataMode .passwordLine {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  justify-self: center;
+  width: min(100%, 220px);
+}
+
+body.dataMode .passwordLine span {
+  height: 16px;
+  border: 1px solid #5d9fb8;
+  background: #8ed5f1;
+  box-shadow: 0 0 18px rgba(93,159,184,.45);
+}
+
+body.dataMode .folderGrid {
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+body.dataMode .folderCard {
+  min-height: 132px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #315d70;
+  background: rgba(7, 18, 23, .76);
+  color: #eef3e8;
+  cursor: pointer;
+}
+
+body.dataMode .folderCard b,
+body.dataMode .fileStrip,
+body.dataMode .openFile header {
+  font-family: "Consolas", "Cascadia Mono", monospace;
+}
+
+body.dataMode .folderCard small {
+  color: #a7b29a;
+  text-transform: uppercase;
+}
+
+body.dataMode .folderIcon {
+  position: relative;
+  width: 64px;
+  height: 42px;
+  border: 2px solid #8ed5f1;
+  background: linear-gradient(180deg, rgba(142,213,241,.34), rgba(93,159,184,.12));
+  box-shadow: 0 0 22px rgba(93,159,184,.22);
+}
+
+body.dataMode .folderIcon::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -12px;
+  width: 30px;
+  height: 12px;
+  border: 2px solid #8ed5f1;
+  border-bottom: 0;
+  background: rgba(142,213,241,.22);
+}
+
+body.dataMode .activeFolder {
+  border-color: #8ed5f1;
+  box-shadow: inset 0 0 36px rgba(93,159,184,.18), 0 0 28px rgba(93,159,184,.18);
+}
+
+body.dataMode .mutedFolder {
+  opacity: .55;
+}
+
+body.dataMode .fileStrip {
+  align-self: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #315d70;
+  background: rgba(2, 8, 10, .82);
+  color: #8ed5f1;
+}
+
+body.dataMode .fileStrip b {
+  color: #ffd27a;
+}
+
+body.dataMode .openFile {
+  width: min(100%, 560px);
+  place-self: center;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #8ed5f1;
+  background: linear-gradient(180deg, rgba(238,243,232,.95), rgba(205,222,220,.9));
+  color: #071116;
+}
+
+body.dataMode .openFile header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #071116;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+body.dataMode .fileLines {
+  display: grid;
+  gap: 9px;
+}
+
+body.dataMode .fileLines span {
+  height: 10px;
+  background: #315d70;
+}
+
+body.dataMode .fileLines span:nth-child(2),
+body.dataMode .fileLines span:nth-child(5) {
+  width: 72%;
+}
+
+body.dataMode .openFile p {
+  color: #17343f;
+  font-weight: 800;
+}
+
+body.dataMode #laptopMail {
+  place-items: center;
+  text-align: center;
+}
+
+body.dataMode .mailSentIcon {
+  position: relative;
+  width: 142px;
+  height: 92px;
+  border: 3px solid #8ed5f1;
+  background: linear-gradient(135deg, rgba(142,213,241,.32), rgba(93,159,184,.1));
+  box-shadow: 0 0 38px rgba(93,159,184,.38);
+}
+
+body.dataMode .mailSentIcon::before,
+body.dataMode .mailSentIcon::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 82px;
+  height: 82px;
+  border-bottom: 3px solid #8ed5f1;
+}
+
+body.dataMode .mailSentIcon::before {
+  left: 0;
+  transform: skewY(32deg);
+  transform-origin: top left;
+}
+
+body.dataMode .mailSentIcon::after {
+  right: 0;
+  transform: skewY(-32deg);
+  transform-origin: top right;
+}
+
+body.dataMode .mailSentIcon span {
+  position: absolute;
+  right: -20px;
+  bottom: -18px;
+  width: 54px;
+  height: 30px;
+  border-left: 5px solid #a7f06d;
+  border-bottom: 5px solid #a7f06d;
+  transform: rotate(-45deg);
+  box-shadow: -8px 8px 18px rgba(167,240,109,.3);
+}
+
+body.dataMode #dataConfig {
+  display: grid;
+}
+
+body.dataMode #dataConfig[hidden] {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  body.dataMode .folderGrid {
+    grid-template-columns: 1fr;
+  }
+
+  body.dataMode .laptopScreen {
+    min-height: 440px;
+  }
+}
+
+/* Composição da bomba inspirada em uma maleta cenográfica */
+.bombHardware {
+  display: none;
+}
+
+body.bombMode main {
+  background:
+    linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.62)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 68px),
+    #090806 !important;
+}
+
+body.bombMode .device {
+  width: min(100%, 1220px);
+  min-height: min(850px, calc(100vh - 28px));
+  border: 12px solid #263420 !important;
+  border-radius: 18px;
+  outline: 3px solid #090b08;
+  outline-offset: -17px;
+  background:
+    linear-gradient(90deg, rgba(67,82,45,.18), transparent 22% 78%, rgba(67,82,45,.14)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.016) 0 1px, transparent 1px 5px),
+    #0b0b08 !important;
+  box-shadow:
+    inset 0 0 0 2px #64704d,
+    inset 0 0 70px #000,
+    0 32px 100px rgba(0,0,0,.82) !important;
+}
+
+body.bombMode .device::before {
+  opacity: .78;
+  background:
+    linear-gradient(90deg, transparent 5%, rgba(130,70,35,.14) 5.2%, transparent 5.5% 94%, rgba(130,70,35,.13) 94.3%, transparent 94.8%),
+    repeating-linear-gradient(7deg, transparent 0 46px, rgba(176,122,65,.05) 47px 49px, transparent 50px 88px);
+}
+
+body.bombMode .device::after {
+  inset: -48px 20% auto;
+  height: 52px;
+  border: 12px solid #171a13;
+  border-bottom: 0;
+  border-radius: 30px 30px 0 0;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px #515444, 0 -4px 18px rgba(0,0,0,.75);
+}
+
+body.bombMode .device > .row {
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid #423c2c;
+  background: #0a0a07;
+}
+
+body.bombMode .center {
+  position: relative;
+  min-height: 650px;
+  grid-template-columns: minmax(310px, 1.05fr) minmax(290px, .88fr) minmax(150px, .42fr);
+  grid-template-rows: auto minmax(170px, .55fr) minmax(340px, 1fr);
+  grid-template-areas:
+    "phase phase hardware"
+    "timers timers hardware"
+    "keypad qr hardware";
+  gap: 14px;
+  padding: 16px;
+  border: 2px solid #443b2d;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 2px, transparent 2px 9px),
+    #090907;
+  box-shadow:
+    inset 0 0 0 5px #14140f,
+    inset 0 0 60px rgba(0,0,0,.8);
+}
+
+body.bombMode .device .center::before {
+  content: "UNIDADE AX-07  •  SISTEMA DE CONTROLE";
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  right: 18px;
+  margin: 0;
+  border: 0;
+  color: #b19b6b;
+}
+
+body.bombMode #phase {
+  grid-area: phase;
+  align-self: end;
+  margin: 24px 0 0;
+  padding: 9px 14px;
+  border: 1px solid #5d412a;
+  border-left: 5px solid #b83a2e;
+  background: #120b08;
+  color: #d8cfb8;
+  font-size: clamp(19px, 3.2vw, 34px);
+  box-shadow: inset 0 0 20px rgba(200,45,33,.09);
+}
+
+body.bombMode #phase::before {
+  content: "ESTADO: ";
+}
+
+body.bombMode .timers {
+  grid-area: timers;
+  align-self: stretch;
+  grid-template-columns: minmax(0, 1.55fr) minmax(180px, .65fr);
+  gap: 12px;
+}
+
+body.bombMode .timerBox {
+  position: relative;
+  min-height: 170px;
+  padding: 42px 18px 14px;
+  border: 8px solid #171612 !important;
+  outline: 2px solid #514536;
+  outline-offset: -5px;
+  background:
+    linear-gradient(rgba(74,8,5,.34), rgba(12,2,1,.96)),
+    #050000 !important;
+  box-shadow:
+    inset 0 0 32px #000,
+    0 7px 16px rgba(0,0,0,.48) !important;
+}
+
+body.bombMode .timerBox::before {
+  content: "TEMPO DE JOGO";
+  position: absolute;
+  top: -2px;
+  left: 15%;
+  right: 15%;
+  padding: 6px 8px;
+  color: #20190f;
+  background: #bba77b;
+  box-shadow: 0 2px 5px rgba(0,0,0,.5);
+  font: 900 12px Georgia, serif;
+  text-align: center;
+}
+
+body.bombMode .timerBox:nth-child(2)::before {
+  content: "TEMPO DO DISPOSITIVO";
+  left: 6%;
+  right: 6%;
+}
+
+body.bombMode .timerBox .label {
+  display: none;
+}
+
+body.bombMode .timer {
+  align-self: center;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: clamp(66px, 10vw, 116px);
+  color: #ff362b !important;
+  text-align: center;
+  text-shadow: 0 0 8px #ff2d23, 0 0 28px rgba(255,45,34,.7);
+}
+
+body.bombMode .timer.small {
+  font-size: clamp(42px, 6.2vw, 70px);
+}
+
+body.bombMode .keypad,
+body.bombMode .qr {
+  border: 8px solid #171612 !important;
+  outline: 2px solid #514536;
+  outline-offset: -5px;
+  border-radius: 7px;
+}
+
+body.bombMode .keypad {
+  grid-area: keypad;
+  position: relative;
+  padding: 50px 16px 16px;
+  background:
+    linear-gradient(180deg, rgba(88,59,30,.08), transparent),
+    #0c0c09;
+}
+
+body.bombMode .keypad::before {
+  content: "TECLADO DE ACESSO";
+  position: absolute;
+  top: 12px;
+  left: 16%;
+  right: 16%;
+  padding: 6px;
+  color: #20190f;
+  background: #bba77b;
+  font: 900 12px Georgia, serif;
+  text-align: center;
+}
+
+body.bombMode .keypad.locked::before {
+  content: "TECLADO BLOQUEADO";
+}
+
+body.bombMode .display {
+  min-height: 54px;
+  margin-bottom: 8px;
+  border: 4px solid #171612 !important;
+  background: #130201 !important;
+  color: #ff3c30 !important;
+  font-size: 30px;
+  text-shadow: 0 0 10px #ff3025;
+}
+
+body.bombMode .keys {
+  min-height: 242px;
+  gap: 9px;
+}
+
+body.bombMode .keys button {
+  min-height: 52px;
+  border: 3px solid #080806 !important;
+  outline: 1px solid #4f4a40;
+  background: linear-gradient(180deg, #292821, #11110e) !important;
+  color: #ddd4bf !important;
+  font-size: 24px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.09), 0 3px 5px #000;
+}
+
+body.bombMode .keys button[data-act="clear"] {
+  background: linear-gradient(180deg, #a73125, #62150f) !important;
+  color: #f4d9cd !important;
+}
+
+body.bombMode .keys button.ok {
+  background: linear-gradient(180deg, #5e9c3f, #2f5b24) !important;
+  color: #eff4dd !important;
+}
+
+body.bombMode .qr {
+  grid-area: qr;
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  align-content: center;
+  padding: 64px 24px 24px;
+  border-color: #171612 !important;
+  background: #d8c7a0;
+  box-shadow: inset 0 0 0 12px #242018, 0 7px 16px rgba(0,0,0,.48) !important;
+}
+
+body.bombMode .qr span,
+body.bombMode .qr i {
+  display: none;
+}
+
+body.bombMode .qr::after {
+  content: "";
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  width: min(calc(100% - 52px), 260px);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(#d8c7a0 0 0) 7% 7% / 14% 14% no-repeat,
+    linear-gradient(#d8c7a0 0 0) 93% 7% / 14% 14% no-repeat,
+    linear-gradient(#d8c7a0 0 0) 7% 93% / 14% 14% no-repeat,
+    linear-gradient(#111 0 0) 0 0 / 28% 28% no-repeat,
+    linear-gradient(#111 0 0) 100% 0 / 28% 28% no-repeat,
+    linear-gradient(#111 0 0) 0 100% / 28% 28% no-repeat,
+    repeating-conic-gradient(#111 0 25%, transparent 0 50%) 50% / var(--qr-cell, 22px) var(--qr-cell, 22px);
+  border: 8px solid #d8c7a0;
+  outline: 2px solid rgba(20,16,10,.4);
+}
+
+body.bombMode .qr::before {
+  content: "ESCANEAR CÓDIGO";
+  position: absolute;
+  top: 15px;
+  left: 13%;
+  right: 13%;
+  padding: 7px;
+  border: 0;
+  color: #21190f;
+  background: #bba77b;
+  font: 900 12px Georgia, serif;
+  text-align: center;
+}
+
+body.bombMode .bombHardware {
+  grid-area: hardware;
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto auto 1.3fr;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px;
+  border-left: 1px solid #593121;
+  background: #080806;
+  overflow: visible;
+}
+
+.hardwareWires {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: .9;
+}
+
+.hardwareWires i {
+  position: absolute;
+  width: 140%;
+  height: 42px;
+  border: 6px solid #8c251c;
+  border-left: 0;
+  border-radius: 50%;
+  transform: rotate(72deg);
+}
+
+.hardwareWires i:nth-child(1) { top: 8%; left: -54%; border-color: #a52d20; }
+.hardwareWires i:nth-child(2) { top: 25%; left: -34%; border-color: #a17925; transform: rotate(58deg); }
+.hardwareWires i:nth-child(3) { top: 44%; left: -64%; border-color: #262c22; transform: rotate(86deg); }
+.hardwareWires i:nth-child(4) { top: 60%; left: -42%; border-color: #7d1e18; transform: rotate(64deg); }
+
+.hazardPlate,
+.speakerPlate,
+.armedLamp,
+.chargePack {
+  position: relative;
+  z-index: 1;
+  border: 6px solid #171612;
+  outline: 1px solid #514536;
+  background: #11110e;
+  box-shadow: 0 6px 14px rgba(0,0,0,.55);
+}
+
+.hazardPlate {
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+}
+
+.hazardPlate span {
+  width: 66px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: 5px solid #bb7c19;
+  color: #e7a42b;
+  font: 900 38px Georgia, serif;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.hazardPlate b,
+.armedLamp b,
+.chargePack b {
+  color: #a68e61;
+  font: 900 9px "Consolas", monospace;
+  text-align: center;
+}
+
+.speakerPlate {
+  width: 82px;
+  height: 82px;
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(3, 7px);
+  place-content: center;
+  gap: 7px;
+  border-radius: 50%;
+}
+
+.speakerPlate span,
+.speakerPlate i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #020302;
+}
+
+.armedLamp {
+  padding: 9px;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.armedLamp span {
+  width: 26px;
+  height: 26px;
+  border: 4px solid #36100d;
+  border-radius: 50%;
+  background: #fa3529;
+  box-shadow: 0 0 9px #ff2d23, 0 0 22px rgba(255,45,35,.7);
+}
+
+.chargePack {
+  min-height: 170px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+  gap: 5px;
+  padding: 12px 8px 30px;
+}
+
+.chargePack i {
+  border: 1px solid #651912;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.08), transparent 30% 72%, rgba(0,0,0,.22)),
+    #a62a20;
+  box-shadow: inset 0 -18px 20px rgba(0,0,0,.24);
+}
+
+.chargePack::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52%;
+  height: 24px;
+  background: #111;
+  box-shadow: 0 2px 6px #000;
+}
+
+.chargePack b {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+}
+
+body.bombMode .device > .badges:last-child {
+  margin: 0;
+  gap: 12px;
+}
+
+body.bombMode .device > .badges:last-child .badge {
+  border: 5px solid #171612 !important;
+  outline: 1px solid #514536;
+  background: #120201 !important;
+  color: #ff4539 !important;
+  font-size: 14px;
+  text-shadow: 0 0 8px rgba(255,45,35,.62);
+}
+
+@media (max-width: 900px) {
+  body.bombMode .device::after {
+    display: none;
+  }
+
+  body.bombMode .center {
+    grid-template-columns: minmax(260px, 1fr) minmax(240px, .82fr);
+    grid-template-areas:
+      "phase phase"
+      "timers timers"
+      "keypad qr"
+      "hardware hardware";
+  }
+
+  body.bombMode .timer {
+    font-size: clamp(46px, 8.5vw, 72px);
+  }
+
+  body.bombMode .timer.small {
+    font-size: clamp(38px, 6.5vw, 58px);
+  }
+
+  body.bombMode .bombHardware {
+    grid-template-columns: 1fr auto auto 1fr;
+    grid-template-rows: 150px;
+    border-left: 0;
+    border-top: 1px solid #593121;
+  }
+
+  .hazardPlate,
+  .chargePack {
+    min-height: 140px;
+  }
+}
+
+@media (max-width: 620px) {
+  body.bombMode .device {
+    border-width: 7px !important;
+    border-radius: 10px;
+  }
+
+  body.bombMode .center {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "phase"
+      "timers"
+      "keypad"
+      "qr"
+      "hardware";
+  }
+
+  body.bombMode .timers {
+    grid-template-columns: 1fr;
+  }
+
+  body.bombMode .qr {
+    width: min(100%, 360px);
+    min-height: 360px;
+  }
+
+  body.bombMode .bombHardware {
+    display: none;
+  }
+}
+
+body.dataMode .laptopScreen {
+  width: min(100%, 860px);
+  min-height: 430px;
+  border: 10px solid #070b0e;
+  border-radius: 10px;
+  background: #dfe6e8;
+  box-shadow:
+    0 0 0 1px #34414a,
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    0 24px 70px rgba(0,0,0,.72);
+}
+
+body.dataMode .laptopTopbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  justify-content: initial;
+  min-height: 34px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #2f3940;
+  background: linear-gradient(180deg, #59646b, #344047);
+  color: #f6fafb;
+}
+
+body.dataMode .windowDots {
+  display: flex;
+  gap: 6px;
+}
+
+body.dataMode .windowDots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #f45d52;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+body.dataMode .windowDots i:nth-child(2) {
+  background: #f1c75f;
+}
+
+body.dataMode .windowDots i:nth-child(3) {
+  background: #79cf6d;
+}
+
+body.dataMode #laptopName {
+  text-align: center;
+}
+
+body.dataMode #laptopSignal {
+  padding: 3px 8px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.24);
+}
+
+body.dataMode .laptopView {
+  min-height: 386px;
+  padding: 0;
+}
+
+body.dataMode #laptopLogin {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(255,255,255,.18), transparent 14%),
+    radial-gradient(circle at 30% 70%, rgba(99,178,218,.20), transparent 30%),
+    linear-gradient(135deg, #163f9b, #1c57c8 46%, #061443);
+}
+
+body.dataMode .loginPanel {
+  width: min(100%, 430px);
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(3, 18, 58, .34);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 18px 60px rgba(0,0,0,.22);
+  backdrop-filter: blur(2px);
+}
+
+body.dataMode .loginAvatar {
+  width: 132px;
+  height: 132px;
+  place-self: center;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.10);
+}
+
+body.dataMode .loginAvatar span {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(245,248,255,.92);
+}
+
+body.dataMode .loginAvatar span::after {
+  content: "";
+  position: absolute;
+  left: -21px;
+  top: 62px;
+  width: 96px;
+  height: 43px;
+  border-radius: 16px 16px 34px 34px;
+  background: rgba(245,248,255,.92);
+}
+
+body.dataMode .terminalTag {
+  color: rgba(255,255,255,.68);
+}
+
+body.dataMode .loginPanel h2 {
+  color: #ffffff;
+}
+
+body.dataMode .loginPanel p {
+  color: rgba(255,255,255,.82);
+}
+
+body.dataMode .loginFields {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+body.dataMode .loginFields span {
+  color: rgba(255,255,255,.90);
+  font-size: 12px;
+}
+
+body.dataMode .fakeInput {
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid rgba(128,190,255,.65);
+  border-radius: 3px;
+  background: rgba(4, 15, 35, .72);
+  color: rgba(255,255,255,.86);
+  font-family: "Consolas", monospace;
+  box-shadow: inset 0 1px 4px rgba(0,0,0,.35);
+}
+
+body.dataMode .mutedInput {
+  background: rgba(255,255,255,.07);
+  color: rgba(255,255,255,.56);
+}
+
+body.dataMode .passwordLine span {
+  height: 8px;
+  border: 0;
+  background: rgba(255,255,255,.74);
+  box-shadow: 0 0 18px rgba(255,255,255,.26);
+}
+
+body.dataMode .fileManager {
+  display: grid;
+  grid-template-columns: 172px 1fr;
+  min-height: 386px;
+  background: #f3f6f7;
+  color: #202a2f;
+}
+
+body.dataMode .fileSidebar {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 14px 10px;
+  border-right: 1px solid #c2ccd1;
+  background: #e7ecef;
+  color: #26343b;
+}
+
+body.dataMode .fileSidebar b {
+  margin-top: 8px;
+  color: #6d7b83;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+body.dataMode .fileSidebar span {
+  padding: 5px 7px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+body.dataMode .fileSidebar span:nth-of-type(4) {
+  background: #d7eefa;
+  color: #0c5a7a;
+}
+
+body.dataMode .fileWorkspace {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+}
+
+body.dataMode .fileToolbar {
+  display: grid;
+  grid-template-columns: 28px 28px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #c2ccd1;
+  background: #fbfcfc;
+  color: #506068;
+  font-size: 13px;
+}
+
+body.dataMode .fileToolbar span {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  border: 1px solid #d0d8dc;
+  border-radius: 3px;
+  color: #1f3037;
+  font-size: 20px;
+}
+
+body.dataMode .fileToolbar b {
+  color: #213039;
+}
+
+body.dataMode .fileToolbar em {
+  justify-self: end;
+  padding: 5px 9px;
+  border: 1px solid #d6dfe3;
+  border-radius: 3px;
+  color: #7a8990;
+  font-style: normal;
+}
+
+body.dataMode .folderGrid {
+  align-self: stretch;
+  grid-template-columns: repeat(4, minmax(86px, 1fr));
+  gap: 18px;
+  align-content: start;
+  padding: 28px;
+  background: #f9fbfb;
+}
+
+body.dataMode .folderCard {
+  min-height: 112px;
+  gap: 7px;
+  padding: 12px 8px;
+  border: 1px solid transparent;
+  background: transparent !important;
+  color: #233139 !important;
+  box-shadow: none !important;
+}
+
+body.dataMode .folderCard small {
+  color: #718087;
+  font-size: 10px;
+}
+
+body.dataMode .folderIcon {
+  width: 72px;
+  height: 50px;
+  border: 0;
+  border-radius: 3px 5px 5px 5px;
+  background: linear-gradient(180deg, #ffb061, #e86b27);
+  box-shadow:
+    inset 0 5px 0 rgba(255,255,255,.14),
+    0 7px 14px rgba(38,50,57,.18);
+}
+
+body.dataMode .folderIcon::before {
+  left: 0;
+  top: -10px;
+  width: 33px;
+  height: 14px;
+  border: 0;
+  border-radius: 4px 4px 0 0;
+  background: #f7c184;
+}
+
+body.dataMode .activeFolder {
+  border-color: #4aa3df;
+  background: #e8f4fc !important;
+  box-shadow: inset 0 0 0 1px #b9def5 !important;
+}
+
+body.dataMode .mutedFolder {
+  opacity: .72;
+}
+
+body.dataMode .fileStrip {
+  padding: 10px 14px;
+  border: 0;
+  border-top: 1px solid #c2ccd1;
+  background: #edf2f4;
+  color: #20313a;
+}
+
+body.dataMode .fileStrip b {
+  color: #b4551f;
+}
+
+body.dataMode .openFile {
+  width: min(100%, 720px);
+  min-height: 318px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0;
+  padding: 0;
+  border: 1px solid #9daab0;
+  background: #fbfbf7;
+  box-shadow: 0 18px 48px rgba(0,0,0,.24);
+}
+
+body.dataMode .openFile header {
+  padding: 9px 12px;
+  border-bottom: 1px solid #303b42;
+  background: linear-gradient(180deg, #5c676d, #39444b);
+  color: #f7fbfc;
+}
+
+body.dataMode .editorToolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #d6d9d4;
+  background: #edf0ea;
+  color: #465258;
+  font-size: 12px;
+}
+
+body.dataMode .editorToolbar b {
+  margin-left: auto;
+  color: #9a3d2d;
+  text-transform: uppercase;
+}
+
+body.dataMode .fileLines {
+  align-content: start;
+  gap: 11px;
+  padding: 24px 28px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(62,83,93,.08) 31px 32px),
+    #fbfbf7;
+}
+
+body.dataMode .fileLines span {
+  height: 9px;
+  background: #314b59;
+  opacity: .82;
+}
+
+body.dataMode .openFile p {
+  padding: 0 28px 22px;
+  color: #17343f;
+}
+
+@media (max-width: 720px) {
+  body.dataMode .fileManager {
+    grid-template-columns: 1fr;
+  }
+
+  body.dataMode .fileSidebar {
+    display: none;
+  }
+
+  body.dataMode .folderGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 20px;
+  }
+}
+
+body.dataMode .device.notebookMode .center {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 650px;
+  padding: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+/* Etiquetas mais abertas: fonte militar reta, maior e sem peso excessivo */
+body.bombMode #phase,
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  font-family: "Bahnschrift Condensed", "Arial Narrow", "DIN Condensed", Arial, sans-serif !important;
+  font-weight: 400 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+body.bombMode .timerBox:first-child .label {
+  font-size: clamp(11px, 1.55vw, 24px) !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  font-size: clamp(11px, 1.68vw, 26px) !important;
+}
+
+body.bombMode .qrTitle {
+  padding-inline: .5%;
+  font-size: clamp(11px, 1.58vw, 24px) !important;
+}
+
+body.bombMode #phase {
+  font-size: clamp(8px, 1vw, 15px);
+  font-weight: 500 !important;
+}
+
+/* Proporção e tipografia das etiquetas conforme a referência física */
+body.bombMode #phase,
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  font-family: Rockwell, "Roboto Slab", "Courier New", serif !important;
+  font-weight: 600 !important;
+  font-stretch: condensed;
+  letter-spacing: 0;
+  line-height: 1;
+  text-shadow: none !important;
+}
+
+body.bombMode .timerBox:first-child .label {
+  padding: 0 1%;
+  font-size: clamp(12px, 1.75vw, 27px) !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  padding: 0 1%;
+  font-size: clamp(12px, 1.82vw, 28px) !important;
+}
+
+body.bombMode .qrTitle {
+  padding: 0 1%;
+  font-size: clamp(12px, 1.72vw, 26px) !important;
+}
+
+body.bombMode #phase {
+  padding-inline: 4%;
+  font-size: clamp(7px, .86vw, 13px);
+}
+
+/* Display LED de sete segmentos */
+body.bombMode .timer {
+  gap: 2.2%;
+  padding: 3% 5%;
+  box-sizing: border-box;
+  text-shadow: none;
+}
+
+body.bombMode .segDigit {
+  position: relative;
+  height: 82%;
+  aspect-ratio: .56;
+  flex: 0 0 auto;
+}
+
+body.bombMode .seg {
+  position: absolute;
+  display: block;
+  background: rgba(80, 5, 2, .22);
+  filter: none;
+}
+
+body.bombMode .seg-a,
+body.bombMode .seg-d,
+body.bombMode .seg-g {
+  left: 15%;
+  width: 70%;
+  height: 11%;
+  clip-path: polygon(8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%, 0 50%);
+}
+
+body.bombMode .seg-a { top: 0; }
+body.bombMode .seg-g { top: 44.5%; }
+body.bombMode .seg-d { bottom: 0; }
+
+body.bombMode .seg-b,
+body.bombMode .seg-c,
+body.bombMode .seg-e,
+body.bombMode .seg-f {
+  width: 13%;
+  height: 40%;
+  clip-path: polygon(50% 0, 100% 9%, 100% 91%, 50% 100%, 0 91%, 0 9%);
+}
+
+body.bombMode .seg-b { top: 7%; right: 3%; }
+body.bombMode .seg-c { right: 3%; bottom: 7%; }
+body.bombMode .seg-e { left: 3%; bottom: 7%; }
+body.bombMode .seg-f { top: 7%; left: 3%; }
+
+body.bombMode .seg.active,
+body.bombMode .segColon i {
+  background: #ff2a20;
+  box-shadow: 0 0 .28vw #ff2a20, 0 0 .8vw rgba(255,32,24,.92);
+}
+
+body.bombMode .segColon {
+  position: relative;
+  width: 5%;
+  height: 52%;
+  flex: 0 0 5%;
+}
+
+body.bombMode .segColon i {
+  position: absolute;
+  left: 15%;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+body.bombMode .segColon i:first-child { top: 8%; }
+body.bombMode .segColon i:last-child { bottom: 8%; }
+
+body.bombMode .timerBox:first-child .segDigit {
+  height: 70%;
+}
+
+body.dataMode .device.notebookMode .center::before {
+  content: "";
+  display: none;
+}
+
+body.dataMode .device.notebookMode .laptopScreen {
+  width: 100%;
+  min-height: 650px;
+  grid-template-rows: auto 1fr;
+}
+
+body.dataMode .device.notebookMode .laptopView {
+  min-height: 616px;
+}
+
+body.dataMode .device.notebookMode #laptopLogin .loginPanel {
+  margin-top: 64px;
+}
+
+body.dataMode .device.notebookMode #phase {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 48px;
+  width: min(78%, 560px);
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(135, 190, 220, .38);
+  border-radius: 4px;
+  background: rgba(238, 243, 246, .92);
+  color: #233139 !important;
+  font-size: clamp(14px, 2.4vw, 22px);
+  font-family: "Segoe UI", Arial, sans-serif;
+  text-align: center;
+  text-shadow: none;
+  box-shadow: 0 12px 30px rgba(0,0,0,.22);
+}
+
+body.dataMode .device.notebookMode #phase::before {
+  content: "";
+}
+
+body.dataMode .device.notebookMode .timers {
+  position: absolute;
+  z-index: 4;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  width: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  pointer-events: none;
+}
+
+body.dataMode .device.notebookMode .timerBox {
+  min-height: 72px;
+  padding: 9px 12px;
+  border-color: rgba(84, 107, 116, .45) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.82), rgba(226,233,236,.90)),
+    #eef3f5 !important;
+  color: #24343b;
+  box-shadow: 0 10px 24px rgba(0,0,0,.18) !important;
+}
+
+body.dataMode .device.notebookMode .timerBox .label {
+  color: #586870 !important;
+}
+
+body.dataMode .device.notebookMode .timerBox .label::before,
+body.dataMode .device.notebookMode .timerBox .label::after {
+  content: "";
+}
+
+body.dataMode .device.notebookMode .timer {
+  color: #0d5771 !important;
+  font-size: clamp(28px, 5.4vw, 54px);
+  line-height: 1;
+  text-shadow: none;
+}
+
+body.dataMode .device.notebookMode .timer.small {
+  color: #9a541f !important;
+}
+
+body.dataMode .device.notebookMode .qr {
+  position: absolute;
+  z-index: 5;
+  left: 20px;
+  top: 70px;
+  width: 124px;
+  height: 124px;
+  padding: 10px;
+  border: 1px solid #aebbc0 !important;
+  border-radius: 4px;
+  background: #f9fbfb;
+  box-shadow: 0 12px 30px rgba(0,0,0,.24) !important;
+}
+
+body.dataMode .device.notebookMode .qr::before {
+  content: "QR / acesso";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -25px;
+  padding: 4px 8px;
+  border: 1px solid #aebbc0;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: #e9eef0;
+  color: #52636b;
+  font: 900 11px "Consolas", monospace;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+body.dataMode .device.notebookMode .keypad {
+  position: absolute;
+  z-index: 5;
+  right: 20px;
+  top: 70px;
+  width: min(42%, 360px);
+  max-height: 350px;
+  padding: 10px;
+  border: 1px solid #aebbc0;
+  border-radius: 4px;
+  background: rgba(239, 244, 246, .94);
+  box-shadow: 0 12px 30px rgba(0,0,0,.24);
+}
+
+body.dataMode .device.notebookMode .keypad::before {
+  content: "teclado seguro";
+  display: block;
+  margin: -10px -10px 8px;
+  padding: 6px 9px;
+  border-bottom: 1px solid #aebbc0;
+  background: #dfe7ea;
+  color: #52636b;
+  font: 900 11px "Consolas", monospace;
+  text-transform: uppercase;
+}
+
+body.dataMode .device.notebookMode .keypad.locked {
+  opacity: .72;
+}
+
+body.dataMode .device.notebookMode .display {
+  min-height: 38px;
+  border-color: #b8c4c9 !important;
+  background: #ffffff !important;
+  color: #174a5d !important;
+  font-size: 20px;
+  text-shadow: none;
+}
+
+body.dataMode .device.notebookMode .keys {
+  gap: 5px;
+}
+
+body.dataMode .device.notebookMode .keys button {
+  min-height: 38px;
+  border-color: #c2ccd1 !important;
+  background: linear-gradient(180deg, #ffffff, #dbe5e8) !important;
+  color: #24343b !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+body.dataMode .device.notebookMode .keys button.ok {
+  background: linear-gradient(180deg, #80d7ef, #4a9bbb) !important;
+  color: #05202a !important;
+}
+
+body.dataMode .device.notebookMode > .badges:last-child {
+  margin-top: -10px;
+  padding: 8px 10px;
+  border: 1px solid #2f3940;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(180deg, #59646b, #344047);
+}
+
+@media (max-width: 760px) {
+  body.dataMode .device.notebookMode .center,
+  body.dataMode .device.notebookMode .laptopScreen {
+    min-height: 820px;
+  }
+
+  body.dataMode .device.notebookMode .laptopView {
+    min-height: 786px;
+  }
+
+  body.dataMode .device.notebookMode #phase,
+  body.dataMode .device.notebookMode .qr,
+  body.dataMode .device.notebookMode .keypad,
+  body.dataMode .device.notebookMode .timers {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    transform: none;
+    width: calc(100% - 28px);
+    margin: 12px auto;
+  }
+
+  body.dataMode .device.notebookMode #phase {
+    margin-top: -770px;
+  }
+
+  body.dataMode .device.notebookMode .timers {
+    grid-template-columns: 1fr;
+    pointer-events: auto;
+  }
+}
+
+/* Bomba clássica: painel físico de campo */
+@media all and (max-width: 0px) {
+body.bombMode main {
+  padding: clamp(10px, 2vw, 24px);
+  background:
+    linear-gradient(115deg, transparent 0 48%, rgba(217,164,65,.035) 48% 52%, transparent 52%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 72px),
+    #050706 !important;
+}
+
+body.bombMode .device {
+  width: min(100%, 1120px);
+  min-height: min(820px, calc(100vh - 32px));
+  padding: 22px;
+  gap: 14px;
+  border: 3px solid #30382d !important;
+  outline: 1px solid #69735b;
+  outline-offset: -10px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), transparent 16%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 2px, transparent 2px 7px),
+    #0b0e0a !important;
+  box-shadow:
+    inset 0 0 0 8px #070906,
+    inset 0 0 80px rgba(0,0,0,.58),
+    0 28px 90px rgba(0,0,0,.78) !important;
+}
+
+body.bombMode .device::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 10px 10px, #141914 0 3px, #69735b 4px, transparent 5px),
+    radial-gradient(circle at calc(100% - 10px) 10px, #141914 0 3px, #69735b 4px, transparent 5px),
+    radial-gradient(circle at 10px calc(100% - 10px), #141914 0 3px, #69735b 4px, transparent 5px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #141914 0 3px, #69735b 4px, transparent 5px);
+}
+
+body.bombMode .device > .row {
+  min-height: 52px;
+  padding: 9px 12px;
+  border: 1px solid #343e32;
+  background: rgba(4,7,4,.72);
+}
+
+body.bombMode .device > .row::before {
+  content: "AX-07 // CAMPO";
+  color: #d9a441;
+  font: 900 11px "Consolas", monospace;
+  letter-spacing: 0;
+}
+
+body.bombMode .device > .row .badges {
+  order: 2;
+  margin-left: auto;
+}
+
+body.bombMode #pending {
+  order: 3;
+  width: 100%;
+  border: 0 !important;
+  border-top: 1px solid rgba(105,115,91,.38) !important;
+  padding: 7px 0 0;
+  background: transparent !important;
+  color: #d9a441 !important;
+  font-family: "Consolas", monospace;
+}
+
+body.bombMode .center {
+  width: 100%;
+  min-height: 640px;
+  grid-template-columns: minmax(190px, .7fr) minmax(340px, 1.25fr);
+  grid-template-areas:
+    "phase phase"
+    "timers timers"
+    "qr keypad";
+  align-content: center;
+  align-items: stretch;
+  gap: 14px 18px;
+  padding: clamp(14px, 2vw, 24px);
+  border: 1px solid #3d4939;
+  background:
+    linear-gradient(90deg, rgba(217,164,65,.035), transparent 34%, rgba(224,82,67,.035)),
+    #050705;
+  box-shadow: inset 0 0 70px rgba(0,0,0,.62);
+}
+
+body.bombMode .device .center::before {
+  content: "TACTICAL DEVICE / AUTHORIZATION REQUIRED";
+  grid-area: phase;
+  display: block;
+  justify-self: stretch;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(217,164,65,.32);
+  color: #8f987f;
+  font: 900 10px "Consolas", monospace;
+  text-align: left;
+}
+
+body.bombMode #phase {
+  grid-area: phase;
+  align-self: end;
+  margin-top: 24px;
+  padding: 12px 16px;
+  border-left: 5px solid #e05243;
+  background: linear-gradient(90deg, rgba(224,82,67,.13), transparent 78%);
+  color: #f2eee4;
+  font-size: clamp(22px, 4vw, 44px);
+  line-height: 1.05;
+  text-align: left;
+}
+
+body.bombMode #phase::before {
+  content: "STATUS // ";
+  color: #e05243;
+}
+
+body.bombMode .timers {
+  grid-area: timers;
+  width: 100%;
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+  gap: 10px;
+}
+
+body.bombMode .timerBox {
+  min-height: 150px;
+  align-content: center;
+  padding: 16px 20px;
+  border-color: #45523f !important;
+  border-radius: 3px;
+  background:
+    linear-gradient(180deg, rgba(127,176,105,.045), transparent),
+    #030503 !important;
+  box-shadow: inset 0 0 34px rgba(0,0,0,.72) !important;
+}
+
+body.bombMode .timerBox .label {
+  justify-self: start;
+  color: #919b87 !important;
+  font: 900 11px "Consolas", monospace;
+}
+
+body.bombMode .timer {
+  font-size: clamp(58px, 9vw, 104px);
+  line-height: .92;
+  color: #d8e0d2 !important;
+  text-align: right;
+  text-shadow: 0 0 24px rgba(216,224,210,.14);
+}
+
+body.bombMode .timer.small {
+  color: #ff695d !important;
+  text-shadow: 0 0 28px rgba(224,82,67,.42);
+}
+
+body.bombMode .qr {
+  grid-area: qr;
+  position: relative;
+  align-self: stretch;
+  justify-self: stretch;
+  width: 100%;
+  height: auto;
+  min-height: 292px;
+  aspect-ratio: auto;
+  padding: 58px 24px 24px;
+  border: 1px solid #665c37 !important;
+  background: #dce2d9;
+  gap: 5px;
+  box-shadow: inset 0 0 0 10px #11150f, 0 16px 36px rgba(0,0,0,.35) !important;
+}
+
+body.bombMode .qr::before {
+  content: "01 / ESCANEAR CREDENCIAL";
+  position: absolute;
+  inset: 15px 18px auto;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(5,7,6,.28);
+  color: #1b2119;
+  font: 900 11px "Consolas", monospace;
+  text-align: left;
+}
+
+body.bombMode .keypad {
+  grid-area: keypad;
+  align-self: stretch;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #4d4430;
+  background:
+    linear-gradient(180deg, rgba(217,164,65,.055), transparent 34%),
+    #0d100c;
+  box-shadow: inset 0 0 30px rgba(0,0,0,.5), 0 16px 36px rgba(0,0,0,.35);
+}
+
+body.bombMode .keypad::before {
+  content: "02 / INSERIR CHAVE OPERACIONAL";
+  display: block;
+  padding: 3px 2px 10px;
+  color: #d9a441;
+  font: 900 11px "Consolas", monospace;
+  text-align: left;
+}
+
+body.bombMode .keypad.locked::before {
+  content: "02 / TECLADO BLOQUEADO";
+  color: #8f987f;
+}
+
+body.bombMode .display {
+  min-height: 68px;
+  border: 1px solid #70433d !important;
+  background: #020302 !important;
+  color: #ff695d !important;
+  font-size: 34px;
+  letter-spacing: 0;
+}
+
+body.bombMode .keys {
+  min-height: 230px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body.bombMode .keys button {
+  min-height: 50px;
+  border-color: #404b3c !important;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #20271e, #11150f) !important;
+  font: 900 17px "Consolas", monospace;
+}
+
+body.bombMode .keys button.ok {
+  border-color: #d9a441 !important;
+  background: linear-gradient(180deg, #ebbc59, #a87728) !important;
+  color: #130d02 !important;
+}
+
+body.bombMode .keypad.locked {
+  opacity: .48;
+  filter: saturate(.45);
+}
+
+body.bombMode .device > .badges:last-child {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+body.bombMode .device > .badges:last-child .badge {
+  padding: 10px 12px;
+  border-left: 3px solid #7fb069 !important;
+  font-family: "Consolas", monospace;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  body.bombMode .device {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  body.bombMode .center {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "phase"
+      "timers"
+      "qr"
+      "keypad";
+    padding: 12px;
+  }
+
+  body.bombMode .timers {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  body.bombMode .timerBox {
+    min-height: 104px;
+    padding: 12px;
+  }
+
+  body.bombMode .timer {
+    font-size: clamp(38px, 12vw, 62px);
+  }
+
+  body.bombMode .qr {
+    width: min(100%, 310px);
+    min-height: 310px;
+    justify-self: center;
+  }
+
+  body.bombMode .keypad {
+    width: min(100%, 430px);
+    justify-self: center;
+  }
+}
+}
+
+body.dataMode .device.notebookMode .timers {
+  top: 46px;
+  bottom: auto;
+  left: 16px;
+  right: 16px;
+  grid-template-columns: 150px 150px;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+body.dataMode .device.notebookMode .timerBox {
+  min-height: 46px;
+  padding: 6px 8px;
+  gap: 3px;
+  border-radius: 3px;
+}
+
+body.dataMode .device.notebookMode .timerBox .label {
+  font-size: 9px;
+  line-height: 1;
+}
+
+body.dataMode .device.notebookMode .timer {
+  font-size: 22px;
+}
+
+body.dataMode .device.notebookMode #laptopLogin .loginPanel {
+  width: min(100%, 460px);
+  margin-top: 46px;
+  padding: 148px 28px 178px;
+  background: rgba(3, 18, 58, .18);
+}
+
+body.dataMode .device.notebookMode .loginAvatar {
+  display: none;
+}
+
+body.dataMode .device.notebookMode .loginFields,
+body.dataMode .device.notebookMode .passwordLine {
+  display: none;
+}
+
+body.dataMode .device.notebookMode .qr {
+  left: 50%;
+  top: 116px;
+  width: 132px;
+  height: 132px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,.28) !important;
+  background:
+    radial-gradient(circle, #f8fbff 0 58%, rgba(255,255,255,.14) 59% 100%);
+  box-shadow:
+    0 0 0 28px rgba(255,255,255,.08),
+    0 18px 46px rgba(0,0,0,.24) !important;
+}
+
+body.dataMode .device.notebookMode .qr::before {
+  content: "QR";
+  top: auto;
+  bottom: -30px;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,.74);
+}
+
+body.dataMode .device.notebookMode .keypad {
+  left: 50%;
+  right: auto;
+  top: 396px;
+  width: min(78%, 430px);
+  transform: translateX(-50%);
+  background: rgba(8, 28, 68, .34);
+  border-color: rgba(255,255,255,.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 18px 50px rgba(0,0,0,.24);
+}
+
+body.dataMode .device.notebookMode .keypad::before {
+  content: "senha de acesso";
+  margin: -10px -10px 10px;
+  border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.09);
+  color: rgba(255,255,255,.82);
+}
+
+body.dataMode .device.notebookMode .display {
+  border-color: rgba(128,190,255,.65) !important;
+  background: rgba(4, 15, 35, .72) !important;
+  color: rgba(255,255,255,.90) !important;
+}
+
+body.dataMode .device.notebookMode .keys button {
+  background: rgba(255,255,255,.12) !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,.16) !important;
+}
+
+body.dataMode .device.notebookMode .keys button.ok {
+  background: linear-gradient(180deg, #80d7ef, #4a9bbb) !important;
+  color: #05202a !important;
+}
+
+body.dataMode .device.notebookMode #phase {
+  top: 76px;
+  width: min(76%, 500px);
+  padding: 6px 10px;
+  font-size: clamp(12px, 1.8vw, 15px);
+  background: rgba(6, 18, 48, .28);
+  color: rgba(255,255,255,.86) !important;
+  border-color: rgba(255,255,255,.16);
+  box-shadow: none;
+}
+
+body.dataMode .device.notebookMode #laptopFolders ~ .qr,
+body.dataMode .device.notebookMode #laptopFile ~ .qr {
+  border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+  body.dataMode .device.notebookMode .timers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: calc(100% - 28px);
+    margin: 8px auto;
+  }
+
+  body.dataMode .device.notebookMode #phase {
+    margin-top: -772px;
+  }
+
+  body.dataMode .device.notebookMode .qr {
+    margin-top: 18px;
+  }
+
+  body.dataMode .device.notebookMode .keypad {
+    margin-top: 170px;
+  }
+}
+
+/* Acabamento físico da maleta: remove a aparência de aplicativo */
+body.bombMode {
+  background: #070604 !important;
+}
+
+body.bombMode::after {
+  opacity: .04;
+}
+
+body.bombMode main {
+  padding: clamp(8px, 1.4vw, 18px);
+  background:
+    radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,.72) 100%),
+    repeating-linear-gradient(7deg, transparent 0 54px, rgba(146,93,42,.025) 55px 57px, transparent 58px 106px),
+    #0a0805 !important;
+}
+
+body.bombMode .device,
+body.bombMode .device > .row,
+body.bombMode .center,
+body.bombMode .timerBox,
+body.bombMode .keypad,
+body.bombMode .qr,
+body.bombMode .badge,
+body.bombMode .display,
+body.bombMode .keys button,
+body.bombMode .hazardPlate,
+body.bombMode .speakerPlate,
+body.bombMode .armedLamp,
+body.bombMode .chargePack {
+  border-radius: 0 !important;
+}
+
+body.bombMode .device {
+  padding: 18px;
+  border: 14px solid #29351f !important;
+  outline: 4px solid #12130e;
+  outline-offset: -20px;
+  background:
+    linear-gradient(94deg, transparent 0 8%, rgba(134,73,33,.12) 8.2% 8.5%, transparent 8.8% 76%, rgba(121,58,29,.11) 76.2% 76.5%, transparent 76.8%),
+    repeating-linear-gradient(173deg, transparent 0 38px, rgba(220,193,125,.025) 39px 40px, transparent 41px 79px),
+    linear-gradient(135deg, #11130c, #080806 60%, #15130d) !important;
+  box-shadow:
+    inset 0 0 0 2px #697154,
+    inset 0 0 0 9px #11150e,
+    inset 0 0 90px #000,
+    0 34px 100px rgba(0,0,0,.9) !important;
+}
+
+body.bombMode .device::before {
+  opacity: 1;
+  background:
+    linear-gradient(103deg, transparent 0 18%, rgba(181,118,58,.11) 18.2% 18.5%, transparent 18.8%),
+    linear-gradient(78deg, transparent 0 62%, rgba(198,127,55,.08) 62.2% 62.4%, transparent 62.7%),
+    repeating-linear-gradient(4deg, transparent 0 83px, rgba(255,255,255,.018) 84px 85px, transparent 86px 137px);
+}
+
+body.bombMode .device > .row {
+  min-height: 38px;
+  padding: 0 4px 8px;
+  border: 0;
+  border-bottom: 2px solid #332b21;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.bombMode .device > .row::before {
+  content: "UNIDADE CENOGRÁFICA AX-07";
+  color: #8b7956;
+  font-family: Georgia, serif;
+}
+
+body.bombMode .device > .row .badges {
+  gap: 12px;
+}
+
+body.bombMode .device > .row .badge {
+  border: 0 !important;
+  padding: 4px 10px;
+  background:
+    linear-gradient(92deg, transparent 0 3%, rgba(255,255,255,.1) 3.5% 4%, transparent 4.5%),
+    #aa966b !important;
+  color: #231c12 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,.6) !important;
+  font: 900 11px Georgia, serif;
+  transform: rotate(-.5deg);
+}
+
+body.bombMode .device > .row .badge:nth-child(2) {
+  transform: rotate(.7deg);
+}
+
+body.bombMode #pending {
+  width: auto;
+  border: 0 !important;
+  padding: 4px 9px;
+  background: #17130d !important;
+  color: #bca66f !important;
+  box-shadow: inset 0 0 0 1px #4a3e2b !important;
+  font-size: 10px;
+}
+
+body.bombMode .center {
+  gap: 12px;
+  padding: 14px;
+  border: 4px solid #15140f;
+  outline: 1px solid #665743;
+  outline-offset: -7px;
+  background:
+    linear-gradient(89deg, transparent 0 11%, rgba(113,55,28,.09) 11.2% 11.5%, transparent 11.8% 91%, rgba(142,72,31,.08) 91.3% 91.6%, transparent 92%),
+    repeating-linear-gradient(177deg, transparent 0 66px, rgba(255,255,255,.018) 67px 68px, transparent 69px 112px),
+    #090806;
+  box-shadow: inset 0 0 70px rgba(0,0,0,.86);
+}
+
+body.bombMode .device .center::before {
+  top: 10px;
+  padding: 0;
+  color: #746348;
+  font: 900 9px Georgia, serif;
+  text-align: center;
+}
+
+body.bombMode #phase {
+  margin-top: 16px;
+  padding: 8px 14px;
+  border: 5px solid #17140f;
+  outline: 1px solid #584635;
+  background:
+    linear-gradient(90deg, rgba(125,22,16,.18), transparent 65%),
+    #090604;
+  color: #cdbb91;
+  box-shadow: inset 0 0 28px #000, 0 5px 10px rgba(0,0,0,.55);
+  font-family: Georgia, serif;
+}
+
+body.bombMode #phase::before {
+  color: #c54032;
+}
+
+body.bombMode .timerBox,
+body.bombMode .keypad,
+body.bombMode .qr {
+  outline: 1px solid #655543;
+  outline-offset: -5px;
+  box-shadow:
+    inset 0 0 0 3px #070705,
+    inset 0 0 32px #000,
+    0 7px 13px rgba(0,0,0,.72) !important;
+}
+
+body.bombMode .timerBox::after,
+body.bombMode .keypad::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 4px 4px, #75634d 0 2px, #17130e 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 4px) 4px, #75634d 0 2px, #17130e 3px, transparent 4px),
+    radial-gradient(circle at 4px calc(100% - 4px), #75634d 0 2px, #17130e 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 4px) calc(100% - 4px), #75634d 0 2px, #17130e 3px, transparent 4px);
+}
+
+body.bombMode .timerBox::before,
+body.bombMode .keypad::before,
+body.bombMode .qr::before {
+  color: #21190f;
+  background:
+    linear-gradient(87deg, transparent 0 3%, rgba(255,255,255,.13) 3.5% 4%, transparent 4.5% 82%, rgba(91,54,25,.12) 82.5% 83%, transparent 83.5%),
+    #b7a274;
+  box-shadow: 0 2px 5px rgba(0,0,0,.7);
+  font-family: Georgia, serif;
+}
+
+body.bombMode .timer {
+  font-family: "Courier New", "Consolas", monospace;
+  font-weight: 700;
+  color: #ff2c22 !important;
+  text-shadow:
+    0 0 5px #ff281e,
+    0 0 14px rgba(255,35,25,.8),
+    3px 3px 0 rgba(70,0,0,.42);
+}
+
+body.bombMode .display {
+  border: 5px solid #11100d !important;
+  outline: 1px solid #514232;
+  background: #110100 !important;
+  box-shadow: inset 0 0 22px #000 !important;
+}
+
+body.bombMode .keys button {
+  border: 5px solid #0b0a08 !important;
+  outline: 1px solid #4f493d;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.11), transparent 35%),
+    #24231e !important;
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,.08),
+    inset 0 -4px 0 rgba(0,0,0,.45),
+    0 3px 4px #000 !important;
+  font-family: Georgia, serif;
+}
+
+body.bombMode .keys button:hover:not(:disabled),
+body.bombMode .keys button:active:not(:disabled) {
+  transform: none;
+}
+
+body.bombMode .qr {
+  background:
+    linear-gradient(84deg, transparent 0 22%, rgba(99,54,24,.06) 22.5% 23%, transparent 23.5%),
+    #d3c195;
+}
+
+body.bombMode .qr::after {
+  filter: sepia(.2) contrast(1.08);
+  box-shadow: 0 0 0 5px #17130d, 0 3px 6px rgba(0,0,0,.48);
+}
+
+body.bombMode .bombHardware {
+  border: 5px solid #15140f;
+  outline: 1px solid #584635;
+  background:
+    repeating-linear-gradient(178deg, transparent 0 52px, rgba(255,255,255,.018) 53px 54px, transparent 55px 91px),
+    #090806;
+  box-shadow: inset 0 0 34px #000;
+}
+
+body.bombMode .device > .badges:last-child {
+  gap: 8px;
+  padding-top: 2px;
+}
+
+body.bombMode .device > .badges:last-child .badge {
+  border: 6px solid #11100d !important;
+  outline: 1px solid #544535;
+  padding: 9px 12px;
+  background: #130201 !important;
+  color: #ff392e !important;
+  box-shadow: inset 0 0 18px #000 !important;
+}
+
+/* Pátina, ferrugem e granulação da maleta física */
+body.bombMode main {
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 22%, rgba(0,0,0,.76) 100%),
+    repeating-linear-gradient(97deg, transparent 0 2px, rgba(255,255,255,.008) 3px, transparent 4px 12px),
+    repeating-linear-gradient(7deg, transparent 0 61px, rgba(103,62,29,.045) 62px 64px, transparent 65px 119px),
+    #060503 !important;
+}
+
+body.bombMode .device {
+  isolation: isolate;
+  border-color: #354126 !important;
+  background:
+    radial-gradient(ellipse at 8% 4%, rgba(154,92,45,.34) 0 2px, transparent 3px 25px),
+    radial-gradient(ellipse at 92% 96%, rgba(117,59,28,.28) 0 3px, transparent 4px 31px),
+    linear-gradient(101deg, transparent 0 6%, rgba(132,70,32,.34) 6.2% 6.5%, transparent 6.8% 83%, rgba(105,48,24,.26) 83.2% 83.6%, transparent 84%),
+    repeating-linear-gradient(177deg, transparent 0 31px, rgba(185,157,94,.035) 32px, transparent 33px 68px),
+    linear-gradient(132deg, #171a10, #080805 56%, #17130c) !important;
+  box-shadow:
+    inset 0 0 0 2px #78805a,
+    inset 0 0 0 7px #171b10,
+    inset 0 0 0 11px rgba(4,5,3,.92),
+    inset 0 0 110px #000,
+    0 38px 110px rgba(0,0,0,.95) !important;
+}
+
+body.bombMode .device::before {
+  z-index: 0;
+  opacity: .9;
+  background:
+    radial-gradient(circle at 3% 8%, #17140d 0 3px, #8c7650 4px, transparent 6px),
+    radial-gradient(circle at 97% 8%, #17140d 0 3px, #8c7650 4px, transparent 6px),
+    radial-gradient(circle at 3% 93%, #17140d 0 3px, #8c7650 4px, transparent 6px),
+    radial-gradient(circle at 97% 93%, #17140d 0 3px, #8c7650 4px, transparent 6px),
+    repeating-linear-gradient(169deg, transparent 0 47px, rgba(210,177,106,.045) 48px, transparent 49px 93px),
+    repeating-linear-gradient(83deg, transparent 0 73px, rgba(111,52,25,.065) 74px 77px, transparent 78px 139px);
+  mix-blend-mode: screen;
+}
+
+body.bombMode .center {
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(122,62,28,.18) 0 2px, transparent 3px 44px),
+    radial-gradient(circle at 86% 72%, rgba(146,76,32,.14) 0 2px, transparent 3px 37px),
+    linear-gradient(91deg, transparent 0 14%, rgba(122,63,31,.12) 14.3% 14.7%, transparent 15% 88%, rgba(121,59,27,.1) 88.2% 88.5%, transparent 89%),
+    repeating-linear-gradient(176deg, transparent 0 44px, rgba(255,255,255,.02) 45px, transparent 46px 88px),
+    #080705;
+}
+
+body.bombMode .timerBox,
+body.bombMode .keypad,
+body.bombMode .bombHardware {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(132,67,29,.16) 0 1px, transparent 2px 34px),
+    repeating-linear-gradient(174deg, transparent 0 29px, rgba(255,255,255,.018) 30px, transparent 31px 63px),
+    linear-gradient(145deg, #211f18, #090907 55%, #17140f) !important;
+}
+
+body.bombMode .timerBox::after,
+body.bombMode .keypad::after {
+  background:
+    radial-gradient(circle at 4px 4px, #090806 0 2px, #9b8159 3px, #30271b 4px, transparent 5px),
+    radial-gradient(circle at calc(100% - 4px) 4px, #090806 0 2px, #9b8159 3px, #30271b 4px, transparent 5px),
+    radial-gradient(circle at 4px calc(100% - 4px), #090806 0 2px, #9b8159 3px, #30271b 4px, transparent 5px),
+    radial-gradient(circle at calc(100% - 4px) calc(100% - 4px), #090806 0 2px, #9b8159 3px, #30271b 4px, transparent 5px),
+    linear-gradient(104deg, transparent 0 32%, rgba(197,128,61,.12) 32.3% 32.6%, transparent 33% 76%, rgba(255,255,255,.035) 76.2% 76.4%, transparent 77%);
+}
+
+body.bombMode .timerBox::before,
+body.bombMode .keypad::before,
+body.bombMode .qr::before {
+  background:
+    radial-gradient(circle at 14% 40%, rgba(75,42,21,.22) 0 1px, transparent 2px 18px),
+    repeating-linear-gradient(87deg, transparent 0 18px, rgba(255,255,255,.06) 19px, transparent 20px 37px),
+    #b09a6c;
+  color: #21180e;
+  border: 1px solid rgba(68,45,24,.38);
+  box-shadow: 0 3px 5px rgba(0,0,0,.75), inset 0 0 8px rgba(96,53,23,.2);
+  text-shadow: 0 1px rgba(255,255,255,.18);
+}
+
+body.bombMode .keys button {
+  color: #ded5be !important;
+  background:
+    radial-gradient(circle at 73% 20%, rgba(255,255,255,.08) 0 1px, transparent 2px 16px),
+    linear-gradient(145deg, #3a3931 0, #1e1d19 43%, #10100e 100%) !important;
+  text-shadow: 0 2px 1px #000;
+}
+
+body.bombMode .keys button[data-act="clear"] {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.12), transparent 38%),
+    #7d2017 !important;
+}
+
+body.bombMode .keys button.ok {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.15), transparent 38%),
+    #3e6c25 !important;
+}
+
+body.bombMode .qr {
+  background:
+    radial-gradient(circle at 22% 16%, rgba(88,50,24,.16) 0 1px, transparent 2px 24px),
+    repeating-linear-gradient(5deg, transparent 0 24px, rgba(92,53,26,.05) 25px, transparent 26px 48px),
+    #c9b68b !important;
+  box-shadow:
+    inset 0 0 26px rgba(70,41,20,.38),
+    inset 0 0 0 3px #6d5a3d,
+    0 7px 13px rgba(0,0,0,.72) !important;
+}
+
+body.bombMode .hazardPlate,
+body.bombMode .speakerPlate,
+body.bombMode .armedLamp,
+body.bombMode .chargePack {
+  box-shadow:
+    inset 0 0 0 2px rgba(126,107,75,.35),
+    inset 0 0 25px rgba(0,0,0,.92),
+    0 5px 8px rgba(0,0,0,.75) !important;
+}
+
+body.bombMode .chargePack i {
+  background:
+    repeating-linear-gradient(176deg, transparent 0 12px, rgba(41,5,2,.2) 13px 14px, transparent 15px 26px),
+    linear-gradient(90deg, #691b12, #b82d1e 42%, #64150f) !important;
+  box-shadow: inset 0 0 12px #260300, 2px 0 2px #120201;
+}
+
+/* Contraste final inspirado na caixa verde da referência */
+body.bombMode .device {
+  border-color: #465032 !important;
+  outline-color: #17140d;
+  background:
+    radial-gradient(ellipse at 5% 2%, rgba(191,111,48,.34) 0 2px, transparent 3px 31px),
+    radial-gradient(ellipse at 96% 98%, rgba(143,70,31,.3) 0 3px, transparent 4px 38px),
+    repeating-linear-gradient(176deg, transparent 0 47px, rgba(218,187,112,.045) 48px, transparent 49px 91px),
+    linear-gradient(108deg, #28311d 0 7%, #11130d 7.5% 93%, #30391f 93.5% 100%) !important;
+  box-shadow:
+    inset 0 0 0 2px #89906a,
+    inset 0 0 0 7px #222918,
+    inset 0 0 0 11px #090a07,
+    inset 0 0 90px rgba(0,0,0,.82),
+    0 38px 110px rgba(0,0,0,.95) !important;
+}
+
+body.bombMode .center {
+  border-color: #26251b;
+  outline-color: #776347;
+  background:
+    radial-gradient(circle at 11% 20%, rgba(161,80,34,.2) 0 2px, transparent 3px 42px),
+    radial-gradient(circle at 88% 73%, rgba(156,77,31,.18) 0 2px, transparent 3px 39px),
+    linear-gradient(91deg, rgba(63,72,39,.22), transparent 8% 92%, rgba(64,73,39,.22)),
+    repeating-linear-gradient(176deg, transparent 0 44px, rgba(255,255,255,.025) 45px, transparent 46px 88px),
+    #0d0c08;
+  box-shadow: inset 0 0 58px rgba(0,0,0,.72), 0 0 0 1px #090806;
+}
+
+body.bombMode .timerBox,
+body.bombMode .keypad,
+body.bombMode .bombHardware {
+  border-color: #29261c !important;
+  outline-color: #806b4d;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(166,82,34,.2) 0 1px, transparent 2px 34px),
+    repeating-linear-gradient(174deg, transparent 0 29px, rgba(255,255,255,.022) 30px, transparent 31px 63px),
+    linear-gradient(145deg, #2b281e, #0e0e0b 55%, #1e1912) !important;
+}
+
+body.bombMode .hardwareWires i {
+  filter: saturate(1.25) brightness(1.25);
+  box-shadow: 1px 1px 0 #000, inset 1px 0 rgba(255,255,255,.2);
+}
+
+body.bombMode .hazardPlate,
+body.bombMode .speakerPlate,
+body.bombMode .armedLamp,
+body.bombMode .chargePack {
+  border-color: #4d4230 !important;
+  outline: 1px solid #0b0a07;
+  background-color: #17150f !important;
+}
+
+body.bombMode .device > .row .badge,
+body.bombMode .timerBox::before,
+body.bombMode .keypad::before,
+body.bombMode .qr::before {
+  filter: sepia(.18) contrast(1.04);
+}
+
+/* Bomba clássica fiel à referência: painel 3:2 com controles sobre a imagem */
+body.bombMode,
+body.bombMode main {
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  overflow: auto;
+  background: #050403 !important;
+}
+
+body.bombMode main {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+body.bombMode .device {
+  position: relative;
+  display: block;
+  width: min(100vw, 150vh);
+  min-height: 0;
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: 0 !important;
+  outline: 0;
+  overflow: hidden;
+  background: #17130d url("assets/maleta-bomba-interface-v2.png") center / 100% 100% no-repeat !important;
+  box-shadow: 0 0 80px #000 !important;
+}
+
+body.bombMode .device::before,
+body.bombMode .device::after {
+  display: none !important;
+}
+
+body.bombMode .device > .row {
+  position: absolute;
+  z-index: 8;
+  top: 12.8%;
+  left: 51.7%;
+  width: 19.5%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+body.bombMode .device > .row::before,
+body.bombMode .device > .row .badges,
+body.bombMode #pending {
+  display: none !important;
+}
+
+body.bombMode .center {
+  display: contents !important;
+}
+
+body.bombMode .device .center::before,
+body.bombMode .bombHardware {
+  display: none !important;
+}
+
+body.bombMode #phase {
+  position: absolute;
+  z-index: 7;
+  top: 36.1%;
+  left: 54.6%;
+  width: 14.1%;
+  height: 7.3%;
+  margin: 0;
+  padding: 0 1%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #ff493d;
+  box-shadow: none;
+  font-family: Georgia, serif;
+  font-size: clamp(7px, .72vw, 11px);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 0 .25vw #ff291f, 0 0 .7vw rgba(255,42,31,.72);
+}
+
+body.bombMode #phase::before {
+  display: none;
+}
+
+body.bombMode #phase::after {
+  display: none;
+}
+
+body.bombMode .timers {
+  position: static;
+  display: block;
+  width: auto;
+}
+
+body.bombMode .timerBox {
+  position: absolute;
+  z-index: 6;
+  display: block;
+  box-sizing: border-box;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 0;
+  border: 0 !important;
+  outline: 0;
+  overflow: visible;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.bombMode .timerBox:first-child {
+  top: 19.35%;
+  left: 13.1%;
+  width: 34.65%;
+  height: 17.45%;
+}
+
+body.bombMode .timerBox:nth-child(2) {
+  top: 21.6%;
+  left: 54.6%;
+  width: 14.4%;
+  height: 7.6%;
+}
+
+body.bombMode .timerBox::before,
+body.bombMode .timerBox::after {
+  display: none !important;
+}
+
+body.bombMode .timerBox .label {
+  position: absolute;
+  left: 0;
+  bottom: 102%;
+  width: 100%;
+  height: 30%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 10;
+  color: #171008 !important;
+  font-family: Georgia, serif;
+  font-size: clamp(7px, 1.08vw, 17px) !important;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px rgba(255,255,255,.28);
+  white-space: nowrap;
+}
+
+body.bombMode .timerBox:first-child .label {
+  left: 19%;
+  width: 40.5%;
+  font-size: clamp(6px, .9vw, 14px) !important;
+}
+
+body.bombMode .timerBox .label::before,
+body.bombMode .timerBox .label::after {
+  display: none !important;
+  content: none !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  bottom: 105%;
+  height: 48%;
+  font-size: clamp(8px, 1.05vw, 16px) !important;
+}
+
+body.bombMode .timer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff2419 !important;
+  font-family: "Courier New", monospace;
+  font-size: clamp(27px, 7.1vw, 109px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 0 .6vw #ff160d, 0 0 1.5vw rgba(255,24,13,.85);
+}
+
+body.bombMode .timer.small {
+  font-size: clamp(16px, 3.4vw, 52px);
+}
+
+body.bombMode .keypad {
+  position: absolute;
+  z-index: 7;
+  top: 48.6%;
+  left: 22.6%;
+  width: 20.8%;
+  height: 34.7%;
+  padding: 0;
+  display: block;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.bombMode .keypad::before,
+body.bombMode .keypad::after {
+  display: none !important;
+}
+
+body.bombMode .display {
+  display: none !important;
+}
+
+body.bombMode .keys {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6%;
+}
+
+body.bombMode .keys button {
+  min-width: 0;
+  min-height: 0 !important;
+  padding: 0;
+  border: 0 !important;
+  outline: 0;
+  background: transparent !important;
+  color: transparent !important;
+  box-shadow: none !important;
+  opacity: .02;
+}
+
+body.bombMode .keys button[data-act="clear"] {
+  overflow: hidden;
+  color: transparent !important;
+  background: transparent !important;
+}
+
+body.bombMode .keys button[data-act="clear"]::after {
+  display: none;
+}
+
+body.bombMode .keys button.ok {
+  overflow: hidden;
+  color: transparent !important;
+  background: transparent !important;
+}
+
+body.bombMode .keys button.ok::after {
+  display: none;
+}
+
+body.bombMode .keypad.locked {
+  opacity: 1;
+}
+
+body.bombMode .qr {
+  position: absolute;
+  z-index: 6;
+  top: 53.2%;
+  left: 53.45%;
+  width: 21.3%;
+  height: 30.95%;
+  padding: 0;
+  border: 0 !important;
+  outline: 0;
+  overflow: visible;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.bombMode .qr::before {
+  display: none !important;
+  content: none !important;
+}
+
+body.bombMode .qrTitle {
+  position: absolute;
+  z-index: 10;
+  left: 53.8%;
+  top: 47.9%;
+  width: 20.1%;
+  height: 4.05%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #0d0905 !important;
+  font-family: Georgia, serif;
+  font-size: clamp(6px, .8vw, 12px);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 1px rgba(255,255,255,.3);
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+body:not(.bombMode) .qrTitle {
+  display: none !important;
+}
+
+body.bombMode .qr::after {
+  display: block !important;
+  top: 3.5%;
+  left: 50%;
+  width: 78%;
+  border-width: clamp(3px, .45vw, 7px);
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(50,35,20,.55);
+  filter: contrast(1.2);
+}
+
+body.bombMode .qr.qrDisabled::after {
+  opacity: .16;
+  filter: grayscale(1) contrast(.7);
+}
+
+body.bombMode .qr.qrDisabled::before {
+  content: "OFF" !important;
+  display: grid !important;
+  position: absolute;
+  z-index: 3;
+  inset: 21% 22% 24%;
+  place-items: center;
+  border: clamp(2px, .28vw, 4px) solid #36120d;
+  background: rgba(25, 5, 3, .9);
+  color: #d84a35;
+  font-family: Rockwell, "Courier New", serif;
+  font-size: clamp(18px, 3vw, 46px);
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 18px rgba(120, 15, 5, .35);
+}
+
+body.bombMode .device > .badges:last-child {
+  display: none !important;
+}
+
+body.bombMode .device > .badges:last-child .badge {
+  min-width: 0;
+  padding: 3% 2%;
+  border: clamp(1px, .25vw, 4px) solid #17130f !important;
+  outline: 1px solid #604b34;
+  overflow: hidden;
+  background: rgba(21,2,1,.94) !important;
+  color: #ff392e !important;
+  font-size: clamp(6px, .8vw, 12px);
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (orientation: portrait) {
+  body.bombMode main {
+    align-content: center;
+  }
+
+  body.bombMode .device {
+    width: 100vw;
+  }
+}
+
+/* Hierarquia dos relógios: bomba em destaque, partida como informação secundária */
+body.bombMode .timerBox:first-child {
+  top: 21.6%;
+  left: 54.6%;
+  width: 14.4%;
+  height: 7.6%;
+}
+
+body.bombMode .timerBox:nth-child(2) {
+  top: 19.35%;
+  left: 13.1%;
+  width: 34.65%;
+  height: 17.45%;
+}
+
+body.bombMode .timerBox:first-child .timer {
+  font-size: clamp(16px, 3.4vw, 52px);
+}
+
+body.bombMode .timerBox:nth-child(2) .timer {
+  font-size: clamp(27px, 7.1vw, 109px);
+}
+
+body.bombMode .timerBox:first-child .label {
+  left: 0;
+  bottom: 105%;
+  width: 100%;
+  height: 48%;
+  font-size: clamp(6px, .72vw, 11px) !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  left: 19%;
+  bottom: 102%;
+  width: 40.5%;
+  height: 30%;
+  font-size: clamp(8px, 1.18vw, 18px) !important;
+}
+
+body.bombMode .qrTitle {
+  padding: 0 2%;
+  font-size: clamp(8px, 1.08vw, 17px) !important;
+  line-height: 1;
+}
+
+/* Tipografia militar condensada para as inscrições físicas */
+body.bombMode #phase,
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  font-family: Impact, "Arial Narrow", "Franklin Gothic Condensed", "Arial Black", sans-serif !important;
+  font-stretch: condensed;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  text-shadow: 0 1px 0 rgba(255,255,255,.18), 0 0 1px rgba(30,20,10,.35);
+}
+
+/* Leitura máxima dentro das fitas e visores, sem alterar a lógica */
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  box-sizing: border-box;
+  padding: 0 1%;
+  align-items: center;
+  justify-content: center;
+  line-height: .94;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+body.bombMode .timerBox:first-child .label {
+  font-size: clamp(9px, 1.22vw, 18px) !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  font-size: clamp(9px, 1.3vw, 20px) !important;
+}
+
+body.bombMode .qrTitle {
+  padding-inline: 1.5%;
+  font-size: clamp(9px, 1.2vw, 18px) !important;
+}
+
+body.bombMode #phase {
+  padding-inline: .5%;
+  font-size: clamp(7px, .82vw, 13px);
+  line-height: .95;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Regras finais das etiquetas: manter este bloco por último */
+body.bombMode #phase,
+body.bombMode .timerBox .label,
+body.bombMode .qrTitle {
+  font-family: Rockwell, "Roboto Slab", "Courier New", serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  line-height: 1 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+body.bombMode .timerBox:first-child .label {
+  padding: 0 1% !important;
+  font-size: clamp(12px, 1.75vw, 27px) !important;
+}
+
+body.bombMode .timerBox:nth-child(2) .label {
+  padding: 0 1% !important;
+  font-size: clamp(12px, 1.82vw, 28px) !important;
+}
+
+body.bombMode .qrTitle {
+  padding: 0 1% !important;
+  font-size: clamp(12px, 1.72vw, 26px) !important;
+}
+
+body.bombMode #phase {
+  font-size: clamp(8px, 1vw, 15px) !important;
+  font-weight: 500 !important;
+}
+
+/* Terminal móvel do jogador inspirado na maleta militar */
+body.playerPage {
+  min-height: 100dvh;
+  padding: clamp(4px, 1.5vw, 12px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at center, rgba(43,49,30,.24), transparent 54%),
+    #050403 !important;
+}
+
+body.playerPage .phone {
+  position: relative;
+  width: min(100%, 430px);
+  height: min(calc(100dvh - 8px), 720px);
+  min-height: 560px;
+  aspect-ratio: 2 / 3;
+  box-sizing: border-box;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 0;
+  padding: clamp(22px, 5.2vw, 38px) clamp(34px, 8.5vw, 52px) clamp(34px, 7vw, 50px);
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  overflow: hidden;
+  background: #0b0906 url("assets/terminal-jogador-mobile-v2.png") center / 100% 100% no-repeat !important;
+  box-shadow: 0 28px 90px rgba(0,0,0,.9);
+}
+
+body.playerPage .phone > header {
+  min-height: clamp(42px, 9vw, 62px);
+  padding: 7px 10px;
+  border: 0;
+  align-items: center;
+  background: rgba(8,7,5,.72);
+  box-shadow: inset 0 0 14px rgba(0,0,0,.75);
+}
+
+body.playerPage .phone > header h1 {
+  font-family: Rockwell, "Roboto Slab", "Courier New", serif;
+  font-size: clamp(16px, 4.8vw, 22px);
+  letter-spacing: 0;
+}
+
+body.playerPage .phone > header .muted {
+  color: #baaa83;
+}
+
+body.playerPage .setup {
+  margin-top: 6px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid #65543b;
+  background: rgba(9,8,6,.88);
+}
+
+body.playerPage .tabs {
+  margin-top: 7px;
+  padding: 5px;
+  gap: 4px;
+  border: 1px solid #524633;
+  background: rgba(10,9,7,.84);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.76);
+}
+
+body.playerPage .tabs button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 5px 3px;
+  border-color: #625640;
+  background: rgba(25,24,18,.94);
+  color: #c8b991;
+  font-size: clamp(10px, 3vw, 12px);
+  text-transform: uppercase;
+}
+
+body.playerPage .tabs button.active {
+  border-color: #a48b52;
+  background: #3e4d2d;
+  color: #f0e5c6;
+  box-shadow: inset 0 0 9px rgba(0,0,0,.65);
+}
+
+body.playerPage .phone > main {
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #6e6044 #0b0a07;
+  background: rgba(7,7,5,.58);
+}
+
+body.playerPage .module {
+  padding: 12px 10px 20px;
+}
+
+body.playerPage .module h2 {
+  color: #d7c89e;
+  font-family: Rockwell, "Roboto Slab", "Courier New", serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+body.playerPage .stat {
+  border-color: #4e4635;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.025), transparent 38%),
+    rgba(16,15,11,.92);
+  box-shadow: inset 0 0 18px rgba(0,0,0,.55);
+}
+
+body.playerPage .stat span,
+body.playerPage .muted {
+  color: #a99d7e;
+}
+
+body.playerPage button,
+body.playerPage select {
+  border-color: #62543b;
+  border-radius: 0;
+}
+
+body.playerPage .big {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  overflow: hidden;
+  color: #171006 !important;
+  font-size: clamp(11px, 3.4vw, 15px);
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+}
+
+body.playerPage .popup {
+  border: 4px solid #29261c;
+  outline: 1px solid #806b4d;
+  background:
+    linear-gradient(145deg, #26231a, #0d0d0a 55%, #1b1711);
+  box-shadow: inset 0 0 30px #000, 0 22px 80px rgba(0,0,0,.82);
+}
+
+@media (max-height: 640px) {
+  body.playerPage .phone {
+    min-height: calc(100dvh - 8px);
+    padding-top: 18px;
+    padding-bottom: 24px;
+  }
+
+  body.playerPage .phone > header {
+    min-height: 36px;
+  }
+}
+
+/* Paleta do terminal móvel integrada à moldura militar */
+body.playerPage {
+  --mobile-ink: #e5dcc5;
+  --mobile-muted: #aa9d7d;
+  --mobile-line: #64583f;
+  --mobile-panel: rgba(16, 14, 10, .93);
+  --mobile-olive: #56653a;
+  --mobile-brass: #9a7638;
+  --mobile-rust: #79372a;
+  --mobile-steel: #486572;
+  color: var(--mobile-ink);
+}
+
+body.playerPage .phone::before {
+  opacity: .18;
+  background:
+    repeating-linear-gradient(174deg, transparent 0 42px, rgba(255,255,255,.018) 43px, transparent 44px 83px);
+}
+
+body.playerPage .phone > header {
+  border: 1px solid #4f4634 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), transparent 45%),
+    rgba(9,8,6,.9) !important;
+}
+
+body.playerPage .badge {
+  border: 1px solid #6f6041 !important;
+  border-radius: 0;
+  background: #211e16 !important;
+  color: #d8c99f !important;
+  box-shadow: inset 0 0 10px rgba(0,0,0,.68);
+}
+
+body.playerPage .teamLock {
+  color: #b5c88a;
+}
+
+body.playerPage .setup {
+  border-color: var(--mobile-line);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.025), transparent 35%),
+    var(--mobile-panel);
+  box-shadow: inset 0 0 24px rgba(0,0,0,.64);
+}
+
+body.playerPage .tabs button {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.05), transparent 42%),
+    #26231a !important;
+  color: #bdb08f !important;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.38);
+}
+
+body.playerPage .tabs button.active {
+  border-color: #a28d58 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 45%),
+    #536039 !important;
+  color: #f1e7ca !important;
+}
+
+body.playerPage .stat {
+  border-width: 1px;
+  border-color: #574c38 !important;
+  background:
+    radial-gradient(circle at 86% 16%, rgba(135,75,34,.08) 0 1px, transparent 2px 30px),
+    linear-gradient(145deg, rgba(255,255,255,.025), transparent 38%),
+    var(--mobile-panel) !important;
+}
+
+body.playerPage .stat span,
+body.playerPage .muted,
+body.playerPage .progressMeta {
+  color: var(--mobile-muted) !important;
+}
+
+body.playerPage .stat b,
+body.playerPage .objectiveText {
+  color: var(--mobile-ink);
+}
+
+body.playerPage button {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 42%),
+    #29261d !important;
+  color: var(--mobile-ink) !important;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.34), 0 2px 3px rgba(0,0,0,.48);
+}
+
+body.playerPage button.primary,
+body.playerPage #registerCt {
+  border-color: #7d8b55 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.1), transparent 44%),
+    var(--mobile-olive) !important;
+  color: #f0e8d2 !important;
+}
+
+body.playerPage button.warn,
+body.playerPage #registerTerrorist {
+  border-color: #b08a48 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.1), transparent 44%),
+    var(--mobile-brass) !important;
+  color: #171008 !important;
+}
+
+body.playerPage button.blueBtn {
+  border-color: #6c8791 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.09), transparent 44%),
+    var(--mobile-steel) !important;
+  color: #f0e9d7 !important;
+}
+
+body.playerPage button.danger {
+  border-color: #a35343 !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), transparent 44%),
+    var(--mobile-rust) !important;
+  color: #f3ded6 !important;
+}
+
+body.playerPage .locatorArrow {
+  border-color: #788e91;
+  color: #b6ced0;
+  border-radius: 0;
+  background: rgba(29,43,45,.55);
+  box-shadow: inset 0 0 28px rgba(73,109,113,.22);
+}
+
+body.playerPage .movementAlert {
+  border-color: #a58143 !important;
+  background: rgba(116,82,30,.22) !important;
+}
+
+body.playerPage .progressTrack {
+  border-color: #62553d;
+  background: #070604;
+}
+
+body.playerPage .progressFill {
+  background: #74894c;
+  box-shadow: 0 0 10px rgba(126,151,78,.42);
+}
+
+/* Encaixe dos módulos nas chapas desenhadas no fundo 2:3 */
+body.playerPage .phone {
+  display: block;
+  width: min(100%, 430px, calc((100dvh - 8px) * .666667));
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+}
+
+body.playerPage .phone > header {
+  position: absolute;
+  z-index: 3;
+  top: 5.1%;
+  left: 12.5%;
+  width: 75%;
+  height: 7.1%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body.playerPage .phone > header h1 {
+  font-size: clamp(14px, 4.2vw, 20px);
+}
+
+body.playerPage .phone > header .muted {
+  font-size: clamp(9px, 2.6vw, 12px);
+}
+
+body.playerPage .phone > .tabs {
+  position: absolute;
+  z-index: 3;
+  top: 14.55%;
+  left: 12%;
+  width: 76%;
+  height: 4.55%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.playerPage .phone > .tabs button {
+  min-height: 0;
+  height: 100%;
+  padding: 1px 3px;
+  border-width: 1px !important;
+  font-size: clamp(8px, 2.5vw, 11px);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+body.playerPage .phone > .setup,
+body.playerPage .phone > main {
+  position: absolute;
+  z-index: 2;
+  top: 21%;
+  left: 9.1%;
+  width: 81.8%;
+  height: 69%;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+body.playerPage .phone > .setup {
+  padding: clamp(10px, 3.2vw, 14px);
+  align-content: start;
+}
+
+body.playerPage .phone > main:not([hidden]) {
+  min-height: 0;
+  display: block !important;
+  place-items: initial !important;
+  align-content: initial !important;
+  padding: 0 !important;
+  scroll-padding-top: 10px;
+  background: transparent;
+}
+
+body.playerPage .phone > main[hidden],
+body.playerPage .phone > .setup[hidden],
+body.playerPage .phone > .tabs[hidden] {
+  display: none !important;
+}
+
+body.playerPage .module {
+  min-height: 0;
+  align-content: start !important;
+  justify-content: stretch;
+  padding: 16px 8px 20px;
+  box-sizing: border-box;
+}
+
+body.playerPage .module > h2:first-child {
+  margin-top: 0;
+}
+
+body.playerPage .module .stat {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 360px), (max-height: 620px) {
+  body.playerPage .phone > header {
+    padding: 4px 7px;
+  }
+
+  body.playerPage .phone > header h1 {
+    font-size: 13px;
+  }
+
+  body.playerPage .phone > header .muted {
+    display: none;
+  }
+
+  body.playerPage .phone > .tabs button {
+    font-size: 8px;
+  }
+}
+
+/* Instrumento de localização integrado ao terminal militar */
+body.playerPage #locator {
+  gap: 10px;
+}
+
+body.playerPage #locator .locatorCard {
+  gap: 9px;
+  padding: 12px 10px;
+  border: 2px solid #4c4433 !important;
+  background:
+    linear-gradient(90deg, transparent 49.5%, rgba(174,145,81,.08) 50%, transparent 50.5%),
+    linear-gradient(transparent 49.5%, rgba(174,145,81,.08) 50%, transparent 50.5%),
+    #0b0b08 !important;
+  box-shadow: inset 0 0 28px #000, 0 3px 5px rgba(0,0,0,.48);
+}
+
+body.playerPage #locator .locatorCard > span:first-child {
+  width: 100%;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #514832;
+  color: #c9b987 !important;
+  font-family: Rockwell, "Roboto Slab", "Courier New", serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+}
+
+body.playerPage .locatorArrow {
+  width: min(42vw, 138px);
+  height: min(42vw, 138px);
+  border: 5px solid #171610;
+  outline: 1px solid #766846;
+  border-radius: 50%;
+  color: #d5b557;
+  background:
+    radial-gradient(circle, transparent 0 12%, #77653e 12.5% 14%, transparent 14.5% 47%, #63583d 48% 49%, transparent 50%),
+    repeating-conic-gradient(from 0deg, rgba(190,160,89,.55) 0 1deg, transparent 1deg 15deg),
+    #10100c;
+  box-shadow: inset 0 0 30px #000, 0 4px 8px rgba(0,0,0,.7);
+  text-shadow: 0 0 8px rgba(220,183,75,.55);
+}
+
+body.playerPage #locatorDistance {
+  color: #e2d6b3;
+  font-family: "Courier New", monospace;
+  font-size: clamp(25px, 8vw, 34px);
+  letter-spacing: 0;
+}
+
+body.playerPage .locatorMetrics {
+  gap: 6px;
+}
+
+body.playerPage .locatorMetrics div {
+  border: 1px solid #554b37;
+  border-radius: 0;
+  background: #15130e;
+  box-shadow: inset 0 0 12px rgba(0,0,0,.68);
+}
+
+body.playerPage .locatorMetrics b {
+  color: #d6c69e;
+  font-family: "Courier New", monospace;
+}
+
+body.playerPage #locatorRefresh {
+  border: 2px solid #6d764b !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 44%),
+    #4d5b35 !important;
+  color: #f0e8d2 !important;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.38), 0 3px 5px rgba(0,0,0,.55);
+}

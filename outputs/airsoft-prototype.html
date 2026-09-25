@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airsoft Ops - Modo Bomba</title>
+</head>
+<body>
+<div id="airsoft-ops">
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #050708; }
+    #airsoft-ops {
+      --panel: #10171a;
+      --panel-2: #172024;
+      --line: #2b3a3d;
+      --text: #e8f0ed;
+      --muted: #8fa09a;
+      --green: #34d399;
+      --red: #fb4e4e;
+      --amber: #f2b84b;
+      --blue: #4ea7ff;
+      --violet: #a889ff;
+      --shadow: rgba(0, 0, 0, .45);
+      min-height: 100vh;
+      padding: 18px;
+      box-sizing: border-box;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(52, 211, 153, .12), transparent 28rem),
+        radial-gradient(circle at 92% 18%, rgba(251, 78, 78, .15), transparent 26rem),
+        linear-gradient(135deg, #050708 0%, #0a1012 48%, #111315 100%);
+    }
+    #airsoft-ops * { box-sizing: border-box; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(24px, 4vw, 44px); line-height: 1; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+    h2 { font-size: 18px; font-weight: 700; letter-spacing: 0; }
+    h3 { font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: uppercase; }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.35; }
+    .shell { max-width: 1260px; margin: 0 auto; display: grid; gap: 14px; }
+    .topbar, .panel, .stat, .phone-shell {
+      border: 1px solid var(--line);
+      background: rgba(16, 23, 26, .88);
+      box-shadow: 0 18px 50px var(--shadow);
+    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; backdrop-filter: blur(16px); }
+    .brand { min-width: 0; display: flex; align-items: center; gap: 12px; }
+    .mark {
+      width: 44px; height: 44px; display: grid; place-items: center;
+      border: 1px solid rgba(52, 211, 153, .46);
+      background: linear-gradient(145deg, rgba(52, 211, 153, .20), rgba(251, 78, 78, .18));
+      color: var(--green); font-weight: 800;
+    }
+    .nav, .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .nav { justify-content: flex-end; }
+    button, select, input { font: inherit; }
+    button {
+      min-height: 40px; border: 1px solid var(--line); background: var(--panel-2);
+      color: var(--text); padding: 9px 12px; cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: rgba(232, 240, 237, .38); }
+    button.active, button.primary { background: var(--green); color: #03110c; border-color: var(--green); font-weight: 800; }
+    button.danger { background: var(--red); color: #190404; border-color: var(--red); font-weight: 800; }
+    button.warning { background: var(--amber); color: #171003; border-color: var(--amber); font-weight: 800; }
+    button.blue { background: var(--blue); color: #04111f; border-color: var(--blue); font-weight: 800; }
+    .screen { display: none; }
+    .screen.active { display: grid; gap: 14px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--line); background: rgba(23, 32, 36, .72); }
+    .panel-body { padding: 14px; }
+    .grid { display: grid; grid-template-columns: 1.35fr .85fr; gap: 14px; align-items: start; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .two { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stack { display: grid; gap: 10px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 7px; min-height: 30px; padding: 6px 9px;
+      border: 1px solid var(--line); background: rgba(23, 32, 36, .78);
+      color: var(--text); font-size: 12px; text-transform: uppercase; letter-spacing: 0;
+    }
+    .badge.green { color: var(--green); border-color: rgba(52, 211, 153, .35); }
+    .badge.red { color: var(--red); border-color: rgba(251, 78, 78, .38); }
+    .badge.amber { color: var(--amber); border-color: rgba(242, 184, 75, .38); }
+    .badge.blue { color: var(--blue); border-color: rgba(78, 167, 255, .38); }
+    .badge.violet { color: var(--violet); border-color: rgba(168, 137, 255, .38); }
+    .hero-device {
+      min-height: 610px; display: grid; grid-template-rows: auto 1fr auto; gap: 16px; padding: 18px;
+      position: relative; overflow: hidden;
+      background:
+        linear-gradient(90deg, transparent 0 49%, rgba(52, 211, 153, .08) 49% 51%, transparent 51%),
+        linear-gradient(0deg, transparent 0 49%, rgba(52, 211, 153, .06) 49% 51%, transparent 51%),
+        repeating-linear-gradient(0deg, rgba(232, 240, 237, .025), rgba(232, 240, 237, .025) 1px, transparent 1px, transparent 4px),
+        #090d0f;
+    }
+    .hero-device::before { content: ""; position: absolute; inset: 14px; border: 1px dashed rgba(52, 211, 153, .28); pointer-events: none; }
+    .device-top, .device-bottom { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .timer-wrap { position: relative; z-index: 1; display: grid; place-items: center; align-content: center; gap: 18px; text-align: center; }
+    .timer { font-size: clamp(66px, 12vw, 150px); font-weight: 900; line-height: .9; color: var(--red); font-variant-numeric: tabular-nums; text-shadow: 0 0 26px rgba(251, 78, 78, .46); }
+    .timer-grid { width: min(100%, 760px); display: grid; grid-template-columns: 1fr .72fr; gap: 12px; align-items: stretch; }
+    .timer-box { display: grid; gap: 8px; padding: 12px; border: 1px solid rgba(43, 58, 61, .85); background: rgba(5, 7, 8, .62); }
+    .timer-label { color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    .timer.secondary { font-size: clamp(42px, 7vw, 82px); color: var(--amber); text-shadow: 0 0 22px rgba(242, 184, 75, .34); }
+    .phase { color: var(--amber); font-size: clamp(18px, 3vw, 32px); font-weight: 800; text-transform: uppercase; }
+    .soundbar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; width: min(100%, 540px); }
+    .bars { display: grid; grid-template-columns: repeat(18, 1fr); align-items: end; gap: 3px; height: 34px; }
+    .bars span { display: block; background: var(--green); min-height: 6px; opacity: .85; }
+    .bars span:nth-child(3n) { height: 28px; background: var(--amber); }
+    .bars span:nth-child(3n+1) { height: 17px; }
+    .bars span:nth-child(3n+2) { height: 9px; background: var(--blue); }
+    .stat { display: grid; gap: 4px; padding: 12px; background: rgba(8, 11, 13, .44); }
+    .stat b { font-size: 24px; font-variant-numeric: tabular-nums; }
+    .card-button { width: 100%; min-height: 110px; display: grid; align-content: start; gap: 8px; text-align: left; background: rgba(23, 32, 36, .76); }
+    .card-button.active { background: rgba(52, 211, 153, .12); color: var(--text); }
+    .card-button strong { font-size: 14px; }
+    .mode-summary { display: grid; gap: 8px; border: 1px solid rgba(78, 167, 255, .28); background: rgba(78, 167, 255, .08); padding: 12px; }
+    .control-section { display: grid; gap: 10px; padding: 12px; border: 1px solid rgba(43, 58, 61, .72); background: rgba(8, 11, 13, .28); }
+    .control-section h3 { color: var(--green); }
+    .control-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .command-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .command-grid button { width: 100%; min-height: 58px; }
+    .danger-zone { border-color: rgba(251, 78, 78, .34); background: rgba(251, 78, 78, .07); }
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 12px; text-transform: uppercase; }
+    select, input[type="text"] { width: 100%; min-height: 42px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); padding: 9px 10px; }
+    .log { display: grid; gap: 8px; max-height: 360px; overflow: auto; padding-right: 2px; }
+    .log-entry { display: grid; grid-template-columns: 58px 1fr; gap: 8px; align-items: baseline; border-bottom: 1px solid rgba(43, 58, 61, .65); padding-bottom: 8px; font-size: 13px; }
+    .log-entry time { color: var(--green); font-variant-numeric: tabular-nums; }
+    .phone-shell { max-width: 440px; margin: 0 auto; padding: 10px; background: #050708; box-shadow: inset 0 0 0 4px #111719, 0 24px 60px var(--shadow); }
+    .phone-screen {
+      min-height: 700px; display: grid; grid-template-rows: auto auto 1fr auto;
+      background:
+        linear-gradient(rgba(52, 211, 153, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52, 211, 153, .04) 1px, transparent 1px),
+        #081012;
+      background-size: 22px 22px;
+    }
+    .phone-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px; border-bottom: 1px solid var(--line); }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+    .tabs button { min-height: 48px; border: 0; border-right: 1px solid var(--line); background: rgba(23, 32, 36, .8); }
+    .tabs button:last-child { border-right: 0; }
+    .tabs button.active { background: rgba(52, 211, 153, .18); color: var(--green); }
+    .module { display: none; align-content: start; gap: 14px; padding: 16px; }
+    .module.active { display: grid; }
+    .radar {
+      width: min(100%, 330px); aspect-ratio: 1; margin: 0 auto; border: 1px solid rgba(52, 211, 153, .45);
+      border-radius: 50%; position: relative; overflow: hidden;
+      background:
+        radial-gradient(circle, rgba(52, 211, 153, .18) 0 2px, transparent 3px),
+        radial-gradient(circle, transparent 0 26%, rgba(52, 211, 153, .11) 26% 27%, transparent 27% 52%, rgba(52, 211, 153, .11) 52% 53%, transparent 53% 78%, rgba(52, 211, 153, .11) 78% 79%, transparent 79%),
+        conic-gradient(from 28deg, rgba(52, 211, 153, .24), transparent 68deg, transparent);
+    }
+    .radar::before, .radar::after { content: ""; position: absolute; inset: 50% auto auto 0; width: 100%; height: 1px; background: rgba(52, 211, 153, .18); }
+    .radar::after { transform: rotate(90deg); transform-origin: center left; }
+    .target { position: absolute; width: 14px; height: 14px; border: 2px solid var(--red); border-radius: 50%; left: 62%; top: 31%; box-shadow: 0 0 18px rgba(251, 78, 78, .8); }
+    .code-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .code-row input { min-height: 56px; text-align: center; font-size: 24px; font-weight: 900; color: var(--green); background: #060909; font-variant-numeric: tabular-nums; }
+    .progress { height: 12px; background: rgba(143, 160, 154, .18); overflow: hidden; }
+    .progress span { display: block; height: 100%; width: 45%; background: linear-gradient(90deg, var(--green), var(--amber)); }
+    .modal-progress { display: grid; gap: 8px; }
+    .modal-progress[hidden] { display: none; }
+    .modal-progress .progress span { width: 0; background: linear-gradient(90deg, var(--blue), var(--violet)); }
+    .qr-block { display: grid; place-items: center; gap: 8px; }
+    .qr {
+      width: 132px; height: 132px; padding: 10px; background: #e8f0ed;
+      display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr); gap: 4px;
+    }
+    .qr span { background: #050708; }
+    .pending-box { display: grid; gap: 8px; width: min(100%, 560px); padding: 10px; border: 1px solid rgba(242, 184, 75, .34); background: rgba(242, 184, 75, .08); }
+    .keypad { display: grid; gap: 8px; width: min(100%, 340px); }
+    .keypad-display { min-height: 48px; display: grid; place-items: center; border: 1px solid var(--line); background: #060909; color: var(--green); font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .keypad-grid button { min-height: 52px; font-weight: 800; }
+    .modal-layer {
+      position: fixed; inset: 0; z-index: 20; display: grid; place-items: center;
+      padding: 18px; background: rgba(0, 0, 0, .72); backdrop-filter: blur(10px);
+    }
+    .modal-layer[hidden] { display: none; }
+    .modal {
+      width: min(100%, 460px); display: grid; gap: 14px; padding: 16px;
+      border: 1px solid var(--line); background: #10171a; box-shadow: 0 24px 80px rgba(0, 0, 0, .72);
+    }
+    .modal-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .modal-title { font-size: 18px; font-weight: 800; text-transform: uppercase; }
+    .modal-body { color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .modal-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .big-action { width: 100%; min-height: 74px; text-transform: uppercase; font-size: 17px; letter-spacing: 0; }
+    .footer { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; border-top: 1px solid var(--line); background: rgba(5, 7, 8, .86); }
+    .data-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .data-cell { min-height: 42px; display: grid; place-items: center; border: 1px solid rgba(78, 167, 255, .28); background: rgba(78, 167, 255, .08); color: var(--blue); font-weight: 800; font-variant-numeric: tabular-nums; }
+    @media (max-width: 980px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .nav { justify-content: flex-start; }
+      .grid, .three, .two, .control-dashboard, .command-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 540px) {
+      #airsoft-ops { padding: 8px; }
+      button { flex: 1 1 auto; }
+      .phone-screen { min-height: 640px; }
+      .timer { font-size: clamp(48px, 15vw, 76px); }
+      .timer-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">AX</div>
+        <div>
+          <h1>Modo Bomba</h1>
+          <p class="muted">Sistema cenográfico para airsoft com bomba, controlador, CT e terrorista.</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Telas do protótipo">
+        <button type="button" class="active" data-screen="bomb">Bomba</button>
+        <button type="button" data-screen="master">Controlador</button>
+        <button type="button" data-screen="ct">CT</button>
+        <button type="button" data-screen="terrorist">Terrorista</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="screen active" id="bomb-screen">
+        <div class="panel hero-device" aria-label="Tela cenografica da bomba">
+          <div class="device-top">
+            <div class="row">
+              <span class="badge red" id="bomb-state">Desarmada</span>
+              <span class="badge blue" id="game-name">Operação Blackout</span>
+              <span class="badge green">Sala AX-07</span>
+            </div>
+            <span class="badge amber" id="speaker-state">Caixa de som: pronta</span>
+          </div>
+          <div class="timer-wrap">
+            <div class="phase" id="phase">Aguardando ativação</div>
+            <div class="timer-grid">
+              <div class="timer-box">
+                <span class="timer-label">Tempo de jogo</span>
+                <div class="timer" id="game-timer">18:00</div>
+              </div>
+              <div class="timer-box">
+                <span class="timer-label">Tempo da bomba</span>
+                <div class="timer secondary" id="bomb-timer">--:--</div>
+              </div>
+            </div>
+            <div class="soundbar" aria-label="Indicador de audio cenografico">
+              <span class="badge green">SFX</span>
+              <div class="bars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <span class="badge amber" id="audio-cue">Silêncio</span>
+            </div>
+            <div class="qr-block">
+              <div class="qr" aria-label="QR code cenografico">
+                <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
+                <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
+                <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
+                <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
+                <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+                <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
+                <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
+              </div>
+              <span class="badge green" id="qr-state">QR: aguardando scan</span>
+            </div>
+            <div class="pending-box">
+              <span class="badge amber" id="bomb-request">Solicitação: nenhuma</span>
+              <div class="keypad" aria-label="Teclado da bomba">
+                <div class="keypad-display" id="bomb-code-display">----</div>
+                <div class="keypad-grid">
+                  <button type="button" data-key="1">1</button>
+                  <button type="button" data-key="2">2</button>
+                  <button type="button" data-key="3">3</button>
+                  <button type="button" data-key="4">4</button>
+                  <button type="button" data-key="5">5</button>
+                  <button type="button" data-key="6">6</button>
+                  <button type="button" data-key="7">7</button>
+                  <button type="button" data-key="8">8</button>
+                  <button type="button" data-key="9">9</button>
+                  <button type="button" data-key="clear">Limpar</button>
+                  <button type="button" data-key="0">0</button>
+                  <button type="button" class="primary" data-key="ok">OK</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="device-bottom">
+            <div class="row">
+              <span class="badge violet" id="active-objective">Objetivo: standby</span>
+              <span class="badge amber" id="authorization">Validação pendente</span>
+              <span class="badge amber" id="game-control-state">Controlador: parado</span>
+              <span class="badge blue">Jogadores: 4</span>
+            </div>
+            <span class="muted">Tela pensada para ficar aberta no tablet junto do artefato cenográfico.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="master-screen">
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Controle do controlador</h2>
+                <p class="muted">Escolha o jogo, configure regras e libere ações dos times.</p>
+              </div>
+              <span class="badge green">Host local</span>
+            </div>
+            <div class="panel-body stack">
+              <div class="control-section">
+                <h3>Estado da rodada</h3>
+                <div class="control-dashboard">
+                  <div class="stat"><span class="muted">Tempo de jogo</span><b id="master-game-timer">18:00</b></div>
+                  <div class="stat"><span class="muted">Tempo da bomba</span><b id="master-bomb-timer">--:--</b></div>
+                  <div class="stat"><span class="muted">Estado</span><b id="master-bomb-state">Parado</b></div>
+                  <div class="stat"><span class="muted">Integridade</span><b id="integrity">93%</b></div>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <h3>Configuração da partida</h3>
+                <div class="two">
+                  <label>Modo de jogo
+                    <select id="scenario">
+                      <option value="classic">Bomba clássica</option>
+                      <option value="data">Roubo de dados</option>
+                      <option value="domination">Dominação de terminal</option>
+                    </select>
+                  </label>
+                  <label>Tempo de partida
+                    <select id="match-time">
+                      <option value="600">10 minutos</option>
+                      <option value="1080" selected>18 minutos</option>
+                      <option value="1800">30 minutos</option>
+                      <option value="2700">45 minutos</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="two">
+                  <label>Tempo de ação
+                    <select id="action-time">
+                      <option value="5">5 segundos</option>
+                      <option value="10" selected>10 segundos</option>
+                      <option value="20">20 segundos</option>
+                      <option value="30">30 segundos</option>
+                    </select>
+                  </label>
+                  <label>Tempo de resultado
+                    <select id="result-time">
+                      <option value="5">5 segundos</option>
+                      <option value="15" selected>15 segundos</option>
+                      <option value="30">30 segundos</option>
+                      <option value="60">60 segundos</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <h3>Senhas e fatores</h3>
+                <div class="two">
+                  <label>Senha de arme
+                    <input type="text" id="arm-code-input" maxlength="6" value="4072">
+                  </label>
+                  <label>Senha de desarme
+                    <input type="text" id="defuse-code-input" maxlength="6" value="7294">
+                  </label>
+                </div>
+                <div class="two">
+                  <label>Fatores para armar
+                    <select id="arm-factors">
+                      <option value="1">1 jogador</option>
+                      <option value="2">2 jogadores</option>
+                    </select>
+                  </label>
+                  <label>Fatores para desarmar
+                    <select id="defuse-factors">
+                      <option value="1">1 jogador</option>
+                      <option value="2">2 jogadores</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="command-grid">
+                  <button type="button" class="primary" id="authorize-ct">Passar senha CT</button>
+                  <button type="button" class="warning" id="authorize-terrorist">Passar senha terrorista</button>
+                  <button type="button" class="blue" id="play-sound">Testar som</button>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <h3>Objetivos do modo</h3>
+                <div class="mode-summary">
+                  <h3 id="mode-title">Bomba clássica</h3>
+                  <p class="muted" id="mode-description">Terroristas armam a bomba. CT localiza, decodifica e desarma antes do fim da contagem.</p>
+                  <div class="row">
+                    <span class="badge green" id="ct-win">CT vence: bomba neutralizada</span>
+                    <span class="badge red" id="terror-win">Terrorista vence: explosão cenográfica</span>
+                  </div>
+                </div>
+                <div class="three">
+                  <button type="button" class="card-button active" data-objective="Decodificar senha"><strong id="objective-a-title">Decodificar senha</strong><span class="muted" id="objective-a-copy">CT precisa descobrir o código para liberar o desarme.</span></button>
+                  <button type="button" class="card-button" data-objective="Senha de desarme"><strong id="objective-b-title">Senha de desarme</strong><span class="muted" id="objective-b-copy">CT pode receber a senha ou decodificar pelo fluxo da bomba.</span></button>
+                  <button type="button" class="card-button" data-objective="Roubo de dados"><strong id="objective-c-title">Roubo de dados</strong><span class="muted" id="objective-c-copy">Terroristas extraem pacotes virtuais enquanto defendem a bomba.</span></button>
+                </div>
+              </div>
+
+              <div class="control-section danger-zone">
+                <h3>Comandos da rodada</h3>
+                <div class="command-grid">
+                  <button type="button" class="primary" id="start-game">Iniciar jogo</button>
+                  <button type="button" class="danger" id="end-game">Encerrar jogo</button>
+                  <button type="button" class="danger" id="arm-master">Armar bomba pelo Controlador</button>
+                  <button type="button" id="reset-game">Reiniciar preparação</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="panel">
+            <div class="panel-head"><div><h2>Eventos</h2><p class="muted">Registro para narração e arbitragem.</p></div></div>
+            <div class="panel-body"><div class="log" id="log" aria-live="polite"></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="screen" id="ct-screen">
+        <div class="phone-shell">
+          <div class="phone-screen">
+            <div class="phone-top"><div><h2>CT - Unidade de desarme</h2><p class="muted">Perfil: contra-terrorista</p></div><span class="badge green" id="ct-status">Operacional</span></div>
+            <div class="tabs" aria-label="Modulos CT">
+              <button type="button" class="active" data-module="ct-locator">Localizador</button>
+              <button type="button" data-module="ct-decoder">Decodificador</button>
+              <button type="button" data-module="ct-defuse">Desarme</button>
+            </div>
+            <div class="module active" id="ct-locator-module">
+              <div class="radar" aria-label="Radar CT"><span class="target"></span></div>
+              <div class="two"><div class="stat"><span class="muted">Sinal da bomba</span><b id="ct-signal">47 m</b></div><div class="stat"><span class="muted">Status</span><b>Conectado</b></div></div>
+              <button type="button" class="primary big-action" id="ct-ping">Rastrear artefato</button>
+            </div>
+            <div class="module" id="ct-decoder-module">
+              <h3>Quebra de código</h3>
+              <p class="muted">A senha só aparece aqui depois da decodificação liberada na bomba.</p>
+              <button type="button" class="blue big-action" id="ct-scan">Escanear QR da bomba</button>
+              <button type="button" class="warning big-action" id="ct-decode-request">Pedir decodificação</button>
+              <p class="badge amber" id="ct-decode-result">Aguardando solicitação</p>
+              <div class="stat"><span class="muted">Senha revelada</span><b id="ct-known-code">----</b></div>
+            </div>
+            <div class="module" id="ct-defuse-module">
+              <h3>Canal de desarme</h3>
+              <p class="muted">Com a senha em mãos, aproxime-se da bomba, digite a senha no teclado e finalize o desarme.</p>
+              <button type="button" class="blue big-action" id="ct-defuse-scan">Escanear QR para desarme</button>
+              <button type="button" class="blue big-action" id="ct-defuse">Desarmar bomba</button>
+              <div class="stat"><span class="muted">Status CT</span><b id="ct-permission">Sem senha</b></div>
+            </div>
+            <div class="footer"><span class="badge green">CT</span><span class="badge blue">Localizador</span><span class="badge amber">Decodificador</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="terrorist-screen">
+        <div class="phone-shell">
+          <div class="phone-screen">
+            <div class="phone-top"><div><h2>Terrorista - Operador</h2><p class="muted">Perfil narrativo de ataque</p></div><span class="badge red" id="terror-status">Aguardando</span></div>
+            <div class="tabs" aria-label="Modulos terroristas">
+              <button type="button" class="active" data-module="terror-arm">Armar</button>
+              <button type="button" data-module="terror-hack">Senhas</button>
+              <button type="button" data-module="terror-data">Dados</button>
+            </div>
+            <div class="module active" id="terror-arm-module">
+              <h3>Armamento cenográfico</h3>
+              <p class="muted">Com a senha em mãos, escaneie o QR, digite a senha na bomba e inicie a contagem.</p>
+              <button type="button" class="blue big-action" id="terror-scan">Escanear QR da bomba</button>
+              <button type="button" class="danger big-action" id="terror-arm">Armar bomba</button>
+              <div class="stat"><span class="muted">Status terrorista</span><b id="terror-permission">Sem senha</b></div>
+              <div class="stat"><span class="muted">Senha de arme</span><b id="terror-known-code">----</b></div>
+            </div>
+            <div class="module" id="terror-hack-module">
+              <h3>Decodificar senhas</h3>
+              <p class="muted">Gere uma chave falsa para bloquear ou atrasar o desarme CT.</p>
+              <div class="code-row"><input inputmode="numeric" maxlength="1" value="4" aria-label="Digito terrorista 1"><input inputmode="numeric" maxlength="1" value="0" aria-label="Digito terrorista 2"><input inputmode="numeric" maxlength="1" value="" aria-label="Digito terrorista 3"><input inputmode="numeric" maxlength="1" value="" aria-label="Digito terrorista 4"></div>
+              <button type="button" class="blue big-action" id="terror-decode-scan">Escanear QR para decodificar</button>
+              <button type="button" class="blue big-action" id="terror-decode-request">Pedir decodificação de arme</button>
+              <button type="button" class="warning big-action" id="terror-hack">Injetar interferência</button>
+              <p class="badge amber" id="hack-result">Canal limpo</p>
+            </div>
+            <div class="module" id="terror-data-module">
+              <h3>Roubo de dados</h3>
+              <p class="muted">Extraia pacotes virtuais antes que o CT neutralize o artefato.</p>
+              <div class="data-grid" aria-label="Pacotes virtuais"><span class="data-cell">01</span><span class="data-cell">02</span><span class="data-cell">03</span><span class="data-cell">04</span><span class="data-cell">05</span><span class="data-cell">06</span><span class="data-cell">07</span><span class="data-cell">08</span><span class="data-cell">09</span><span class="data-cell">10</span></div>
+              <button type="button" class="blue big-action" id="steal-data">Roubar dados</button>
+              <div class="stat"><span class="muted">Extração</span><b id="data-progress">45%</b></div>
+            </div>
+            <div class="footer"><span class="badge red">Terrorista</span><span class="badge amber">Armar</span><span class="badge blue">Roubar dados</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-layer" id="validation-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <div>
+          <span class="badge amber" id="modal-kind">Validação</span>
+          <div class="modal-title" id="modal-title">Confirmação</div>
+        </div>
+      </div>
+      <p class="modal-body" id="modal-body">Aguardando validação.</p>
+      <div class="modal-progress" id="modal-progress" hidden>
+        <span class="badge blue" id="modal-progress-label">Progresso: 0s</span>
+        <div class="progress" role="progressbar" aria-label="Progresso da etapa"><span id="modal-progress-bar"></span></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel">Cancelar</button>
+        <button type="button" class="primary" id="modal-confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.getElementById('airsoft-ops');
+      const screens = root.querySelectorAll('.screen');
+      const screenButtons = root.querySelectorAll('[data-screen]');
+      const moduleButtons = root.querySelectorAll('[data-module]');
+      const modalLayer = root.querySelector('#validation-modal');
+      const modalKind = root.querySelector('#modal-kind');
+      const modalTitle = root.querySelector('#modal-title');
+      const modalBody = root.querySelector('#modal-body');
+      const modalProgress = root.querySelector('#modal-progress');
+      const modalProgressLabel = root.querySelector('#modal-progress-label');
+      const modalProgressBar = root.querySelector('#modal-progress-bar');
+      const modalCancel = root.querySelector('#modal-cancel');
+      const modalConfirm = root.querySelector('#modal-confirm');
+      const log = root.querySelector('#log');
+      const gameTimerEl = root.querySelector('#game-timer');
+      const bombTimerEl = root.querySelector('#bomb-timer');
+      const masterGameTimerEl = root.querySelector('#master-game-timer');
+      const masterBombTimerEl = root.querySelector('#master-bomb-timer');
+      const masterBombState = root.querySelector('#master-bomb-state');
+      const phase = root.querySelector('#phase');
+      const bombState = root.querySelector('#bomb-state');
+      const authorization = root.querySelector('#authorization');
+      const gameControlState = root.querySelector('#game-control-state');
+      const audioCue = root.querySelector('#audio-cue');
+      const speakerState = root.querySelector('#speaker-state');
+      const gameName = root.querySelector('#game-name');
+      const activeObjective = root.querySelector('#active-objective');
+      const qrState = root.querySelector('#qr-state');
+      const bombRequest = root.querySelector('#bomb-request');
+      const bombCodeDisplay = root.querySelector('#bomb-code-display');
+      const modeTitle = root.querySelector('#mode-title');
+      const modeDescription = root.querySelector('#mode-description');
+      const ctWin = root.querySelector('#ct-win');
+      const terrorWin = root.querySelector('#terror-win');
+      const integrity = root.querySelector('#integrity');
+      const ctPermission = root.querySelector('#ct-permission');
+      const terrorPermission = root.querySelector('#terror-permission');
+      const terrorStatus = root.querySelector('#terror-status');
+      const ctStatus = root.querySelector('#ct-status');
+      let gameSeconds = 18 * 60;
+      let bombSeconds = null;
+      let gameRunning = false;
+      let gameFinished = false;
+      let armed = false;
+      let ctAuthorized = false;
+      let terroristAuthorized = false;
+      let ctHasCode = false;
+      let terroristHasCode = false;
+      let dataProgress = 45;
+      let actionRunning = false;
+      let resultRunning = false;
+      let activeMode = 'classic';
+      let controlProgress = 0;
+      let currentRequest = null;
+      let scanState = { arm: 0, defuse: 0 };
+      let scanTimes = { arm: [], defuse: [] };
+      let bombFinalOk = { arm: false, defuse: false };
+      let bombCodeEntry = '';
+      const modes = {
+        classic: {
+          name: 'Bomba clássica',
+          bombLabel: 'Bomba clássica',
+          objective: 'Objetivo: armar ou neutralizar',
+          description: 'Terroristas armam a bomba. CT localiza, decodifica e desarma antes do fim da contagem.',
+          ctWin: 'CT vence: bomba neutralizada',
+          terrorWin: 'Terrorista vence: explosão cenográfica',
+          objectives: [
+            ['Decodificar senha', 'CT precisa descobrir o código para liberar o desarme.'],
+            ['Senha de desarme', 'CT pode receber a senha do Controlador ou decodificar pelo fluxo da bomba.'],
+            ['Armar bomba', 'Terrorista precisa ter a senha e validar no teclado da bomba.']
+          ]
+        },
+        data: {
+          name: 'Roubo de dados',
+          bombLabel: 'Terminal de dados',
+          objective: 'Objetivo: extrair ou proteger dados',
+          description: 'Terroristas abrem janelas de vulnerabilidade para extrair pacotes virtuais. CT tenta bloquear a extração.',
+          ctWin: 'CT vence: extração bloqueada',
+          terrorWin: 'Terrorista vence: 100% dos dados extraídos',
+          objectives: [
+            ['Abrir vulnerabilidade', 'Tempo de ação cria uma janela para roubo de dados.'],
+            ['Roubar pacotes', 'Terroristas acumulam progresso até 100%.'],
+            ['Bloquear terminal', 'CT usa senha ou código decodificado para encerrar a janela.']
+          ]
+        },
+        domination: {
+          name: 'Dominação de terminal',
+          bombLabel: 'Terminal contestado',
+          objective: 'Objetivo: dominar terminal',
+          description: 'Os times disputam controle do artefato. Cada ação concluída empurra o domínio para o próprio lado.',
+          ctWin: 'CT vence: domínio de segurança',
+          terrorWin: 'Terrorista vence: domínio de invasão',
+          objectives: [
+            ['Capturar terminal', 'A equipe precisa manter interação pelo tempo de ação.'],
+            ['Disputar controle', 'O tempo de resultado mantém o terminal vulnerável para contra-ataque.'],
+            ['Vencer por domínio', 'Chegar a 100% de controle decide a rodada.']
+          ]
+        }
+      };
+
+      function stamp() { return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+      let modalConfirmHandler = null;
+      let modalTimer = null;
+      function closeModal() {
+        if (modalTimer) {
+          clearTimeout(modalTimer);
+          modalTimer = null;
+        }
+        modalLayer.hidden = true;
+        modalProgress.hidden = true;
+        modalCancel.hidden = false;
+        modalConfirm.hidden = false;
+        modalConfirmHandler = null;
+      }
+      function showModal(options) {
+        if (modalTimer) {
+          clearTimeout(modalTimer);
+          modalTimer = null;
+        }
+        modalKind.textContent = options.kind || 'Validação';
+        modalKind.className = 'badge ' + (options.color || 'amber');
+        modalTitle.textContent = options.title;
+        modalBody.textContent = options.body;
+        modalConfirm.textContent = options.confirmText || 'Confirmar';
+        modalCancel.textContent = options.cancelText || 'Cancelar';
+        modalProgress.hidden = true;
+        modalCancel.hidden = options.alert === true;
+        modalConfirm.hidden = false;
+        modalConfirmHandler = options.onConfirm || closeModal;
+        modalLayer.hidden = false;
+        if (options.autoClose !== false) {
+          modalTimer = setTimeout(closeModal, 15000);
+        }
+      }
+      function showProgressModal(kind, title, total) {
+        if (modalTimer) {
+          clearTimeout(modalTimer);
+          modalTimer = null;
+        }
+        modalKind.textContent = kind;
+        modalKind.className = 'badge blue';
+        modalTitle.textContent = title;
+        modalBody.textContent = 'Mantenha o operador perto da bomba ate a etapa terminar.';
+        modalProgress.hidden = false;
+        modalCancel.hidden = true;
+        modalConfirm.hidden = true;
+        modalProgressLabel.textContent = 'Restante: ' + total + 's';
+        modalProgressBar.style.width = '0%';
+        modalLayer.hidden = false;
+        modalTimer = setTimeout(closeModal, 15000);
+      }
+      function updateProgressModal(left, percent, color) {
+        modalKind.className = 'badge ' + color;
+        modalProgressLabel.textContent = 'Restante: ' + Math.max(0, left) + 's';
+        modalProgressBar.style.width = percent + '%';
+      }
+      modalCancel.addEventListener('click', closeModal);
+      modalConfirm.addEventListener('click', () => {
+        const handler = modalConfirmHandler;
+        closeModal();
+        if (handler) handler();
+      });
+      function addLog(text) {
+        if (!log) return;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = '<time>' + stamp() + '</time><span>' + text + '</span>';
+        log.prepend(entry);
+      }
+      function setBombState(label, color) { bombState.textContent = label; bombState.className = 'badge ' + color; }
+      function setAuthorization(label, color) { authorization.textContent = label; authorization.className = 'badge ' + color; }
+      function formatTime(value) {
+        const min = String(Math.floor(value / 60)).padStart(2, '0');
+        const sec = String(value % 60).padStart(2, '0');
+        return min + ':' + sec;
+      }
+      function updateTimers() {
+        const gameText = formatTime(gameSeconds);
+        const bombText = bombSeconds === null ? '--:--' : formatTime(bombSeconds);
+        gameTimerEl.textContent = gameText;
+        bombTimerEl.textContent = bombText;
+        masterGameTimerEl.textContent = gameText;
+        masterBombTimerEl.textContent = bombText;
+      }
+      function setMasterState(label) {
+        masterBombState.textContent = label;
+      }
+      function canRunAction() {
+        if (!gameRunning || gameFinished) {
+          addLog('Ação bloqueada: o jogo precisa ser iniciado pelo controlador.');
+          showModal({
+            kind: 'Bloqueado',
+            color: 'red',
+            title: 'Jogo não iniciado',
+            body: 'O controlador precisa iniciar o jogo antes de aceitar scan, decodificação, arme ou desarme.',
+            confirmText: 'Entendi',
+            alert: true
+          });
+          return false;
+        }
+        return true;
+      }
+      function getRequiredFactors(type) {
+        return Number(root.querySelector(type === 'arm' ? '#arm-factors' : '#defuse-factors').value);
+      }
+      function getConfiguredCode(type) {
+        return root.querySelector(type === 'arm' ? '#arm-code-input' : '#defuse-code-input').value.trim();
+      }
+      function syncCodes() {
+        root.querySelector('#defuse-code').textContent = getConfiguredCode('defuse') || '----';
+      }
+      function registerScan(type, role) {
+        if (!canRunAction()) return;
+        const needed = getRequiredFactors(type);
+        const now = Date.now();
+        if (needed === 1) {
+          scanTimes[type] = [now];
+        } else {
+          scanTimes[type].push(now);
+          scanTimes[type] = scanTimes[type].filter(time => now - time <= 3000).slice(-2);
+        }
+        scanState[type] = Math.min(needed, scanTimes[type].length);
+        qrState.textContent = 'QR: ' + role + ' validado ' + scanState[type] + '/' + needed;
+        qrState.className = scanState[type] >= needed ? 'badge green' : 'badge amber';
+        addLog(role + ' escaneou o QR para ' + (type === 'arm' ? 'arme' : 'desarme') + '.');
+        if (scanState[type] >= needed) {
+          currentRequest = { type, role, label: type === 'arm' ? 'arme' : 'desarme' };
+          bombRequest.textContent = 'Solicitação: digitar senha de ' + (type === 'arm' ? 'arme' : 'desarme');
+          bombRequest.className = 'badge amber';
+          setAuthorization('Aguardando senha na bomba', 'amber');
+        }
+        showModal({
+          kind: 'QR',
+          color: 'blue',
+          title: 'QR validado',
+          body: 'Presença registrada para ' + role + '. Validações: ' + scanState[type] + '/' + needed + (needed === 2 ? ' dentro de 3 segundos.' : '.') ,
+          confirmText: 'Fechar',
+          alert: true
+        });
+      }
+      function openBombRequest(type, role, label, onSent) {
+        if (!canRunAction()) return false;
+        const needed = getRequiredFactors(type);
+        if (scanState[type] < needed) {
+          addLog('Solicitação bloqueada: QR exige ' + needed + ' validação(ões).');
+          showModal({
+            kind: 'QR pendente',
+            color: 'red',
+            title: 'Scan insuficiente',
+            body: 'Esta ação exige ' + needed + ' validação(ões) de QR. Validações atuais: ' + scanState[type] + '/' + needed + '.',
+            confirmText: 'Entendi',
+            alert: true
+          });
+          return false;
+        }
+        currentRequest = { type, role, label };
+        bombRequest.textContent = 'Solicitação: ' + label + ' por ' + role;
+        bombRequest.className = 'badge amber';
+        setAuthorization('Solicitação recebida', 'amber');
+        addLog('Bomba recebeu solicitação: ' + label + '.');
+        if (onSent) onSent();
+        showModal({
+          kind: 'Solicitação',
+          color: 'amber',
+          title: 'Solicitação enviada',
+          body: 'A bomba recebeu "' + label + '" de ' + role + '.',
+          confirmText: 'Fechar',
+          alert: true
+        });
+        return true;
+      }
+      function finishGame(reason, color) {
+        gameRunning = false;
+        gameFinished = true;
+        armed = false;
+        bombSeconds = null;
+        setBombState('Fim de jogo', color);
+        setMasterState('Finalizado');
+        setActionVisual('Ação: encerrada', 0, color);
+        phase.textContent = reason;
+        audioCue.textContent = 'Rodada encerrada';
+        gameControlState.textContent = 'Controlador: finalizado';
+        gameControlState.className = 'badge amber';
+        updateTimers();
+        addLog('Jogo encerrado: ' + reason + '.');
+      }
+      function armBomb(source) {
+        armed = true;
+        setBombState('Armada', 'red');
+        setMasterState('Armada');
+        phase.textContent = 'Contagem ativa';
+        audioCue.textContent = 'Bip armado';
+        speakerState.textContent = 'Caixa de som: conectada';
+        bombSeconds = getDuration('#result-time');
+        updateTimers();
+        addLog(source + ' armou a bomba cenográfica.');
+      }
+      function neutralizeBomb(source) {
+        armed = false;
+        bombSeconds = null;
+        setBombState('Neutralizada', 'green');
+        setMasterState('Neutralizada');
+        phase.textContent = 'Artefato neutralizado';
+        audioCue.textContent = 'Alarme encerrado';
+        updateTimers();
+        addLog(source + ' neutralizou a bomba cenográfica.');
+      }
+      function updateDomination(team, amount) {
+        controlProgress = team === 'CT'
+          ? Math.max(0, controlProgress - amount)
+          : Math.min(100, controlProgress + amount);
+        setDataProgress(controlProgress);
+        activeObjective.textContent = 'Controle terrorista: ' + controlProgress + '%';
+        if (controlProgress <= 0) {
+          phase.textContent = 'Domínio CT';
+          setBombState('CT venceu', 'green');
+          audioCue.textContent = 'Terminal seguro';
+          addLog('CT venceu por domínio total do terminal.');
+          finishGame('CT dominou o terminal', 'green');
+          return true;
+        } else if (controlProgress >= 100) {
+          phase.textContent = 'Domínio terrorista';
+          setBombState('Terrorista venceu', 'red');
+          audioCue.textContent = 'Terminal comprometido';
+          addLog('Terroristas venceram por domínio total do terminal.');
+          finishGame('Terroristas dominaram o terminal', 'red');
+          return true;
+        } else {
+          phase.textContent = 'Terminal contestado';
+          addLog(team + ' alterou domínio do terminal para ' + controlProgress + '%.');
+        }
+        return false;
+      }
+      function getDuration(id) {
+        return Number(root.querySelector(id).value);
+      }
+      function setActionVisual(label, percent, color) {
+        setAuthorization(label, color);
+      }
+      function setDataProgress(value) {
+        root.querySelector('#data-progress').textContent = value + '%';
+      }
+      function applyMode(modeKey) {
+        const mode = modes[modeKey];
+        activeMode = modeKey;
+        gameName.textContent = mode.bombLabel;
+        activeObjective.textContent = mode.objective;
+        modeTitle.textContent = mode.name;
+        modeDescription.textContent = mode.description;
+        ctWin.textContent = mode.ctWin;
+        terrorWin.textContent = mode.terrorWin;
+        mode.objectives.forEach((objective, index) => {
+          const letter = ['a', 'b', 'c'][index];
+          root.querySelector('#objective-' + letter + '-title').textContent = objective[0];
+          root.querySelector('#objective-' + letter + '-copy').textContent = objective[1];
+          root.querySelectorAll('[data-objective]')[index].dataset.objective = objective[0];
+        });
+        if (modeKey === 'classic') {
+          phase.textContent = armed ? 'Contagem ativa' : 'Aguardando ativação';
+          setBombState(armed ? 'Armada' : 'Desarmada', armed ? 'red' : 'amber');
+          setMasterState(armed ? 'Armada' : 'Preparação');
+          setDataProgress(dataProgress);
+          root.querySelector('#ct-status').textContent = 'Operacional';
+          root.querySelector('#terror-status').textContent = 'Aguardando';
+        }
+        if (modeKey === 'data') {
+          armed = false;
+          dataProgress = 0;
+          phase.textContent = 'Terminal protegido';
+          setBombState('Seguro', 'green');
+          setMasterState('Seguro');
+          setDataProgress(0);
+          root.querySelector('#ct-status').textContent = 'Protegendo';
+          root.querySelector('#terror-status').textContent = 'Infiltração';
+        }
+        if (modeKey === 'domination') {
+          armed = false;
+          controlProgress = 50;
+          phase.textContent = 'Terminal contestado';
+          setBombState('Disputa', 'violet');
+          setMasterState('Disputa');
+          setDataProgress(50);
+          root.querySelector('#ct-status').textContent = 'Defendendo';
+          root.querySelector('#terror-status').textContent = 'Atacando';
+        }
+      }
+      function runTimedAction(label, onComplete) {
+        if (!canRunAction()) return false;
+        if (actionRunning || resultRunning) {
+          addLog('Ação bloqueada: outra dinâmica está em andamento.');
+          return false;
+        }
+        actionRunning = true;
+        const total = getDuration('#action-time');
+        let left = total;
+        phase.textContent = label;
+        audioCue.textContent = 'Ação em curso';
+        showProgressModal('Ação', label, total);
+        setActionVisual('Ação: ' + left + 's', 0, 'blue');
+        addLog(label + ' iniciada. Tempo de ação: ' + total + 's.');
+        const tick = setInterval(() => {
+          left -= 1;
+          const done = Math.round(((total - left) / total) * 100);
+          setActionVisual('Ação: ' + Math.max(0, left) + 's', done, 'blue');
+          updateProgressModal(left, done, 'blue');
+          if (left <= 0) {
+            clearInterval(tick);
+            actionRunning = false;
+            closeModal();
+            onComplete();
+          }
+        }, 1000);
+        return true;
+      }
+      function runResult(label, onComplete) {
+        resultRunning = true;
+        const total = getDuration('#result-time');
+        let left = total;
+        bombSeconds = total;
+        updateTimers();
+        phase.textContent = label;
+        audioCue.textContent = 'Resultado ativo';
+        showProgressModal('Resultado', label, total);
+        setActionVisual('Resultado: ' + left + 's', 100, 'amber');
+        addLog(label + ' disparado. Tempo de resultado: ' + total + 's.');
+        const tick = setInterval(() => {
+          left -= 1;
+          bombSeconds = Math.max(0, left);
+          const remaining = Math.round((left / total) * 100);
+          setActionVisual('Resultado: ' + Math.max(0, left) + 's', remaining, 'amber');
+          updateProgressModal(left, remaining, 'amber');
+          updateTimers();
+          if (left <= 0) {
+            clearInterval(tick);
+            resultRunning = false;
+            bombSeconds = null;
+            updateTimers();
+            setActionVisual('Ação: nenhuma', 0, 'blue');
+            closeModal();
+            onComplete();
+          }
+        }, 1000);
+      }
+
+      screenButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          screenButtons.forEach(item => item.classList.remove('active'));
+          button.classList.add('active');
+          screens.forEach(screen => screen.classList.remove('active'));
+          root.querySelector('#' + button.dataset.screen + '-screen').classList.add('active');
+        });
+      });
+      moduleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const scope = button.closest('.phone-screen');
+          scope.querySelectorAll('[data-module]').forEach(item => item.classList.remove('active'));
+          scope.querySelectorAll('.module').forEach(module => module.classList.remove('active'));
+          button.classList.add('active');
+          scope.querySelector('#' + button.dataset.module + '-module').classList.add('active');
+        });
+      });
+      root.querySelector('#scenario').addEventListener('change', event => {
+        if (gameRunning) {
+          event.target.value = activeMode;
+          addLog('Troca de modo bloqueada: encerre ou reinicie a partida primeiro.');
+          return;
+        }
+        applyMode(event.target.value);
+        addLog('Controlador selecionou o modo: ' + modes[event.target.value].name + '.');
+      });
+      root.querySelector('#match-time').addEventListener('change', event => {
+        if (!gameRunning) {
+          gameSeconds = Number(event.target.value);
+          updateTimers();
+        }
+        addLog('Controlador ajustou o tempo de partida.');
+      });
+      root.querySelector('#arm-code-input').addEventListener('input', syncCodes);
+      root.querySelector('#defuse-code-input').addEventListener('input', syncCodes);
+      root.querySelectorAll('[data-objective]').forEach(card => {
+        card.addEventListener('click', () => {
+          root.querySelectorAll('[data-objective]').forEach(item => item.classList.remove('active'));
+          card.classList.add('active');
+          activeObjective.textContent = 'Objetivo: ' + card.dataset.objective;
+          addLog('Objetivo ativo: ' + card.dataset.objective + '.');
+        });
+      });
+      root.querySelector('#start-game').addEventListener('click', () => {
+        gameSeconds = Number(root.querySelector('#match-time').value);
+        bombSeconds = null;
+        gameRunning = true;
+        gameFinished = false;
+        armed = false;
+        updateTimers();
+        setBombState('Jogo ativo', 'green');
+        setMasterState('Em jogo');
+        gameControlState.textContent = 'Controlador: em jogo';
+        gameControlState.className = 'badge green';
+        phase.textContent = 'Partida em andamento';
+        audioCue.textContent = 'Início de rodada';
+        addLog('Controlador iniciou o jogo.');
+      });
+      root.querySelector('#end-game').addEventListener('click', () => {
+        finishGame('Encerrado pelo controlador', 'amber');
+      });
+      root.querySelector('#arm-master').addEventListener('click', () => {
+        if (activeMode === 'domination') {
+          runTimedAction('Controlador ajustando domínio', () => updateDomination('Terrorista', 15));
+          return;
+        }
+        runTimedAction('Controlador armando bomba', () => {
+          armBomb('Controlador');
+          runResult('Janela de explosão cenográfica', () => {
+            if (armed) {
+              finishGame('Explosão cenográfica', 'red');
+            }
+          });
+        });
+      });
+      root.querySelector('#authorize-ct').addEventListener('click', () => {
+        ctHasCode = true;
+        root.querySelector('#ct-known-code').textContent = getConfiguredCode('defuse') || '----';
+        ctPermission.textContent = 'Senha entregue';
+        ctStatus.textContent = 'Com senha';
+        ctStatus.className = 'badge green';
+        setAuthorization('Senha CT entregue', 'green');
+        addLog('Controlador entregou a senha de desarme ao CT.');
+      });
+      root.querySelector('#authorize-terrorist').addEventListener('click', () => {
+        terroristHasCode = true;
+        root.querySelector('#terror-known-code').textContent = getConfiguredCode('arm') || '----';
+        terrorPermission.textContent = 'Senha entregue';
+        terrorStatus.textContent = 'Com senha';
+        terrorStatus.className = 'badge red';
+        setAuthorization('Senha terrorista entregue', 'red');
+        addLog('Controlador entregou a senha de arme ao terrorista.');
+      });
+      root.querySelector('#play-sound').addEventListener('click', () => {
+        audioCue.textContent = 'Teste de sirene';
+        speakerState.textContent = 'Caixa de som: teste OK';
+        addLog('Controlador testou a saída para caixa de som.');
+      });
+      root.querySelector('#reset-game').addEventListener('click', () => {
+        gameSeconds = Number(root.querySelector('#match-time').value);
+        bombSeconds = null;
+        gameRunning = false;
+        gameFinished = false;
+        armed = false;
+        ctAuthorized = false;
+        terroristAuthorized = false;
+        ctHasCode = false;
+        terroristHasCode = false;
+        dataProgress = 45;
+        currentRequest = null;
+        scanState = { arm: 0, defuse: 0 };
+        scanTimes = { arm: [], defuse: [] };
+        bombFinalOk = { arm: false, defuse: false };
+        updateTimers();
+        setBombState('Desarmada', 'red');
+        setMasterState('Preparação');
+        setAuthorization('Validação pendente', 'amber');
+        qrState.textContent = 'QR: aguardando scan';
+        qrState.className = 'badge green';
+        bombRequest.textContent = 'Solicitação: nenhuma';
+        bombRequest.className = 'badge amber';
+        gameControlState.textContent = 'Controlador: parado';
+        gameControlState.className = 'badge amber';
+        phase.textContent = 'Aguardando ativação';
+        audioCue.textContent = 'Silêncio';
+        speakerState.textContent = 'Caixa de som: pronta';
+        activeObjective.textContent = 'Objetivo: standby';
+        ctPermission.textContent = 'Sem senha';
+        terrorPermission.textContent = 'Sem senha';
+        root.querySelector('#ct-known-code').textContent = '----';
+        root.querySelector('#terror-known-code').textContent = '----';
+        setDataProgress(45);
+        controlProgress = 50;
+        setActionVisual('Ação: nenhuma', 0, 'blue');
+        integrity.textContent = '93%';
+        applyMode(activeMode);
+        addLog('Partida reiniciada pelo controlador.');
+      });
+      root.querySelector('#ct-ping').addEventListener('click', () => {
+        const distance = Math.max(7, Math.floor(47 - Math.random() * 21));
+        root.querySelector('#ct-signal').textContent = distance + ' m';
+        addLog('CT rastreou o sinal da bomba.');
+      });
+      root.querySelector('#ct-scan').addEventListener('click', () => registerScan('defuse', 'CT'));
+      root.querySelector('#ct-defuse-scan').addEventListener('click', () => registerScan('defuse', 'CT'));
+      root.querySelector('#ct-decode-request').addEventListener('click', () => {
+        openBombRequest('defuse', 'CT', 'decodificação de desarme', () => {
+          ctPermission.textContent = 'Decodificação solicitada';
+        });
+      });
+      root.querySelector('#ct-defuse').addEventListener('click', () => {
+        if (ctHasCode && bombFinalOk.defuse) {
+          runTimedAction('CT desarmando bomba', () => {
+            if (activeMode === 'domination') {
+              const ended = updateDomination('CT', 25);
+              if (ended) return;
+              runResult('Terminal vulnerável para contra-ataque', () => {
+                phase.textContent = controlProgress <= 0 ? 'Domínio CT' : 'Terminal contestado';
+                audioCue.textContent = 'Janela encerrada';
+                addLog('Resultado concluído: disputa de terminal atualizada.');
+              });
+              ctPermission.textContent = 'Domínio avançou';
+              return;
+            }
+            neutralizeBomb('CT');
+            ctPermission.textContent = 'Desarme concluído';
+            runResult('Período de confirmação segura', () => {
+              if (activeMode === 'data') {
+                finishGame('CT bloqueou a extração de dados', 'green');
+              } else {
+                finishGame('Bomba neutralizada pelo CT', 'green');
+              }
+            });
+          });
+        } else {
+          ctPermission.textContent = 'Negado';
+          addLog('Desarme bloqueado: falta senha ou validação no teclado da bomba.');
+          showModal({
+            kind: 'Desarme negado',
+            color: 'red',
+            title: 'Validação incompleta',
+            body: 'Para desarmar, o CT precisa ter a senha, escanear o QR e validar essa senha no teclado da bomba.',
+            confirmText: 'Entendi',
+            alert: true
+          });
+        }
+      });
+      root.querySelector('#terror-scan').addEventListener('click', () => registerScan('arm', 'Terrorista'));
+      root.querySelector('#terror-decode-scan').addEventListener('click', () => registerScan('arm', 'Terrorista'));
+      root.querySelector('#terror-decode-request').addEventListener('click', () => {
+        openBombRequest('arm', 'Terrorista', 'decodificação de arme', () => {
+          terrorPermission.textContent = 'Decodificação solicitada';
+        });
+      });
+      root.querySelector('#terror-arm').addEventListener('click', () => {
+        if (terroristHasCode && bombFinalOk.arm) {
+          if (activeMode === 'data') {
+            runTimedAction('Terrorista abrindo vulnerabilidade', () => {
+              phase.textContent = 'Dados vulneráveis';
+              setBombState('Vulnerável', 'amber');
+              terrorPermission.textContent = 'Janela aberta';
+              runResult('Janela de roubo aberta', () => {
+                phase.textContent = dataProgress >= 100 ? 'Dados extraídos' : 'Terminal protegido';
+                setBombState(dataProgress >= 100 ? 'Terrorista venceu' : 'Seguro', dataProgress >= 100 ? 'red' : 'green');
+                addLog('Resultado concluído: janela de vulnerabilidade encerrada.');
+              });
+            });
+            return;
+          }
+          if (activeMode === 'domination') {
+            runTimedAction('Terrorista capturando terminal', () => {
+              const ended = updateDomination('Terrorista', 25);
+              terrorPermission.textContent = 'Domínio avançou';
+              if (ended) return;
+              runResult('Terminal vulnerável para retomada', () => {
+                phase.textContent = controlProgress >= 100 ? 'Domínio terrorista' : 'Terminal contestado';
+                audioCue.textContent = 'Janela encerrada';
+                addLog('Resultado concluído: disputa de terminal atualizada.');
+              });
+            });
+            return;
+          }
+          runTimedAction('Terrorista armando bomba', () => {
+            armBomb('Terrorista');
+            terrorPermission.textContent = 'Bomba armada';
+            runResult('Janela de explosão cenográfica', () => {
+              if (armed) {
+                finishGame('Explosão cenográfica', 'red');
+              }
+            });
+          });
+        } else {
+          terrorPermission.textContent = 'Negado';
+          addLog('Armamento bloqueado: falta senha ou validação no teclado da bomba.');
+          showModal({
+            kind: 'Arme negado',
+            color: 'red',
+            title: 'Validação incompleta',
+            body: 'Para armar, o terrorista precisa ter a senha, escanear o QR e validar essa senha no teclado da bomba.',
+            confirmText: 'Entendi',
+            alert: true
+          });
+        }
+      });
+      function updateBombCodeDisplay() {
+        bombCodeDisplay.textContent = bombCodeEntry || '----';
+      }
+      function validateBombCode() {
+        if (!currentRequest) {
+          addLog('Código ignorado: nenhuma solicitação pendente.');
+          showModal({
+            kind: 'Bomba',
+            color: 'amber',
+            title: 'Nenhuma solicitação',
+            body: 'A bomba não tem uma solicitação pendente para validar com senha.',
+            confirmText: 'Entendi',
+            alert: true
+          });
+          bombCodeEntry = '';
+          updateBombCodeDisplay();
+          return;
+        }
+        if (currentRequest.label.includes('decodificação')) {
+          bombCodeEntry = '';
+          updateBombCodeDisplay();
+          showModal({
+            kind: 'Bomba',
+            color: 'green',
+            title: 'Decodificação iniciada',
+            body: 'A bomba liberou a etapa de decodificação. A senha aparece no celular quando o tempo de ação terminar.',
+            confirmText: 'Fechar',
+            alert: true
+          });
+          approveBombRequest();
+          return;
+        }
+        const expectedCode = getConfiguredCode(currentRequest.type);
+        if (bombCodeEntry !== expectedCode) {
+          addLog('Senha digitada na bomba foi recusada.');
+          showModal({
+            kind: 'Senha inválida',
+            color: 'red',
+            title: 'Código incorreto',
+            body: 'A senha digitada na bomba não corresponde à senha configurada pelo controlador.',
+            confirmText: 'Tentar novamente',
+            alert: true
+          });
+          bombCodeEntry = '';
+          updateBombCodeDisplay();
+          return;
+        }
+        bombCodeEntry = '';
+        updateBombCodeDisplay();
+        approveBombRequest();
+        showModal({
+          kind: 'Bomba',
+          color: 'green',
+          title: 'Senha validada',
+          body: 'Senha correta. O celular correspondente pode executar a ação.',
+          confirmText: 'Fechar',
+          alert: true
+        });
+      }
+      root.querySelectorAll('[data-key]').forEach(button => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.key;
+          if (key === 'clear') {
+            bombCodeEntry = '';
+          } else if (key === 'ok') {
+            validateBombCode();
+            return;
+          } else if (bombCodeEntry.length < 6) {
+            bombCodeEntry += key;
+          }
+          updateBombCodeDisplay();
+        });
+      });
+      function approveBombRequest() {
+        if (currentRequest.label.includes('decodificação')) {
+          const request = currentRequest;
+          bombRequest.textContent = 'Solicitação: decodificação liberada';
+          setAuthorization('Decodificação liberada', 'green');
+          currentRequest = null;
+          runTimedAction(request.role + ' decodificando senha', () => {
+            const type = request.type;
+            if (type === 'defuse') {
+              ctHasCode = true;
+              root.querySelector('#ct-known-code').textContent = getConfiguredCode('defuse') || '----';
+              ctPermission.textContent = 'Senha decodificada';
+              root.querySelector('#ct-decode-result').textContent = 'Senha recebida';
+              root.querySelector('#ct-decode-result').className = 'badge green';
+            } else {
+              terroristHasCode = true;
+              root.querySelector('#terror-known-code').textContent = getConfiguredCode('arm') || '----';
+              terrorPermission.textContent = 'Senha decodificada';
+            }
+            bombRequest.textContent = 'Solicitação: senha enviada ao celular';
+            addLog('Senha enviada ao celular após decodificação.');
+          });
+          return;
+        }
+        bombFinalOk[currentRequest.type] = true;
+        scanState[currentRequest.type] = 0;
+        scanTimes[currentRequest.type] = [];
+        if (currentRequest.type === 'defuse') {
+          ctAuthorized = true;
+          ctPermission.textContent = 'Senha validada na bomba';
+          ctStatus.textContent = 'Validado';
+          ctStatus.className = 'badge green';
+        } else {
+          terroristAuthorized = true;
+          terrorPermission.textContent = 'Senha validada na bomba';
+          terrorStatus.textContent = 'Validado';
+          terrorStatus.className = 'badge red';
+        }
+        bombRequest.textContent = 'Solicitação: senha validada';
+        setAuthorization('Senha validada na bomba', 'green');
+        addLog('Senha validada na bomba para ' + currentRequest.label + '.');
+        currentRequest = null;
+      }
+      function denyBombRequest() {
+        showModal({
+          kind: 'Bomba',
+          color: 'red',
+          title: 'Negar solicitação',
+          body: 'A solicitação pendente será cancelada e o jogador precisará refazer o fluxo de validação.',
+          confirmText: 'Negar',
+          onConfirm: () => {
+            currentRequest = null;
+            bombRequest.textContent = 'Solicitação: negada';
+            setAuthorization('Solicitação negada', 'red');
+            addLog('Bomba negou a solicitação pendente.');
+          }
+        });
+      }
+      root.querySelector('#terror-hack').addEventListener('click', () => {
+        runTimedAction('Terrorista decodificando interferência', () => {
+          root.querySelector('#hack-result').textContent = 'Interferência ativa';
+          root.querySelector('#hack-result').className = 'badge red';
+          integrity.textContent = '81%';
+          audioCue.textContent = 'Ruído digital';
+          addLog('Terrorista injetou interferência no canal CT.');
+          runResult('Canal CT vulnerável', () => {
+            root.querySelector('#hack-result').textContent = 'Canal limpo';
+            root.querySelector('#hack-result').className = 'badge amber';
+            integrity.textContent = '88%';
+            phase.textContent = armed ? 'Contagem ativa' : 'Aguardando ativação';
+            audioCue.textContent = armed ? 'Bip armado' : 'Silêncio';
+            addLog('Resultado concluído: interferência expirada.');
+          });
+        });
+      });
+      root.querySelector('#steal-data').addEventListener('click', () => {
+        runTimedAction('Terrorista roubando dados', () => {
+          if (activeMode === 'domination') {
+            const ended = updateDomination('Terrorista', 20);
+            if (ended) return;
+            runResult('Domínio em consolidação', () => {
+              phase.textContent = controlProgress >= 100 ? 'Domínio terrorista' : 'Terminal contestado';
+              audioCue.textContent = 'Janela encerrada';
+              addLog('Resultado concluído: consolidação de domínio encerrada.');
+            });
+            return;
+          }
+          dataProgress = Math.min(100, dataProgress + (activeMode === 'data' ? 25 : 17));
+          setDataProgress(dataProgress);
+          activeObjective.textContent = 'Objetivo: Roubo de dados';
+          addLog('Terrorista avançou extração de dados para ' + dataProgress + '%.');
+          runResult('Dados vulneráveis', () => {
+            phase.textContent = dataProgress === 100 ? 'Dados extraídos' : (armed ? 'Contagem ativa' : 'Aguardando ativação');
+            audioCue.textContent = dataProgress === 100 ? 'Upload completo' : 'Janela encerrada';
+            if (activeMode === 'data' && dataProgress === 100) {
+              finishGame('Terroristas extraíram todos os dados', 'red');
+            }
+            addLog('Resultado concluído: janela de roubo de dados encerrada.');
+          });
+        });
+      });
+      setInterval(() => {
+        if (gameRunning && !gameFinished && gameSeconds > 0) {
+          gameSeconds -= 1;
+          updateTimers();
+          if (gameSeconds === 60) {
+            audioCue.textContent = 'Último minuto';
+            addLog('Jogo entrou no último minuto.');
+          }
+          if (gameSeconds === 0) {
+            finishGame('Tempo de jogo encerrado', 'amber');
+          }
+        }
+      }, 1000);
+      applyMode('classic');
+      updateTimers();
+      addLog('Modo Bomba carregado.');
+      addLog('Aguardando configuração do controlador.');
+    })();
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# Pacotes gerados para envio
+*.zip
+
+# Cópias antigas de distribuição
+outputs/airsoft-ops-beta-*/
+
+# Arquivos locais de sistema e editores
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Diretórios temporários
+work/
