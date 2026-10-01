@@ -52,6 +52,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
         AppRole.CONTROLLER -> "controle.html"
         AppRole.ARTIFACT -> "bomba.html"
         AppRole.PLAYER -> "jogador.html"
+        AppRole.PORTAL -> "index.html"
     }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()

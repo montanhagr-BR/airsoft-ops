@@ -80,6 +80,7 @@ fun AirsoftOpsApp(viewModel: GameViewModel = viewModel()) {
                 AppRole.CONTROLLER -> PrototypeWebScreen(AppRole.CONTROLLER, viewModel::leaveRole)
                 AppRole.ARTIFACT -> PrototypeWebScreen(AppRole.ARTIFACT, viewModel::leaveRole)
                 AppRole.PLAYER -> PrototypeWebScreen(AppRole.PLAYER, viewModel::leaveRole)
+                AppRole.PORTAL -> PrototypeWebScreen(AppRole.PORTAL, viewModel::leaveRole)
             }
         }
     }
@@ -156,6 +157,12 @@ private fun RoleSelection(onSelect: (AppRole) -> Unit) {
                     shape = RoundedCornerShape(3.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B5526), contentColor = Color(0xFFFFEBC0))
                 ) { Text("JOGADOR", fontWeight = FontWeight.Bold, fontSize = 17.sp) }
+                Button(
+                    onClick = { onSelect(AppRole.PORTAL) },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(3.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3118), contentColor = Color(0xFFE8D4A8))
+                ) { Text("MINHA CONTA / PORTAL WEB", fontWeight = FontWeight.Bold, fontSize = 15.sp) }
                 OutlinedButton(
                     onClick = { choosingEntry = false },
                     modifier = Modifier.fillMaxWidth(),

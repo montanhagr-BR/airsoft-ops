@@ -3,7 +3,8 @@ package br.com.airsoftops.model
 enum class AppRole(val title: String, val description: String) {
     CONTROLLER("Controlador", "Configura e acompanha a operação"),
     ARTIFACT("Artefato", "Transforma este aparelho em uma bomba"),
-    PLAYER("Jogador", "Recebe objetivos e interage com o artefato")
+    PLAYER("Jogador", "Recebe objetivos e interage com o artefato"),
+    PORTAL("Portal Web / Conta", "Acesse sua conta do Montanha Bomb System")
 }
 
 enum class Team(val title: String) {

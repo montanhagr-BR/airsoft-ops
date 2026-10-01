@@ -101,40 +101,47 @@
 
     <!-- DASHBOARD SECTION (LOGGED IN) -->
     <section class="portalBox" id="dashboardSection" hidden>
-      <h1>Painel Operacional Web</h1>
-      <p>Sua conta está autenticada. Crie uma nova operação ou entre em uma sala existente para usar este notebook como Artefato ou Controle.</p>
+      <h1>Painel Operacional do Operador</h1>
+      <p>Sessão vinculada à sua conta. Apenas você tem permissão de Controle nas salas criadas por este usuário.</p>
 
       <div class="dashboardGrid">
 
-        <!-- Create Room Box -->
-        <div style="border: 1px solid var(--portal-border); background: rgba(8,7,4,0.6); padding: 18px; border-radius: 4px; display: grid; gap: 12px;">
-          <h2>Criar Nova Operação</h2>
-          <p>Crie uma nova sala para gerenciar o jogo como Controlador.</p>
+        <!-- SECTION 1: TELA DE CONTROLE -->
+        <div style="border: 1px solid var(--portal-orange); background: rgba(18,14,8,0.85); padding: 20px; border-radius: 4px; display: grid; gap: 14px; box-shadow: inset 3px 0 var(--portal-orange);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>1. TELA DE CONTROLE</h2>
+            <span style="background:var(--portal-orange-dark); color:#fff; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:2px; text-transform:uppercase;">Exclusivo do Criador</span>
+          </div>
+          <p>Crie e gerencie o jogo como Controlador. O acesso ao Controle é protegido e restrito ao seu usuário.</p>
+
           <div class="formGroup">
-            <label for="newOpName">Nome da Operação</label>
+            <label for="newOpName">Nome da Nova Operação</label>
             <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha Blackout" value="Operação Montanha">
           </div>
+
           <button class="btnPrimary" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)" type="button">
-            Criar Sala (Controlador)
+            Criar Sala e Abrir Controle
           </button>
         </div>
 
-        <!-- Join Room Box -->
-        <div style="border: 1px solid var(--portal-border); background: rgba(8,7,4,0.6); padding: 18px; border-radius: 4px; display: grid; gap: 12px;">
-          <h2>Entrar em Operação Existente</h2>
-          <p>Digite o código de 6 caracteres fornecido pelo Controlador.</p>
+        <!-- SECTION 2: TELA DE BOMBA (ARTEFATO NOTEBOOK) -->
+        <div style="border: 1px solid var(--portal-border); background: rgba(8,7,4,0.72); padding: 20px; border-radius: 4px; display: grid; gap: 14px;">
+          <h2>2. TELA DE BOMBA (ARTEFATO NOTEBOOK)</h2>
+          <p>Transforme este computador em uma bomba cenográfica ou terminal de dados. Funciona em qualquer sala mediante código de 6 caracteres.</p>
+
           <div class="formGroup">
-            <label for="joinRoomCode">Código da Sala</label>
+            <label for="joinRoomCode">Código da Sala (6 caracteres)</label>
             <div class="codeEntry">
-              <input id="joinRoomCode" maxlength="6" placeholder="A1B2C3" type="text">
+              <input id="joinRoomCode" maxlength="6" placeholder="Ex.: A1B2C3" type="text">
             </div>
           </div>
+
           <div class="roleActionGrid">
-            <button class="btnSecondary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'artifact')" type="button">
-              Artefato (Notebook)
+            <button class="btnPrimary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'artifact')" type="button">
+              Abrir como Bomba / Artefato
             </button>
             <button class="btnSecondary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'controller')" type="button">
-              Controlador
+              Acessar Controle (Apenas Criador)
             </button>
           </div>
         </div>
@@ -142,9 +149,9 @@
       </div>
 
       <!-- Active Sessions Created By User -->
-      <div style="margin-top: 12px;">
-        <h2>Minhas Operações Ativas</h2>
-        <p style="margin-bottom: 12px;">Salas criadas por você que estão aguardando ou em andamento.</p>
+      <div style="margin-top: 16px;">
+        <h2>Minhas Operações Ativas (Acesso Rápido ao Controle)</h2>
+        <p style="margin-bottom: 12px;">Salas criadas com a sua conta. Clique para reabrir como Controlador ou Artefato.</p>
         <div class="sessionList" id="mySessionsList">
           <p class="muted">Carregando salas...</p>
         </div>
@@ -152,7 +159,7 @@
 
       <!-- Quick Launchers -->
       <div style="border-top: 1px solid rgba(117,90,50,0.4); padding-top: 18px; display: grid; gap: 10px;">
-        <h2>Acessos Rápidos Nativos / Protótipo</h2>
+        <h2>Ferramentas Locais / Protótipo</h2>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <a class="btnSecondary" href="bomba.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Artefato Local</a>
           <a class="btnSecondary" href="controle.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Controle Local</a>
