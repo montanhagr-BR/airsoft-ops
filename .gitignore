@@ -11,3 +11,30 @@ Thumbs.db
 
 # Diretórios temporários
 work/
+outputs/.chrome-test/
+
+# Configuração local (use o arquivo .example como modelo)
+outputs/supabase-config.js
+outputs/maps-config.js
+android-app/app/src/main/assets/www/maps-config.js
+
+# Evidências locais de testes e versões antigas do APK
+outputs/emulator-*
+outputs/*-pw.png
+outputs/Airsoft-Ops-*.apk
+!outputs/Airsoft-Ops-0.6.2.apk
+
+# Caches e arquivos locais do projeto Android
+android-app/.adb/
+android-app/.android/
+android-app/.android-user-home/
+android-app/.debug/
+android-app/.gradle/
+android-app/.gradle-user-home/
+android-app/.idea/
+android-app/.kotlin/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+android-app/adb-devices.err
+android-app/adb-devices.out

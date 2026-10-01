@@ -45,11 +45,30 @@ O Controlador define o nome dos dois times:
 
 O painel possui dois QRs cenográficos para cadastrar os celulares. Depois do cadastro, o aparelho fica travado no módulo do time escolhido.
 
+O fluxo atual de cadastro é:
+
+1. O jogador informa nome ou indicativo no celular.
+2. Informa email, celular, contato de emergência e sua agremiação/time de origem, ou declara não possuir agremiação.
+3. O celular envia uma solicitação e permanece bloqueado.
+4. O Controlador escolhe Time 1 ou Time 2 e aprova o aparelho.
+5. O módulo do jogador é liberado somente depois da aprovação.
+6. O Controlador pode trocar o lado da partida ou remover o jogador.
+
+O cadastro possui estados visíveis: não enviado, em edição, aguardando aprovação e aprovado. Enquanto aguarda, os campos ficam bloqueados e o jogador pode usar **Corrigir ficha** para cancelar a solicitação pendente. Quando o Controlador aprova, o celular recebe confirmação, mostra o lado definido e abre automaticamente o terminal. A sincronização usa evento local, `BroadcastChannel` e verificação periódica como contingência.
+
+Agremiação e lado da partida são informações diferentes. Quando **Manter jogadores da mesma agremiação juntos** estiver ativo, um novo integrante aprovado herda o lado de um companheiro da mesma agremiação. Com a regra desligada, o Controlador pode separar livremente os integrantes entre Time 1 e Time 2.
+
 Ao reiniciar o sistema, os celulares também perdem o cadastro e precisam ser vinculados novamente.
+
+O painel mostra presença online, última posição e um mapa tático relativo de todos os jogadores. A aba **Equipe** do celular mostra somente integrantes do mesmo time. O rastreamento exige aprovação, permissão de GPS e partida ativa; ele para quando a partida termina.
+
+O módulo do Controlador é dividido em **Operação**, **Configuração**, **Equipes** e **Mapa**. A lista de jogadores possui busca e paginação de 25 registros para permitir partidas com mais de 200 cadastros sem renderizar todas as fichas ao mesmo tempo. O mapa possui filtro por Time 1, Time 2 ou todos.
+
+No mapa, o lado da partida é representado pela forma: Time 1 usa círculos, Time 2 usa quadrados e o artefato usa losango. A cor representa a agremiação de origem; o mesmo nome sempre gera a mesma cor e jogadores sem agremiação aparecem em cinza. Essa convenção também é usada na aba Equipe do celular.
 
 ## 5. Interface do jogador
 
-A tela do jogador possui três abas:
+A tela do jogador possui quatro abas:
 
 ### Objetivos
 
@@ -68,6 +87,10 @@ Mostra:
 - Precisão do GPS.
 - Estado da transmissão.
 - Alerta de primeiro deslocamento.
+
+### Equipe
+
+Mostra o mapa tático e o estado de conexão somente dos integrantes do mesmo lado da partida.
 
 O botão usa o texto **Ativar localizador**. O visual segue o tema de maleta e terminal militar usado no restante do sistema.
 
@@ -124,8 +147,13 @@ Cada celular mostra o alerta uma única vez por ativação.
 
 O GPS do artefato pode ficar ligado ou desligado pelo Controlador.
 
-- Ligado: a tela da bomba publica sua posição a cada 10 segundos.
+- Ligado: a tela da bomba publica sua posição na frequência escolhida pelo Controlador.
 - Desligado: não são enviadas novas coordenadas aos celulares.
+
+O Controlador escolhe a frequência da transmissão:
+
+- **A cada 10 segundos:** menor consumo de bateria, recomendado para partidas longas.
+- **Tempo real:** usa atualizações contínuas fornecidas pelo GPS para acompanhar deslocamentos com maior rapidez.
 
 Também é possível informar latitude e longitude manualmente como posição inicial ou alternativa.
 
