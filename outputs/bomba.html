@@ -2,16 +2,25 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Bomba</title>
-  <script src="airsoft-shared.js?v=20260925-bomb-alert-1"></script>
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <script src="supabase-config.js?v=20260930-1"></script>
+  <script src="supabase.js?v=20260930-1"></script>
+  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
+  <script src="airsoft-cloud.js?v=20260930-1" defer></script>
   <style>
     body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
     main { min-height: 100vh; display: grid; place-items: center; padding: 18px; box-sizing: border-box; background: radial-gradient(circle at 20% 0%, #12382a, transparent 28rem), linear-gradient(135deg, #050708, #111719); }
-    .device { width: min(100%, 960px); min-height: 720px; border: 1px solid #2b3a3d; background: #090d0f; display: grid; grid-template-rows: auto 1fr auto; gap: 18px; padding: 18px; box-shadow: 0 24px 80px rgba(0,0,0,.6); }
+    .device { position:relative; width: min(100%, 960px); min-height: 720px; border: 1px solid #2b3a3d; background: #090d0f; display: grid; grid-template-rows: 1fr auto; gap: 18px; padding: 18px; box-shadow: 0 24px 80px rgba(0,0,0,.6); }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
     .badges { display: flex; gap: 8px; flex-wrap: wrap; }
     .badge { border: 1px solid #2b3a3d; background: #172024; padding: 7px 10px; text-transform: uppercase; font-size: 12px; }
+    .artifactStatusBar { position:absolute; inset:12px 12px auto; z-index:6; pointer-events:none; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .statusPod { max-width:min(42%,260px); border:1px solid #6f6746; background:rgba(7,9,7,.92); padding:7px; box-shadow:0 5px 18px rgba(0,0,0,.65); display:grid; gap:5px; }
+    .statusPod.right { justify-items:end; text-align:right; }
+    .statusPod .badge { width:fit-content; max-width:100%; padding:4px 7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:transparent; border-color:#3e412f; font-size:10px; }
+    .device > .center { padding-top:38px; }
     .green { color: #34d399; } .red { color: #fb4e4e; } .amber { color: #f2b84b; } .blue { color: #4ea7ff; }
     .center { display: grid; gap: 18px; place-items: center; text-align: center; }
     h1 { margin: 0; font-size: clamp(24px, 5vw, 54px); text-transform: uppercase; }
@@ -29,9 +38,9 @@
     button { min-height: 54px; border: 1px solid #2b3a3d; background: #172024; color: #e8f0ed; font: inherit; font-weight: 800; cursor: pointer; }
     button:disabled { cursor: not-allowed; filter: grayscale(1); opacity: .55; }
     .ok { background: #34d399; color: #03110c; }
-    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.64); z-index: 10; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; overflow:auto; overscroll-behavior:contain; background: rgba(0,0,0,.64); z-index: 10; }
     .popupLayer[hidden] { display: none; }
-    .popup { width: min(100%, 520px); border: 1px solid #34d399; background: #10171a; padding: 20px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; text-align: left; }
+    .popup { width: min(100%, 520px); max-height:calc(100dvh - 24px); overflow:auto; border: 1px solid #34d399; background: #10171a; padding: 20px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; text-align: left; }
     .popup strong { color: #34d399; text-transform: uppercase; font-size: 12px; }
     .popup h2 { margin: 0; text-transform: uppercase; font-size: 24px; }
     .popup p { margin: 0; color: #c4d2ce; line-height: 1.45; }
@@ -40,20 +49,125 @@
     .device.notebookMode .center { border: 1px solid #334235; background: #050806; padding: 18px; box-shadow: inset 0 0 60px rgba(93,159,184,.08); }
     .device.notebookMode .qr { border-color: #5d9fb8; }
     .device.notebookMode .keypad { width: min(100%, 420px); }
-    @media (max-width: 720px) { .timers { grid-template-columns: 1fr; } }
+    .deviceSetupLayer { position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:12px; overflow:auto; overscroll-behavior:contain; background:rgba(0,0,0,.9); box-sizing:border-box; }
+    .deviceSetupLayer[hidden] { display:none; }
+    .deviceSetup { width:min(100%,520px); max-height:calc(100dvh - 24px); overflow:auto; border:2px solid #6d744d; background:#0b0d09; padding:22px; box-shadow:0 24px 90px #000; display:grid; gap:14px; }
+    .deviceSetup h2,.deviceSetup p { margin:0; }
+    .deviceSetup label { display:grid; gap:6px; color:#d6c78d; text-transform:uppercase; font-size:12px; }
+    .deviceSetup input,.deviceSetup select { min-height:48px; border:1px solid #596046; background:#050604; color:#f3ecd1; padding:0 12px; font:inherit; }
+    .deviceSetupStatus { min-height:42px; padding:10px; border:1px solid #353b2c; color:#c8cbb8; line-height:1.4; }
+    @media (max-width: 720px), (max-height: 520px) {
+      .timers { grid-template-columns: 1fr; }
+      .deviceSetup { width:min(100%,680px); padding:12px; gap:8px; }
+      .deviceSetup h2 { font-size:18px; }
+      .deviceSetup p { font-size:12px; line-height:1.3; }
+      .deviceSetup input,.deviceSetup select,.deviceSetup button { min-height:40px; }
+      .deviceSetupStatus { min-height:0; padding:7px 9px; }
+      .popup { padding:14px; gap:8px; }
+    }
   </style>
-  <link rel="stylesheet" href="airsoft-theme.css?v=20260925-bomb-alert-1">
+  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
+  <style id="android-webview-compat">
+    html.androidApp [hidden] { display:none !important; }
+    html.androidApp body { overflow:hidden !important; }
+    html.androidApp .device { opacity:1 !important; visibility:visible !important; }
+    html.androidApp body::after,
+    html.androidApp .device::before,
+    html.androidApp .device::after {
+      mix-blend-mode:normal !important;
+      backdrop-filter:none !important;
+      filter:none !important;
+    }
+    html, body { width:100%; min-width:0; height:100%; min-height:100%; }
+    html.androidApp body.bombMode,
+    html.androidApp body.bombMode main {
+      width:100vw !important;
+      height:100vh !important;
+      min-height:100vh !important;
+      overflow:hidden !important;
+    }
+    html.androidApp body.bombMode main {
+      position:fixed !important;
+      inset:0 !important;
+      display:grid !important;
+      place-items:center !important;
+      padding:0 !important;
+    }
+    html.androidApp body.bombMode .device {
+      position:fixed !important;
+      top:0 !important;
+      left:50% !important;
+      width:var(--android-bomb-width, 540px) !important;
+      height:auto !important;
+      min-width:0 !important;
+      min-height:0 !important;
+      aspect-ratio:3 / 2 !important;
+      transform:translateX(-50%) !important;
+    }
+    html.androidApp .popupLayer,
+    html.androidApp .deviceSetupLayer {
+      box-sizing:border-box !important;
+      padding:24px max(24px, env(safe-area-inset-left)) !important;
+    }
+    html.androidApp .popup,
+    html.androidApp .deviceSetup {
+      width:min(680px, calc(100vw - 48px)) !important;
+      max-height:calc(100vh - 48px) !important;
+      box-sizing:border-box !important;
+      padding:24px !important;
+      gap:14px !important;
+      font-size:18px !important;
+      transform:none !important;
+    }
+    html.androidApp .deviceSetup {
+      height:calc(100vh - 48px) !important;
+      min-height:260px !important;
+    }
+    html.androidApp .popup { min-height:220px !important; }
+    html.androidApp .popup strong,
+    html.androidApp .deviceSetup label { font-size:14px !important; }
+    html.androidApp .popup h2,
+    html.androidApp .deviceSetup h2 { font-size:28px !important; }
+    html.androidApp .popup button,
+    html.androidApp .deviceSetup button,
+    html.androidApp .deviceSetup input,
+    html.androidApp .deviceSetup select { min-height:52px !important; }
+    @media (max-height:600px) {
+      html.androidApp .popup,
+      html.androidApp .deviceSetup {
+        padding:16px !important;
+        gap:9px !important;
+        font-size:16px !important;
+      }
+      html.androidApp .popup h2,
+      html.androidApp .deviceSetup h2 { font-size:22px !important; }
+    }
+  </style>
+  <script>
+    if (document.documentElement.classList.contains('androidApp')) {
+      const sizeBombForAndroid = () => {
+        const width = Math.max(360, Math.min(window.innerWidth, window.innerHeight * 1.5));
+        document.documentElement.style.setProperty('--android-bomb-width', width + 'px');
+      };
+      sizeBombForAndroid();
+      addEventListener('resize', sizeBombForAndroid, { passive:true });
+      addEventListener('orientationchange', sizeBombForAndroid, { passive:true });
+    }
+  </script>
+  <link rel="stylesheet" href="airsoft-brand.css?v=20260930-1">
 </head>
 <body>
 <main>
   <section class="device">
-    <div class="row">
-      <div class="badges">
+    <div class="artifactStatusBar">
+      <div class="statusPod">
         <span class="badge red" id="bombState">Preparação</span>
-        <span class="badge blue" id="mode">Bomba clássica</span>
-        <span class="badge green">Sala AX-07</span>
       </div>
-      <span class="badge amber" id="pending">Solicitação: nenhuma</span>
+      <div class="statusPod right">
+        <span class="badge blue" id="mode">Bomba clássica</span>
+        <span class="badge amber" id="pending">Solicitação: nenhuma</span>
+      </div>
     </div>
     <div class="center">
       <h1 id="phase">Aguardando início</h1>
@@ -152,7 +266,7 @@
         <div class="armedLamp"><span></span><b>ARMADO</b></div>
         <div class="chargePack"><i></i><i></i><i></i><b>CARGA CENOGRÁFICA</b></div>
       </aside>
-      <b class="qrTitle">Escanear código</b>
+      <b class="qrTitle" id="qrTitle">Escanear código</b>
       <div class="qr" id="stageQr" aria-label="QR code cenográfico">
         <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
         <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
@@ -178,6 +292,18 @@
     </div>
   </section>
 </main>
+<div class="deviceSetupLayer" id="deviceSetupLayer">
+  <section class="deviceSetup" aria-labelledby="deviceSetupTitle">
+    <span class="badge amber">Pareamento de artefato</span>
+    <h2 id="deviceSetupTitle">Cadastrar este dispositivo</h2>
+    <p>Identifique este tablet ou celular. O Controlador deverá aprovar e escolher qual bomba será exibida nele.</p>
+    <label>Nome do aparelho<input id="deviceName" maxlength="40" placeholder="Ex.: Tablet maleta norte"></label>
+    <label>Tipo de dispositivo<select id="deviceType"><option value="tablet">Tablet</option><option value="phone">Celular</option></select></label>
+    <button class="primary" id="requestDeviceRegistration">Solicitar cadastro</button>
+    <p class="deviceSetupStatus" id="deviceSetupStatus">Este aparelho ainda não está cadastrado.</p>
+    <button id="deviceDemoMode">Abrir somente para demonstração</button>
+  </section>
+</div>
 <div class="popupLayer" id="popupLayer" hidden>
   <section class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
     <strong id="popupKind">Bomba</strong>
@@ -202,7 +328,42 @@
   let confirmActive = false;
   let lastNoticeId = 0;
   let artifactGpsTimer = null;
+  let artifactGpsWatchId = null;
+  let artifactGpsMode = null;
+  let operationalSoundMode = null;
+  let operationalSoundTimer = null;
+  const bombDeviceStorageKey = 'airsoft-bomb-device-id-v1';
+  let bombDeviceId = localStorage.getItem(bombDeviceStorageKey);
+  if (!bombDeviceId) {
+    bombDeviceId = 'bomb-device-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem(bombDeviceStorageKey, bombDeviceId);
+  }
+  let bombDemoMode = localStorage.getItem('airsoft-bomb-demo-v1') === '1';
   function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
+  function playOperationalSound(kind) {
+    if (window.AirsoftSound) { window.AirsoftSound.play(kind); return; }
+    try {
+      const audio = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.frequency.value = kind === 'armed' ? 960 : 620;
+      gain.gain.value = .35;
+      oscillator.connect(gain); gain.connect(audio.destination); oscillator.start();
+      setTimeout(() => { oscillator.stop(); audio.close(); }, kind === 'armed' ? 280 : 160);
+    } catch (_) {}
+  }
+  function syncOperationalSound(s) {
+    const armed = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && s.bombSeconds != null && s.running && !s.finished;
+    const locating = isLocatorMode(s) && s.locatorEnabled && s.locatorArtifactLat != null && s.locatorArtifactLng != null;
+    const nextMode = armed ? 'armed' : locating ? 'locator' : null;
+    if (nextMode === operationalSoundMode) return;
+    clearInterval(operationalSoundTimer);
+    operationalSoundTimer = null;
+    operationalSoundMode = nextMode;
+    if (!nextMode) return;
+    playOperationalSound(nextMode);
+    operationalSoundTimer = setInterval(() => playOperationalSound(nextMode), nextMode === 'armed' ? 1000 : 2400);
+  }
   function renderSevenSegment(element, value) {
     const activeSegments = {
       '0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg',
@@ -220,6 +381,57 @@
   function isDataMode(s) { return s.mode === 'Roubo de dados'; }
   function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
   function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function activeBomb(s) {
+    const list = s.bombSequence || [];
+    const device = (s.bombDevices || []).find(item => item.id === bombDeviceId && item.status === 'approved');
+    if (device && device.bombId) return list.find(item => item.id === device.bombId) || null;
+    return list[Math.max(0, Math.min(Number(s.bombSequenceIndex || 0), list.length - 1))] || null;
+  }
+  function renderDeviceSetup(s) {
+    const device = (s.bombDevices || []).find(item => item.id === bombDeviceId);
+    if (bombDemoMode) { deviceSetupLayer.hidden = true; return; }
+    deviceSetupLayer.hidden = Boolean(device && device.status === 'approved' && device.bombId);
+    if (!device) {
+      deviceSetupStatus.textContent = 'Este aparelho ainda não está cadastrado.';
+      requestDeviceRegistration.disabled = false;
+      return;
+    }
+    deviceName.value = device.name || '';
+    deviceType.value = device.type || 'tablet';
+    if (device.status === 'approved') {
+      const bomb = (s.bombSequence || []).find(item => item.id === device.bombId);
+      deviceSetupStatus.textContent = bomb ? 'Aprovado para ' + bomb.number + ' · ' + bomb.name + '.' : 'Aprovado, aguardando uma bomba válida.';
+    } else {
+      deviceSetupStatus.textContent = 'Solicitação enviada. Aguarde a aprovação no painel do Controlador.';
+    }
+    requestDeviceRegistration.disabled = device.status === 'pending';
+  }
+  function advanceBombSequence(st) {
+    const list = st.bombSequence || [];
+    const index = Number(st.bombSequenceIndex || 0);
+    if (list[index]) list[index].status = 'defused';
+    if (index + 1 >= list.length) return false;
+    st.bombSequenceIndex = index + 1;
+    const next = list[index + 1];
+    next.status = st.bombDeploymentMode === 'allArmed' ? 'armed' : 'active';
+    st.armCode = next.armCode;
+    st.defuseCode = next.defuseCode;
+    st.resultSeconds = Number(next.resultSeconds) || 600;
+    st.locatorArtifactName = next.name;
+    st.locatorArtifactLat = next.lat == null ? null : Number(next.lat);
+    st.locatorArtifactLng = next.lng == null ? null : Number(next.lng);
+    st.locatorEnabled = next.locatorEnabled !== false;
+    st.bombSeconds = st.bombDeploymentMode === 'allArmed' ? Number(next.remainingSeconds || next.resultSeconds || 600) : null;
+    st.bombState = st.bombDeploymentMode === 'allArmed' ? 'Próxima bomba para desarme' : 'Próxima bomba liberada';
+    st.phase = st.bombDeploymentMode === 'allArmed' ? next.name + ' continua armada' : next.name + ' aguardando arme';
+    st.qrArm = 0; st.qrDefuse = 0; st.qrArmAt = null; st.qrDefuseAt = null;
+    st.qrStageNonce = Number(st.qrStageNonce || 0) + 1;
+    st.qrStageName = 'bomba-' + (index + 2);
+    st.ctHasCode = false; st.terroristHasCode = false;
+    st.ctKnownCode = '----'; st.terroristKnownCode = '----';
+    st.ctBombValidated = false; st.terroristBombValidated = false;
+    return true;
+  }
   function gpsDistanceMeters(aLat, aLng, bLat, bLng) {
     const toRad = value => Number(value) * Math.PI / 180;
     const radius = 6371000;
@@ -228,15 +440,20 @@
     const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
     return 2 * radius * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
   }
-  function publishArtifactPosition() {
-    const current = AirsoftBus.read();
-    if (!current.locatorEnabled || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(pos => {
+  function storeArtifactPosition(pos) {
       const lat = Number(pos.coords.latitude.toFixed(6));
       const lng = Number(pos.coords.longitude.toFixed(6));
       AirsoftBus.update(st => {
+        if (st.locatorTransmitOnMove && st.locatorArtifactLat != null && st.locatorArtifactLng != null) {
+          const movement = gpsDistanceMeters(st.locatorArtifactLat, st.locatorArtifactLng, lat, lng);
+          if (movement < Number(st.locatorMovementThresholdMeters || 25)) return st;
+        }
         st.locatorArtifactLat = lat;
         st.locatorArtifactLng = lng;
+        const bomb = activeBomb(st);
+        if (bomb && !isDataMode(st) && !isTerminalMode(st) && !isLocatorMode(st)) {
+          bomb.lat = lat; bomb.lng = lng; bomb.locatorEnabled = true;
+        }
         st.locatorArtifactAccuracy = Math.round(pos.coords.accuracy || 0);
         st.locatorLastArtifactFix = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         if (st.running && st.locatorOriginLat == null) {
@@ -253,15 +470,32 @@
           }
         }
       });
-    }, () => {}, { enableHighAccuracy: true, timeout: 8000, maximumAge: 8000 });
+  }
+  function publishArtifactPosition() {
+    const current = AirsoftBus.read();
+    if (!current.locatorEnabled || !navigator.geolocation) return;
+    const highAccuracy = current.locatorAccuracyMode !== 'battery';
+    navigator.geolocation.getCurrentPosition(storeArtifactPosition, () => {}, { enableHighAccuracy: highAccuracy, timeout: highAccuracy ? 10000 : 6000, maximumAge: current.locatorAccuracyMode === 'high' ? 0 : 10000 });
+  }
+  function stopArtifactGps() {
+    if (artifactGpsTimer != null) clearInterval(artifactGpsTimer);
+    if (artifactGpsWatchId != null && navigator.geolocation) navigator.geolocation.clearWatch(artifactGpsWatchId);
+    artifactGpsTimer = null;
+    artifactGpsWatchId = null;
+    artifactGpsMode = null;
   }
   function syncArtifactGps(s) {
-    if (s.locatorEnabled && artifactGpsTimer == null) {
+    const nextMode = s.locatorUpdateMode === 'realtime' ? 'realtime' : '10s';
+    if (!s.locatorEnabled || !navigator.geolocation) { stopArtifactGps(); return; }
+    if (artifactGpsMode === nextMode) return;
+    stopArtifactGps();
+    artifactGpsMode = nextMode;
+    if (nextMode === 'realtime') {
+      const highAccuracy = s.locatorAccuracyMode !== 'battery';
+      artifactGpsWatchId = navigator.geolocation.watchPosition(storeArtifactPosition, () => {}, { enableHighAccuracy: highAccuracy, maximumAge: s.locatorAccuracyMode === 'high' ? 0 : 10000, timeout: highAccuracy ? 10000 : 6000 });
+    } else {
       publishArtifactPosition();
       artifactGpsTimer = setInterval(publishArtifactPosition, 10000);
-    } else if (!s.locatorEnabled && artifactGpsTimer != null) {
-      clearInterval(artifactGpsTimer);
-      artifactGpsTimer = null;
     }
   }
   function codeLabel(type, s) {
@@ -586,7 +820,9 @@
     return Boolean(s.pending && ['arm', 'defuse', 'dataAccess', 'dataAdmin', 'dataDecrypt', 'dataEmail', 'terminalCaptureCode', 'terminalValidationCode'].includes(s.pending.type));
   }
   function render(s) {
+    renderDeviceSetup(s);
     syncArtifactGps(s);
+    syncOperationalSound(s);
     document.body.classList.toggle('dataMode', isDataMode(s));
     document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
     document.body.classList.toggle('terminalMode', isTerminalMode(s));
@@ -595,7 +831,10 @@
     renderLaptop(s);
     renderTerminal(s);
     renderLocator(s);
-    bombState.textContent = s.bombState; mode.textContent = s.mode; phase.textContent = s.phase;
+    const selectedBomb = activeBomb(s);
+    bombState.textContent = s.bombState;
+    mode.textContent = s.mode + (selectedBomb && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? ' · ' + selectedBomb.name + ' (' + (Number(s.bombSequenceIndex || 0) + 1) + '/' + s.bombSequence.length + ')' : '');
+    phase.textContent = s.phase;
     resultTimerLabel.textContent = isDataMode(s) ? 'Progresso hostil' : isTerminalMode(s) ? 'Validação' : isLocatorMode(s) ? 'Sinal GPS' : 'Tempo da bomba';
     if (s.winner) {
       phase.textContent = s.winner;
@@ -604,14 +843,15 @@
       phase.classList.remove('winnerText');
     }
     renderSevenSegment(gameTimer, fmt(s.gameSeconds));
-    renderSevenSegment(bombTimer, fmt(s.bombSeconds));
+    const displayedBombSeconds = selectedBomb && s.bombDeploymentMode === 'allArmed' ? Number(selectedBomb.remainingSeconds ?? selectedBomb.resultSeconds ?? 0) : s.bombSeconds;
+    renderSevenSegment(bombTimer, fmt(displayedBombSeconds));
     pending.textContent = s.pending ? 'Solicitação: ' + s.pending.label : 'Solicitação: nenhuma';
     const qrEnabled = s.qrRequired !== false;
     const qrVariant = Math.abs(Number(s.qrStageNonce || 0)) % 6;
     stageQr.className = 'qr qrVariant' + qrVariant + (qrEnabled ? '' : ' qrDisabled');
     stageQr.style.setProperty('--qr-cell', (16 + qrVariant * 2) + 'px');
     qrTitle.textContent = qrEnabled ? 'QR • ETAPA ' + String(Number(s.qrStageNonce || 0) + 1).padStart(2, '0') : 'QR DESATIVADO';
-    qrArm.textContent = qrEnabled ? (isDataMode(s) ? 'QR invasor: ' : isTerminalMode(s) ? 'QR Time 2: ' : isLocatorMode(s) ? 'GPS Time 2: ' : 'QR arme: ') + s.qrArm + '/' + s.armFactors : 'QR invasor: dispensado';
+    qrArm.textContent = s.bombDeploymentMode === 'allArmed' && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? 'Time 2: proteção ativa' : qrEnabled ? (isDataMode(s) ? 'QR invasor: ' : isTerminalMode(s) ? 'QR Time 2: ' : isLocatorMode(s) ? 'GPS Time 2: ' : 'QR arme: ') + s.qrArm + '/' + s.armFactors : 'QR invasor: dispensado';
     qrDefuse.textContent = qrEnabled ? (isDataMode(s) ? 'QR defesa: ' : isTerminalMode(s) ? 'QR Time 1: ' : isLocatorMode(s) ? 'GPS Time 1: ' : 'QR desarme: ') + s.qrDefuse + '/' + s.defuseFactors : 'QR defesa: dispensado';
     renderKeys(s);
     const keyboardPending = isKeyboardPending(s);
@@ -625,6 +865,30 @@
       lastNoticeId = s.noticeId;
     }
   }
+  requestDeviceRegistration.onclick = () => {
+    const name = deviceName.value.trim();
+    if (!name) { deviceSetupStatus.textContent = 'Digite um nome para identificar este aparelho.'; deviceName.focus(); return; }
+    AirsoftBus.update(s => {
+      s.bombDevices = s.bombDevices || [];
+      let device = s.bombDevices.find(item => item.id === bombDeviceId);
+      if (!device) {
+        device = { id:bombDeviceId, name, type:deviceType.value, status:'pending', bombId:null, requestedAt:Date.now(), approvedAt:null, lastSeen:Date.now() };
+        s.bombDevices.push(device);
+      } else {
+        device.name = name; device.type = deviceType.value; device.status = 'pending'; device.bombId = null; device.requestedAt = Date.now(); device.lastSeen = Date.now();
+      }
+      return s;
+    });
+    AirsoftBus.log('Novo dispositivo solicitou cadastro como bomba: ' + name + '.');
+  };
+  deviceDemoMode.onclick = () => { bombDemoMode = true; localStorage.setItem('airsoft-bomb-demo-v1', '1'); deviceSetupLayer.hidden = true; };
+  setInterval(() => {
+    if (bombDemoMode) return;
+    const state = AirsoftBus.read();
+    const device = (state.bombDevices || []).find(item => item.id === bombDeviceId);
+    if (!device) return;
+    AirsoftBus.update(s => { const current = (s.bombDevices || []).find(item => item.id === bombDeviceId); if (current) current.lastSeen = Date.now(); return s; });
+  }, 10000);
   function updateDisplay() { display.textContent = isKeyboardPending(AirsoftBus.read()) ? (entry || '----') : 'BLOQ'; }
   function validate() {
     const s = AirsoftBus.read();
@@ -712,12 +976,15 @@
           st.phase = 'Senha alterada pelo CT';
           st.qrArm = 0;
         } else {
-          st.bombState = 'Neutralizada';
-          st.phase = 'Bomba neutralizada';
-          st.winner = st.team1Name + ' venceu';
-          st.running = false;
-          st.finished = true;
-          st.bombSeconds = null;
+          const hasNextBomb = advanceBombSequence(st);
+          if (!hasNextBomb) {
+            st.bombState = 'Sequência neutralizada';
+            st.phase = 'Todas as bombas foram neutralizadas';
+            st.winner = st.team1Name + ' venceu';
+            st.running = false;
+            st.finished = true;
+            st.bombSeconds = null;
+          }
         }
       }
       st.pending = null;

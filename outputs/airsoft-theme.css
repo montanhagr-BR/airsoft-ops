@@ -4063,6 +4063,7 @@ body.playerPage .phone > .tabs {
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 body.playerPage .phone > .tabs button {
@@ -4070,7 +4071,7 @@ body.playerPage .phone > .tabs button {
   height: 100%;
   padding: 1px 3px;
   border-width: 1px !important;
-  font-size: clamp(8px, 2.5vw, 11px);
+  font-size: clamp(7px, 2.1vw, 10px);
   overflow: hidden;
   white-space: nowrap;
 }

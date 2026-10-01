@@ -1,0 +1,363 @@
+:root {
+  --portal-bg: #090704;
+  --portal-panel: rgba(18, 15, 10, 0.94);
+  --portal-border: #755a32;
+  --portal-orange: #ef6817;
+  --portal-orange-dark: #8f350d;
+  --portal-paper: #ead9b6;
+  --portal-olive: #4d5523;
+  --portal-ink: #f2e5c8;
+  --portal-muted: #ae9d7d;
+  --portal-error: #ff786c;
+  --portal-ok: #8ed36f;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--portal-bg);
+  background-image: linear-gradient(rgba(4, 3, 2, 0.85), rgba(4, 3, 2, 0.92)), url("assets/airsoft-ops-identity.png");
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--portal-ink);
+  font-family: Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Header */
+.portalHeader {
+  border-bottom: 2px solid var(--portal-orange);
+  background: linear-gradient(90deg, #080704, #1b120b);
+  padding: 16px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+.portalHeaderInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.portalBrand {
+  display: flex;
+  flex-direction: column;
+}
+.portalBrand b {
+  color: var(--portal-orange);
+  font-family: "Arial Narrow", Impact, sans-serif;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.portalBrand small {
+  color: var(--portal-muted);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.userBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(24, 20, 13, 0.9);
+  border: 1px solid var(--portal-border);
+  padding: 6px 14px;
+  border-radius: 4px;
+}
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--portal-orange);
+  color: #160b04;
+  font-weight: bold;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+.userInfo {
+  display: flex;
+  flex-direction: column;
+}
+.userInfo b {
+  color: var(--portal-paper);
+  font-size: 13px;
+}
+.userInfo small {
+  color: var(--portal-muted);
+  font-size: 11px;
+}
+
+/* Main Layout */
+.portalMain {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 28px 18px;
+  display: grid;
+  gap: 24px;
+}
+
+/* Panel Box */
+.portalBox {
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), inset 4px 0 var(--portal-orange);
+  padding: clamp(20px, 4vw, 32px);
+  border-radius: 4px;
+  display: grid;
+  gap: 20px;
+}
+
+.portalBox h1, .portalBox h2 {
+  margin: 0;
+  color: var(--portal-paper);
+  font-family: "Arial Narrow", Impact, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.portalBox h1 { font-size: clamp(26px, 5vw, 38px); }
+.portalBox h2 { font-size: 20px; color: var(--portal-orange); }
+.portalBox p {
+  margin: 0;
+  color: var(--portal-muted);
+  line-height: 1.5;
+}
+
+/* Auth Section */
+.authContainer {
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.authNav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  background: #080704;
+  border: 1px solid var(--portal-border);
+  padding: 4px;
+  border-radius: 4px;
+}
+.authNav button {
+  min-height: 42px;
+  border: 1px solid #55492d;
+  background: linear-gradient(#34351d, #1c1e12);
+  color: #e9dab7;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.authNav button.active {
+  border-color: #ff8535;
+  background: linear-gradient(#f47a24, #b9420e);
+  color: #160b04;
+  box-shadow: inset 0 0 0 1px #ffad61;
+}
+
+/* Google OAuth Button */
+.btnGoogle {
+  width: 100%;
+  min-height: 48px;
+  background: #ffffff;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.btnGoogle:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.btnGoogle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--portal-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin: 8px 0;
+}
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(117, 90, 50, 0.4);
+}
+
+/* Form Controls */
+.formGroup {
+  display: grid;
+  gap: 6px;
+}
+.formGroup label {
+  color: var(--portal-paper);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.formGroup input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #665538;
+  background: #0d0c08;
+  color: #f2e5c8;
+  padding: 10px 14px;
+  font-size: 15px;
+  border-radius: 4px;
+}
+.formGroup input:focus {
+  outline: 2px solid var(--portal-orange);
+  outline-offset: 1px;
+}
+
+.btnPrimary {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #77733d;
+  background: var(--portal-olive);
+  color: #fff1cf;
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+.btnPrimary:hover { opacity: 0.9; }
+
+.btnSecondary {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--portal-border);
+  background: #18130c;
+  color: var(--portal-paper);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btnDanger {
+  min-height: 38px;
+  border: 1px solid #b94b2e;
+  background: #5a1e13;
+  color: #ffd8ce;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 6px 12px;
+}
+
+/* Status Banner */
+.statusMsg {
+  padding: 12px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+.statusMsg[data-tone="error"] {
+  background: rgba(255, 120, 108, 0.12);
+  border-color: var(--portal-error);
+  color: var(--portal-error);
+}
+.statusMsg[data-tone="ok"] {
+  background: rgba(142, 211, 111, 0.12);
+  border-color: var(--portal-ok);
+  color: var(--portal-ok);
+}
+
+/* Dashboard Grid */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.codeEntry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+.codeEntry input {
+  text-transform: uppercase;
+  font-family: Consolas, monospace;
+  font-size: 22px;
+  letter-spacing: 4px;
+  text-align: center;
+}
+
+.roleActionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Session Cards */
+.sessionList {
+  display: grid;
+  gap: 10px;
+}
+.sessionCard {
+  border: 1px solid #51432b;
+  background: rgba(20, 18, 12, 0.8);
+  padding: 12px 16px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.sessionCard h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--portal-paper);
+}
+.sessionCard code {
+  color: var(--portal-orange);
+  font-family: Consolas, monospace;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid rgba(117, 90, 50, 0.3);
+  padding: 18px;
+  text-align: center;
+  color: var(--portal-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .portalHeaderInner { flex-direction: column; align-items: flex-start; }
+  .userBadge { width: 100%; justify-content: space-between; }
+  .roleActionGrid { grid-template-columns: 1fr; }
+  .codeEntry { grid-template-columns: 1fr; }
+}

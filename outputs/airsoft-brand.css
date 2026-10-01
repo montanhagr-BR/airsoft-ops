@@ -1,0 +1,33 @@
+:root{
+  --brand-black:#090704;
+  --brand-panel:#12100b;
+  --brand-panel-2:#1a1710;
+  --brand-orange:#ef6817;
+  --brand-orange-dark:#8f350d;
+  --brand-paper:#ead9b6;
+  --brand-olive:#4d5523;
+  --brand-line:#755a32;
+  --brand-muted:#ae9d7d;
+}
+body{color:var(--brand-paper)!important;background-color:var(--brand-black)!important;background-image:linear-gradient(rgba(4,3,2,.86),rgba(4,3,2,.9)),url("assets/airsoft-ops-identity.png")!important;background-position:center!important;background-size:cover!important;background-attachment:fixed!important}
+.controlTitle,.playerPage .phone{border-color:var(--brand-line)!important;background:linear-gradient(135deg,rgba(13,11,7,.96),rgba(29,20,11,.94))!important;box-shadow:inset 0 0 0 2px #080604,0 18px 50px rgba(0,0,0,.55)!important}
+.controlTitle{border-left:5px solid var(--brand-orange)!important}.controlTitle h1,.playerPage h1{color:var(--brand-paper)!important}.controlTitle p,.muted,.sectionHead p{color:var(--brand-muted)!important}
+.controlTabs,.playerPage .tabs{gap:5px!important;border:1px solid var(--brand-line)!important;background:#080704!important;padding:5px!important}
+.controlTabs button,.playerPage .tabs button{border:1px solid #55492d!important;background:linear-gradient(#34351d,#1c1e12)!important;color:#e9dab7!important;text-transform:uppercase!important;box-shadow:inset 0 1px rgba(255,255,255,.08)!important}
+.controlTabs button.active,.playerPage .tabs button.active{border-color:#ff8535!important;background:linear-gradient(#f47a24,#b9420e)!important;color:#160b04!important;box-shadow:inset 0 0 0 1px #ffad61,0 0 14px rgba(239,104,23,.3)!important}
+.panel,.section,.stat,.modeHero,.sequenceRow,.deviceRow,.playerRow,.registrationBlock,.registrationState,.playerPage .module .stat,.locatorMetrics div,.squadMember{border-color:#51432b!important;background:linear-gradient(145deg,rgba(20,18,12,.97),rgba(8,8,6,.97))!important}
+.panel,.section,.modeHero,.registrationBlock{box-shadow:inset 3px 0 var(--brand-orange-dark)!important}
+.sectionHead,.sideHead{border-bottom-color:rgba(239,104,23,.3)!important}.sectionTag,.briefList b,.registrationBlock h3,.popup strong{color:var(--brand-orange)!important}
+input,select,textarea,.setup input,.deviceSetup input,.deviceSetup select{border-color:#665538!important;background:#0d0c08!important;color:#f2e5c8!important}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-orange)!important;outline-offset:1px!important}
+.primary,.playerPage button.primary,.deviceSetup button,.ok{border-color:#7e873d!important;background:linear-gradient(#68733a,#3f491e)!important;color:#fff1cf!important}
+.warn{background:var(--brand-orange)!important;color:#180b03!important}.danger{border-color:#9e3f28!important;background:#5c1f14!important;color:#ffe0d2!important}
+.popup,.deviceSetup{border-color:var(--brand-orange)!important;background:linear-gradient(145deg,#18140d,#080705)!important;box-shadow:0 24px 80px #000,inset 4px 0 var(--brand-orange)!important}.popup h2,.deviceSetup h2{color:var(--brand-paper)!important}
+.opsStatus,.teamLock,.green{color:#c9dc83!important}.badge{border-color:#5e5034!important;background:#17140d!important}.amber{color:#ff963f!important}
+.tacticalMap,.squadMap{border-color:#72532e!important;background:repeating-linear-gradient(0deg,transparent 0 31px,rgba(239,104,23,.11) 32px),repeating-linear-gradient(90deg,transparent 0 31px,rgba(239,104,23,.11) 32px),#090806!important}
+.locatorArrow{border-color:var(--brand-orange)!important;color:#ff9b55!important;box-shadow:inset 0 0 30px rgba(239,104,23,.16)!important}
+.progressFill{background:var(--brand-orange)!important}.progressTrack{border-color:#65452a!important;background:#080604!important}
+.cloudHeader{border-bottom-color:var(--brand-orange)!important;background:linear-gradient(90deg,#080704,#1b120b)!important}.cloudHeader small{color:#ce7a3a!important}.cloudHeader button{border-color:#6d5d37!important;background:var(--brand-olive)!important}.cloudHeader button.danger{border-color:#b94b2e!important;background:#5a1e13!important}
+.cloudGate{background-image:linear-gradient(rgba(3,2,1,.78),rgba(3,2,1,.92)),url("assets/airsoft-ops-identity.png")!important;background-position:center!important;background-size:cover!important}.cloudGateBox{border-color:var(--brand-orange)!important;background:rgba(10,8,5,.94)!important;box-shadow:0 25px 80px #000,inset 4px 0 var(--brand-orange)!important}.cloudGateBrand,.cloudGate h1,.cloudGate h2{color:var(--brand-paper)!important}.cloudGate button{border-color:#77733d!important;background:var(--brand-olive)!important}.cloudGate button.secondary{border-color:#76502c!important;background:#18130c!important;color:#f09a55!important}
+.deviceSetupLayer,.popupLayer{background:rgba(0,0,0,.84)!important}
+@media(max-width:600px){.panel,.section,.modeHero,.registrationBlock{box-shadow:inset 2px 0 var(--brand-orange-dark)!important}}

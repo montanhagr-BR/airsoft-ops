@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual do Avaliador | Airsoft Ops</title>
+  <style>
+    :root { color-scheme:dark; --paper:#d7c197; --line:#776b4c; --panel:#161810; --muted:#b7b5a7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#090a07; color:#eee9dc; font:16px/1.65 Arial,sans-serif; }
+    nav { position:sticky; top:0; z-index:2; padding:12px 20px; background:#11130d; border-bottom:1px solid var(--line); }
+    nav a { color:var(--paper); text-decoration:none; font-weight:bold; }
+    main { width:min(850px,calc(100% - 32px)); margin:auto; padding:28px 0 56px; }
+    h1,h2 { font-family:"Arial Narrow",Impact,sans-serif; text-transform:uppercase; letter-spacing:1px; color:var(--paper); }
+    h1 { font-size:clamp(32px,7vw,58px); margin:0 0 8px; }
+    h2 { margin-top:34px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+    .lead { color:var(--muted); font-size:18px; }
+    .box { padding:16px 18px; background:var(--panel); border:1px solid #383a2b; border-radius:4px; }
+    li { margin:8px 0; }
+    .button { display:inline-block; margin-top:18px; padding:12px 16px; background:#62673a; border:1px solid #a5a777; color:white; text-decoration:none; font-weight:bold; text-transform:uppercase; }
+  </style>
+</head>
+<body>
+  <nav><a href="index.html">&larr; Voltar ao inicio</a></nav>
+  <main>
+    <h1>Manual do Avaliador</h1>
+    <p class="lead">Este guia apresenta o fluxo principal do prototipo Airsoft Ops e ajuda a registrar problemas de logica, clareza e usabilidade.</p>
+    <h2>As tres interfaces</h2>
+    <div class="box">
+      <p><strong>Controlador:</strong> escolhe o modo, configura tempos e senhas, recebe cadastros, define equipes, inicia ou encerra a partida e acompanha o mapa.</p>
+      <p><strong>Artefato:</strong> representa a bomba, o terminal dominado ou o notebook do roubo de dados. Exibe QR, teclado, contadores e validacoes.</p>
+      <p><strong>Jogador:</strong> faz o cadastro e depois mostra Objetivos, Terminal e Localizador. O modulo recebido depende da equipe aprovada pelo controlador.</p>
+    </div>
+    <h2>Teste recomendado</h2>
+    <ol>
+      <li>Abra <strong>Iniciar avaliacao</strong> para ver as tres interfaces ao mesmo tempo.</li>
+      <li>No Controlador, escolha o modo de jogo e preencha apenas as configuracoes exibidas para ele.</li>
+      <li>Na tela do Artefato, informe um nome para o tablet ou celular e solicite o cadastro.</li>
+      <li>No Controlador, abra <strong>Equipes</strong>, escolha uma bomba para o aparelho e aprove o pareamento.</li>
+      <li>No Jogador, cadastre nome, agremiacao, equipe desejada e contatos.</li>
+      <li>No Controlador, abra <strong>Equipes</strong>, revise o cadastro e aprove ou altere o lado do jogador.</li>
+      <li>Volte a Operacao, envie os objetivos e inicie a partida.</li>
+      <li>Use o celular do jogador para ler o QR e solicitar uma acao. Confira a etapa correspondente no Artefato.</li>
+      <li>Abra o Mapa e verifique as posicoes, simbolos das equipes e cores das agremiacoes.</li>
+    </ol>
+    <h2>Modos de jogo</h2>
+    <p><strong>Bomba:</strong> o Controlador pode cadastrar varios artefatos, cada um com nome, senhas e tempo proprios. Em modo sequencial, o Time 2 arma e cada desarme libera a proxima bomba. Em modo todas armadas, todas as contagens comecam juntas: o Time 1 somente desarma e o Time 2 somente protege. Uma explosao encerra a partida para o Time 2; neutralizar toda a sequencia vence para o Time 1.</p>
+    <p><strong>Roubo de dados:</strong> o atacante acessa o notebook, escolhe a pasta, baixa, descriptografa e envia os dados. A interface muda de tela bloqueada para pastas e arquivo aberto.</p>
+    <p><strong>Dominacao de terminal:</strong> as equipes capturam e revalidam o terminal. A falta de validacao dentro do prazo devolve o terminal ao estado neutro.</p>
+    <h2>Cadastro e mapa</h2>
+    <ul>
+      <li>A agremiacao original do jogador e separada da equipe da partida.</li>
+      <li>O controlador pode manter integrantes da mesma agremiacao juntos ou distribui-los.</li>
+      <li>No mapa geral, Time 1 usa circulos, Time 2 usa quadrados e o artefato usa losango.</li>
+      <li>As cores diferenciam agremiacoes. O jogador nao deve ver a equipe adversaria no proprio mapa.</li>
+      <li>O GPS pode atualizar a cada 10 segundos ou em tempo real, conforme configuracao.</li>
+    </ul>
+    <h2>Tablets e celulares de bomba</h2>
+    <ol>
+      <li>Cadastre primeiro as bombas desejadas na aba Configuracao, respeitando o limite de dez.</li>
+      <li>Abra a interface Artefato em cada tablet ou celular, dê um nome identificavel ao aparelho e toque em Solicitar cadastro.</li>
+      <li>Na aba Equipes do Controlador, localize Dispositivos de bomba, selecione a bomba correspondente e aprove.</li>
+      <li>Cada bomba aceita um unico aparelho aprovado. Para trocar, remova o dispositivo anterior ou altere seu vinculo.</li>
+      <li>O aparelho aprovado abre automaticamente a interface da bomba atribuida. O acesso de demonstracao ignora o pareamento apenas para testes locais.</li>
+    </ol>
+    <h2>Preparacao estrategica do campo</h2>
+    <ol>
+      <li>No Controlador, abra a aba <strong>Mapa</strong>.</li>
+      <li>Escolha Base Time 1 ou Base Time 2 e clique no ponto inicial de cada equipe.</li>
+      <li>Para criar uma zona, escolha Nova area, informe nome, tipo, visibilidade e raio visual.</li>
+      <li>Clique no mapa para posicionar a area. Ela pode ser publica, exclusiva de um time ou secreta para o Controlador.</li>
+      <li>No mapa do Jogador aparecem apenas a base da propria equipe e as areas liberadas para ela.</li>
+    </ol>
+    <h2>O que avaliar</h2>
+    <ul>
+      <li>Se a ordem das acoes fica clara sem explicacao externa.</li>
+      <li>Se popups, barras de progresso, senhas e validacoes aparecem no momento correto.</li>
+      <li>Se existe alguma forma de pular etapas ou travar a partida.</li>
+      <li>Se textos e controles permanecem legiveis em celular e tablet deitados.</li>
+      <li>Se o cadastro e a gestao de mais jogadores parecem eficientes.</li>
+      <li>Qual modo de jogo precisa de mais feedback sonoro ou visual.</li>
+    </ul>
+    <h2>Limitacoes desta versao</h2>
+    <div class="box">Os dados sao simulados e guardados no navegador. A comunicacao funciona entre as telas do teste integrado e entre abas do mesmo navegador. Para uma partida real com aparelhos diferentes, faltam servidor, login seguro, banco de dados, WebSocket, GPS remoto e empacotamento Android.</div>
+    <a class="button" href="teste-integrado.html">Abrir o teste integrado</a>
+  </main>
+</body>
+</html>

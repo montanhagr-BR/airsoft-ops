@@ -2,12 +2,19 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Jogador</title>
-  <script src="airsoft-shared.js?v=20260925-bomb-alert-1"></script>
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <script src="supabase-config.js?v=20260930-1"></script>
+  <script src="supabase.js?v=20260930-1"></script>
+  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
+  <script src="maps-config.js?v=20261001-1"></script>
+  <script src="airsoft-maps.js?v=20261001-1"></script>
+  <script src="airsoft-cloud.js?v=20260930-1" defer></script>
   <style>
-    body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: center; padding: 14px; box-sizing: border-box; }
-    .phone { width: min(100%, 430px); min-height: 720px; border: 1px solid #2b3a3d; background: #081012; box-shadow: inset 0 0 0 4px #111719, 0 24px 80px rgba(0,0,0,.5); display: grid; grid-template-rows: auto auto 1fr; }
+    * { box-sizing:border-box; }
+    body { margin: 0; min-width:0; min-height: 100dvh; overflow-x:hidden; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: start center; padding: 8px; }
+    .phone { width: min(100%, 430px); min-width:0; min-height:calc(100dvh - 16px); border: 1px solid #2b3a3d; background: #081012; box-shadow: inset 0 0 0 4px #111719, 0 24px 80px rgba(0,0,0,.5); display: grid; grid-template-rows: auto auto 1fr; }
     header, .tabs, .module { padding: 14px; }
     header { border-bottom: 1px solid #2b3a3d; display: flex; justify-content: space-between; gap: 10px; }
     h1, h2, p { margin: 0; } h1 { font-size: 20px; text-transform: uppercase; } h2 { font-size: 15px; text-transform: uppercase; }
@@ -20,9 +27,9 @@
     .module { display: none; align-content: start; gap: 12px; } .module.active { display: grid; }
     .stat { border: 1px solid #2b3a3d; background: #10171a; padding: 12px; display: grid; gap: 4px; } .stat span { color: #8fa09a; font-size: 12px; text-transform: uppercase; } .stat b { font-size: 24px; }
     .big { min-height: 70px; width: 100%; text-transform: uppercase; }
-    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.62); z-index: 10; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 12px; overflow:auto; overscroll-behavior:contain; background: rgba(0,0,0,.62); z-index: 10; }
     .popupLayer[hidden] { display: none; }
-    .popup { width: min(100%, 390px); border: 1px solid #4ea7ff; background: #10171a; padding: 18px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; }
+    .popup { width: min(100%, 390px); max-height:calc(100dvh - 24px); overflow:auto; border: 1px solid #4ea7ff; background: #10171a; padding: 18px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; }
     .popup strong { color: #4ea7ff; text-transform: uppercase; font-size: 12px; }
     .popup p { color: #c4d2ce; line-height: 1.45; }
     .progressWrap { display: grid; gap: 8px; }
@@ -40,9 +47,98 @@
     .setup { display: grid; gap: 12px; padding: 14px; }
     .setup[hidden] { display: none; }
     .teamLock { color: #34d399; font-weight: 900; text-transform: uppercase; }
+    .setup input { min-height:46px; border:1px solid #2b3a3d; background:#10171a; color:#e8f0ed; padding:10px; font:inherit; }
+    .setup label { display:grid; gap:5px; color:#c5c3ac; font-size:11px; text-transform:uppercase; }
+    .setup .registrationCheck { grid-template-columns:28px 1fr; align-items:center; border:1px solid #3e4933; padding:9px; }
+    .setup .registrationCheck input { width:24px; height:24px; min-height:24px; padding:0; accent-color:#b99b43; }
+    .registrationBlock { display:grid; gap:10px; border:1px solid #3e4933; background:rgba(5,7,8,.72); padding:11px; }
+    .registrationBlock h3 { margin:0; color:#d5b75b; font-size:12px; text-transform:uppercase; }
+    .registrationState { border:1px solid #66552f; background:#151308; padding:10px; display:grid; gap:5px; }
+    .registrationState strong { color:#e4c759; text-transform:uppercase; font-size:12px; }
+    .registrationActions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .squadMap { position:relative; min-height:310px; overflow:hidden; border:1px solid #5f6b43; background:repeating-linear-gradient(0deg,transparent 0 31px,rgba(151,164,91,.16) 32px),repeating-linear-gradient(90deg,transparent 0 31px,rgba(151,164,91,.16) 32px),#080b08; }
+    .squadMap.googleMapActive { height:clamp(320px,52vh,560px); background:#111; }
+    .squadDot { position:absolute; width:34px; height:34px; transform:translate(-50%,-50%); display:grid; place-items:center; border:2px solid #d8d5c1; color:#fff; font:900 11px Consolas,monospace; }
+    .squadDot.ct { border-radius:50%; }
+    .squadDot.terrorist { border-radius:2px; }
+    .squadDot.me { border-color:#ffe373; box-shadow:0 0 0 3px rgba(255,227,115,.34),0 0 14px rgba(255,227,115,.7); }
+    .squadArea { position:absolute; transform:translate(-50%,-50%); border:2px dashed #cfb85f; border-radius:50%; background:rgba(207,184,95,.12); display:grid; place-items:center; padding:6px; color:#f2dda0; text-align:center; font:700 9px Consolas,monospace; z-index:1; }
+    .squadArea.ct { border-color:#58a6d8; background:rgba(48,128,184,.14); }
+    .squadArea.terrorist { border-color:#d9695e; background:rgba(182,75,59,.14); }
+    .squadBase { position:absolute; transform:translate(-50%,-50%); width:38px; height:38px; display:grid; place-items:center; border:2px solid #ffe373; color:#fff; background:#171b14; z-index:2; font:900 11px Consolas,monospace; }
+    .squadBase.ct { border-radius:50%; }
+    .squadBase.terrorist { border-radius:3px; }
+    .squadList { display:grid; gap:7px; }
+    .squadMember { border:1px solid #3e4933; background:#090c09; padding:9px; display:flex; justify-content:space-between; gap:8px; }
     body.locked .phone button:not(#popupClose), body.locked .phone select { pointer-events: none; filter: grayscale(1); opacity: .45; }
   </style>
-  <link rel="stylesheet" href="airsoft-theme.css?v=20260925-bomb-alert-1">
+  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
+  <script>if (document.documentElement.classList.contains('androidApp')) document.getElementById('legacyTheme').disabled = true;</script>
+  <style id="android-webview-compat">
+    html.androidApp [hidden] { display:none !important; }
+    html.androidApp body.playerPage { padding:6px !important; overflow:auto !important; background:#090b0a !important; color:#f2eee2 !important; }
+    html.androidApp body.playerPage .phone { width:100% !important; max-width:520px; min-height:calc(100vh - 12px) !important; height:auto !important; aspect-ratio:auto !important; background:#111713 !important; border:2px solid #657055 !important; }
+    html.androidApp body.playerPage .tabs { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+    html.androidApp body.playerPage .tabs button { min-width:0 !important; padding:5px 2px !important; font-size:11px !important; }
+    html.androidApp body.playerPage .registrationBlock,
+    html.androidApp body.playerPage .registrationState,
+    html.androidApp body.playerPage .stat { background:#151c17 !important; border-color:#68735b !important; }
+    html.androidApp body.playerPage .setup input,
+    html.androidApp body.playerPage select { width:100% !important; background:#202923 !important; border-color:#7f8a72 !important; color:#fff !important; opacity:1 !important; }
+    html.androidApp body.playerPage button.primary { background:#71954d !important; color:#071006 !important; }
+    html.androidApp .popupLayer {
+      position:fixed !important;
+      inset:0 !important;
+      z-index:100 !important;
+      display:grid !important;
+      place-items:center !important;
+      padding:18px !important;
+      box-sizing:border-box !important;
+      background:rgba(0,0,0,.78) !important;
+    }
+    html.androidApp .popupLayer[hidden] { display:none !important; }
+    html.androidApp .popup {
+      width:min(390px, calc(100vw - 36px)) !important;
+      height:auto !important;
+      min-height:220px !important;
+      max-height:calc(100vh - 36px) !important;
+      padding:20px !important;
+      gap:12px !important;
+      overflow:auto !important;
+      align-content:start !important;
+      box-sizing:border-box !important;
+      transform:none !important;
+    }
+    html.androidApp .popup strong { display:block !important; font-size:13px !important; }
+    html.androidApp .popup h2 { display:block !important; font-size:22px !important; }
+    html.androidApp .popup p { display:block !important; margin:0 !important; font-size:16px !important; }
+    html.androidApp .popup button { display:block !important; width:100% !important; min-height:48px !important; }
+    body::after, .phone::before, .phone::after {
+      mix-blend-mode:normal !important;
+      backdrop-filter:none !important;
+      filter:none !important;
+    }
+    html, body.playerPage { width:100%; min-width:0; height:100%; min-height:100%; }
+    body.playerPage { overflow-y:auto !important; }
+    body.playerPage .phone {
+      width:min(100%,430px) !important;
+      height:calc(100vh - 16px) !important;
+      min-height:520px !important;
+      max-height:720px !important;
+      aspect-ratio:auto !important;
+      flex:none;
+      opacity:1 !important;
+      visibility:visible !important;
+      transform:none !important;
+    }
+    body.playerPage .phone > .setup,
+    body.playerPage .phone > main { min-width:0; }
+    @media (max-height:560px) {
+      body.playerPage .phone { height:calc(100vh - 8px) !important; min-height:calc(100vh - 8px) !important; }
+    }
+  </style>
+  <link rel="stylesheet" href="airsoft-brand.css?v=20260930-1">
 </head>
 <body class="playerPage">
 <section class="phone">
@@ -54,15 +150,35 @@
     </div>
   </header>
   <div class="setup" id="setup">
-    <h2>Cadastrar celular</h2>
-    <p class="muted">Escaneie no controle o QR do time deste aparelho.</p>
-    <button class="primary big" id="registerCt">Cadastrar Time 1 - CT</button>
-    <button class="warn big" id="registerTerrorist">Cadastrar Time 2 - Terrorista</button>
+    <h2>Credenciamento do jogador</h2>
+    <p class="muted">Preencha os dados para esta partida. O Controlador revisará a ficha e definirá o lado operacional.</p>
+    <div class="registrationBlock" id="registrationForm">
+      <h3>Identificação</h3>
+      <label>Nome do jogador <input id="playerName" maxlength="40" placeholder="Nome completo ou indicativo" autocomplete="name"></label>
+      <label class="registrationCheck"><input id="hasOrganization" type="checkbox"><span>Possui agremiação ou time de origem</span></label>
+      <label id="organizationField" hidden>Agremiação / time de origem <input id="organizationName" maxlength="50" placeholder="Nome da agremiação" autocomplete="organization"></label>
+    </div>
+    <div class="registrationBlock">
+      <h3>Contato</h3>
+      <label>Email <input id="playerEmail" type="email" maxlength="80" placeholder="jogador@email.com" autocomplete="email"></label>
+      <label>Celular <input id="playerPhone" type="tel" maxlength="24" placeholder="(00) 00000-0000" autocomplete="tel"></label>
+    </div>
+    <div class="registrationBlock">
+      <h3>Emergência</h3>
+      <label>Nome do contato <input id="emergencyName" maxlength="50" placeholder="Nome do responsável" autocomplete="off"></label>
+      <label>Telefone do contato <input id="emergencyPhone" type="tel" maxlength="24" placeholder="(00) 00000-0000" autocomplete="off"></label>
+    </div>
+    <div class="registrationState"><strong id="registrationStateTitle">Cadastro não enviado</strong><p class="muted" id="registrationStatus">Preencha a ficha e envie para aprovação.</p></div>
+    <div class="registrationActions"><button class="primary" id="requestRegistration">Enviar cadastro</button><button id="cancelRegistration" type="button" hidden>Corrigir ficha</button></div>
+    <p class="muted">Os dados ficam disponíveis somente ao Controlador e são removidos ao reiniciar o sistema.</p>
+    <button class="primary big" id="registerCt" hidden>Cadastro legado CT</button>
+    <button class="warn big" id="registerTerrorist" hidden>Cadastro legado Terrorista</button>
   </div>
   <nav class="tabs">
     <button class="active" data-tab="objectives">Objetivos</button>
     <button data-tab="terminal">Terminal</button>
     <button data-tab="locator">Localizador</button>
+    <button data-tab="squad">Equipe</button>
   </nav>
   <main>
     <div class="module active" id="objectives">
@@ -105,6 +221,12 @@
       </div>
       <button class="blueBtn big" id="locatorRefresh">Ativar localizador</button>
     </div>
+    <div class="module" id="squad">
+      <h2>Rastreio da equipe</h2>
+      <p class="muted" id="squadStatus">Aguardando rastreamento.</p>
+      <div class="squadMap" id="squadMap"></div>
+      <div class="squadList" id="squadList"></div>
+    </div>
   </main>
 </section>
 <div class="popupLayer" id="popupLayer" hidden>
@@ -127,9 +249,15 @@
   let locatorWatchId = null;
   let locatorPosition = null;
   let locatorError = null;
-  let lastMovementNoticeId = Number(sessionStorage.getItem('airsoft-locator-alert-v1') || 0);
+  let lastPlayerPositionAt = 0;
+  let lastMovementNoticeId = Number(localStorage.getItem('airsoft-locator-alert-v1') || 0);
   const playerKey = 'airsoft-player-role-v1';
   const playerResetKey = 'airsoft-player-reset-v1';
+  const playerIdKey = 'airsoft-player-id-v1';
+  const registrationStateKey = 'airsoft-player-registration-state-v1';
+  let playerId = localStorage.getItem(playerIdKey);
+  let googleSquadMap = null;
+  if (!playerId) { playerId = 'P-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,7); localStorage.setItem(playerIdKey, playerId); }
   function hidePopup() {
     if (progressActive) return;
     popupLayer.hidden = true;
@@ -228,11 +356,30 @@
     locatorWatchId = navigator.geolocation.watchPosition(pos => {
       locatorPosition = pos;
       locatorError = null;
+      publishPlayerPosition(pos);
       render(AirsoftBus.read());
     }, err => {
       locatorError = err.message || 'Permissão de GPS bloqueada.';
       render(AirsoftBus.read());
     }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+  }
+  function currentPlayer(s = AirsoftBus.read()) { return (s.players || []).find(p => p.id === playerId); }
+  function publishPlayerPosition(pos) {
+    const s = AirsoftBus.read();
+    const player = currentPlayer(s);
+    if (!s.running || !s.teamTrackingEnabled || !player || player.status !== 'approved') return;
+    const now = Date.now();
+    if (s.locatorUpdateMode !== 'realtime' && now - lastPlayerPositionAt < 10000) return;
+    lastPlayerPositionAt = now;
+    AirsoftBus.update(st => {
+      const target = (st.players || []).find(p => p.id === playerId);
+      if (!target || target.status !== 'approved') return;
+      target.lat = Number(pos.coords.latitude.toFixed(6));
+      target.lng = Number(pos.coords.longitude.toFixed(6));
+      target.accuracy = Math.round(pos.coords.accuracy || 0);
+      target.lastSeen = now;
+      target.lastFix = new Date(now).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    });
   }
   function stopLocatorWatch() {
     if (locatorWatchId == null) return;
@@ -301,8 +448,8 @@
   function currentTeamName(s = AirsoftBus.read()) { return role.value === 'ct' ? s.team1Name : s.team2Name; }
   function setPlayerRole(nextRole) {
     const s = AirsoftBus.read();
-    sessionStorage.setItem(playerKey, nextRole);
-    sessionStorage.setItem(playerResetKey, String(s.resetId));
+    localStorage.setItem(playerKey, nextRole);
+    localStorage.setItem(playerResetKey, String(s.resetId));
     role.value = nextRole;
     setup.hidden = true;
     document.querySelector('.tabs').hidden = false;
@@ -314,17 +461,21 @@
     render(s);
   }
   function requireRegistered() {
-    if (sessionStorage.getItem(playerKey)) return true;
+    if (localStorage.getItem(playerKey)) return true;
     showPopup('Celular sem time', 'Cadastre este aparelho pelo QR do controle antes de jogar.', 'Bloqueado');
     return false;
   }
   function applyRegistration() {
     const state = AirsoftBus.read();
-    if (sessionStorage.getItem(playerResetKey) !== String(state.resetId)) {
-      sessionStorage.removeItem(playerKey);
-      sessionStorage.setItem(playerResetKey, String(state.resetId));
+    if (localStorage.getItem(playerResetKey) !== String(state.resetId)) {
+      localStorage.removeItem(playerKey);
+      localStorage.setItem(playerResetKey, String(state.resetId));
     }
-    const saved = sessionStorage.getItem(playerKey);
+    const player = currentPlayer(state);
+    const previousRegistrationState = localStorage.getItem(registrationStateKey) || 'none';
+    if (player && player.status === 'approved') localStorage.setItem(playerKey, player.team);
+    if (!player || player.status !== 'approved') localStorage.removeItem(playerKey);
+    const saved = localStorage.getItem(playerKey);
     if (saved === 'ct' || saved === 'terrorist') {
       role.value = saved;
       setup.hidden = true;
@@ -332,15 +483,71 @@
       document.querySelector('main').hidden = false;
       roleBadge.textContent = currentTeamName(state);
       roleBadge.className = saved === 'ct' ? 'badge blue' : 'badge amber';
+      localStorage.setItem(registrationStateKey, 'approved');
+      if (previousRegistrationState !== 'approved') {
+        const objectivesTab = document.querySelector('[data-tab="objectives"]');
+        if (objectivesTab) objectivesTab.click();
+        showPopup('Cadastro aprovado', 'Acesso liberado como ' + currentTeamName(state) + '. O terminal do jogador já está disponível.', 'Credenciamento');
+      }
     } else {
       setup.hidden = false;
       document.querySelector('.tabs').hidden = true;
       document.querySelector('main').hidden = true;
       roleBadge.textContent = 'Sem time';
       roleBadge.className = 'badge';
+      const pending = Boolean(player);
+      registrationStateTitle.textContent = pending ? 'Aguardando aprovação' : (state.playerRegistrationOpen === false ? 'Cadastro fechado' : 'Cadastro não enviado');
+      registrationStatus.textContent = pending ? 'Ficha recebida. O Controlador precisa revisar e definir o lado da partida.' : (state.playerRegistrationOpen === false ? 'O Controlador ainda não liberou novos cadastros.' : 'Preencha a ficha e envie para aprovação.');
+      requestRegistration.disabled = state.playerRegistrationOpen === false || Boolean(player);
+      requestRegistration.textContent = pending ? 'Cadastro enviado' : 'Enviar cadastro';
+      cancelRegistration.hidden = !pending;
+      [playerName, hasOrganization, organizationName, playerEmail, playerPhone, emergencyName, emergencyPhone].forEach(field => field.disabled = pending);
+      if (pending && previousRegistrationState !== 'pending') {
+        playerName.value = player.name || '';
+        hasOrganization.checked = Boolean(player.organization);
+        organizationField.hidden = !hasOrganization.checked;
+        organizationName.value = player.organization || '';
+        playerEmail.value = player.email || '';
+        playerPhone.value = player.phone || '';
+        emergencyName.value = player.emergencyName || '';
+        emergencyPhone.value = player.emergencyPhone || '';
+      }
+      localStorage.setItem(registrationStateKey, pending ? 'pending' : 'none');
     }
   }
-  let lastBombActivationToken = sessionStorage.getItem('airsoft-bomb-activation-alert-v1') || '';
+  function renderSquad(s) {
+    const me = currentPlayer(s);
+    const members = me && me.status === 'approved' ? (s.players || []).filter(p => p.status === 'approved' && p.team === me.team) : [];
+    squadStatus.textContent = !s.teamTrackingEnabled ? 'Rastreamento desligado pelo Controlador.' : !s.running ? 'O rastreamento inicia com a partida.' : members.length + ' integrante(s) no seu time.';
+    squadList.innerHTML = members.length ? members.map(p => '<div class="squadMember"><b>' + escapeHtml(p.name) + '</b><span>' + (p.lastSeen && Date.now()-p.lastSeen < 30000 ? 'Online' : 'Sem sinal') + '</span></div>').join('') : '<p class="muted">Nenhuma posição de equipe disponível.</p>';
+    const points = members.filter(p => p.lat != null && p.lng != null);
+    const team = me && me.status === 'approved' ? me.team : null;
+    if (googleSquadMap) {
+      googleSquadMap.render(s, { team });
+      return;
+    }
+    const visibleAreas = team ? (s.tacticalAreas || []).filter(a => a.visibility === 'all' || a.visibility === team) : [];
+    const areasHtml = visibleAreas.map(a => '<div class="squadArea ' + escapeHtml(a.visibility) + '" style="left:' + a.x + '%;top:' + a.y + '%;width:' + (a.radius*2) + '%;aspect-ratio:1" title="' + escapeHtml(a.type) + '">' + escapeHtml(a.name) + '</div>').join('');
+    const base = team && (s.teamStartPositions || {})[team];
+    const baseHtml = base ? '<div class="squadBase ' + team + '" style="left:' + base.x + '%;top:' + base.y + '%">BASE</div>' : '';
+    if (!points.length) { squadMap.innerHTML = areasHtml + baseHtml + (!areasHtml && !baseHtml ? '<p class="muted" style="padding:14px">Aguardando GPS e planejamento do Controlador.</p>' : ''); return; }
+    const lats=points.map(p=>Number(p.lat)), lngs=points.map(p=>Number(p.lng));
+    const minLat=Math.min(...lats), maxLat=Math.max(...lats), minLng=Math.min(...lngs), maxLng=Math.max(...lngs);
+    squadMap.innerHTML = areasHtml + baseHtml + points.map((p,i) => {
+      const x=maxLng===minLng?50+(i%3-1)*12:8+((p.lng-minLng)/(maxLng-minLng))*84;
+      const y=maxLat===minLat?50+(Math.floor(i/3)-.5)*12:92-((p.lat-minLat)/(maxLat-minLat))*84;
+      return '<div class="squadDot ' + p.team + (p.id===playerId?' me':'') + '" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;background:'+organizationColor(p.organization)+'" title="'+escapeHtml(p.name + (p.organization ? ' · ' + p.organization : ' · Sem agremiação'))+'">'+escapeHtml(p.name.slice(0,2).toUpperCase())+'</div>';
+    }).join('');
+  }
+  function organizationColor(name) {
+    if (!name) return '#6f756f';
+    const palette = ['#2979b8','#b64b3b','#4f8d52','#9a63b5','#cf8b2f','#2f9b91','#b44f7a','#7f9140','#4772c2','#b06f3e','#6f65bd','#3f9271'];
+    let hash = 0;
+    for (const char of name.toLocaleLowerCase('pt-BR')) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+    return palette[Math.abs(hash) % palette.length];
+  }
+  function escapeHtml(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  let lastBombActivationToken = localStorage.getItem('airsoft-bomb-activation-alert-v1') || '';
   function render(s) {
     actionHelp.textContent = s.qrRequired === false
       ? 'A validação por QR foi dispensada pelo Controlador. A ação seguirá diretamente para a próxima etapa.'
@@ -350,15 +557,17 @@
     document.body.classList.toggle('dataMode', isDataMode(s));
     document.body.classList.toggle('terminalMode', isTerminalMode(s));
     document.body.classList.toggle('locatorMode', isLocatorMode(s));
-    document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
+    document.body.classList.toggle('classicMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
     document.body.classList.toggle('locked', Boolean(s.operation));
-    if (s.locatorEnabled) startLocatorWatch(); else stopLocatorWatch();
+    const approvedPlayer = currentPlayer(s);
+    if (s.running && (s.locatorEnabled || (s.teamTrackingEnabled && approvedPlayer && approvedPlayer.status === 'approved'))) startLocatorWatch(); else stopLocatorWatch();
     registerCt.textContent = 'Cadastrar ' + s.team1Name;
     registerTerrorist.textContent = 'Cadastrar ' + s.team2Name;
-    if (sessionStorage.getItem(playerKey)) roleBadge.textContent = currentTeamName(s);
+    if (localStorage.getItem(playerKey)) roleBadge.textContent = currentTeamName(s);
     objectiveText.textContent = (s.gameObjectives || 'Aguardando instruções do Controlador.').replace(/Mestre/gi, 'Controlador');
     objectiveMode.textContent = s.mode;
-    artifactLabel.textContent = isDataMode(s) ? 'Estado do terminal' : isTerminalMode(s) ? 'Estado do domínio' : isLocatorMode(s) ? 'Estado do localizador' : 'Estado da bomba';
+    const sequenceBomb = (s.bombSequence || [])[Number(s.bombSequenceIndex || 0)];
+    artifactLabel.textContent = isDataMode(s) ? 'Estado do terminal' : isTerminalMode(s) ? 'Estado do domínio' : isLocatorMode(s) ? 'Estado do localizador' : (sequenceBomb ? sequenceBomb.name + ' · ' + (Number(s.bombSequenceIndex || 0) + 1) + '/' + s.bombSequence.length : 'Estado da bomba');
     bombState.textContent = s.bombState;
     dataStageCard.hidden = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
     nextStepCard.hidden = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
@@ -387,23 +596,26 @@
     }
     knownCode.textContent = ct ? s.ctKnownCode : s.terroristKnownCode;
     renderLocator(s);
+    renderSquad(s);
     validated.textContent = ct ? (s.ctBombValidated ? 'Sim' : 'Não') : (s.terroristBombValidated ? 'Sim' : 'Não');
-    actionTitle.textContent = isDataMode(s) ? (ct ? 'Contramedidas CT' : 'Invasão Terrorista') : isTerminalMode(s) ? 'Dominação de Terminal' : isLocatorMode(s) ? 'Localização de Artefato' : (ct ? 'Desarme CT' : 'Arme Terrorista');
-    execute.textContent = isDataMode(s) ? dataActionFor(s).title : isTerminalMode(s) ? terminalActionFor(s).title : isLocatorMode(s) ? 'Atualizar GPS' : 'Pedir ' + actionLabel(currentType(), s);
+    const protectionRole = !ct && s.bombDeploymentMode === 'allArmed' && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
+    actionTitle.textContent = isDataMode(s) ? (ct ? 'Contramedidas CT' : 'Invasão Terrorista') : isTerminalMode(s) ? 'Dominação de Terminal' : isLocatorMode(s) ? 'Localização de Artefato' : protectionRole ? 'Proteção dos artefatos' : (ct ? 'Desarme CT' : 'Arme Terrorista');
+    execute.textContent = isDataMode(s) ? dataActionFor(s).title : isTerminalMode(s) ? terminalActionFor(s).title : isLocatorMode(s) ? 'Atualizar GPS' : protectionRole ? 'Proteger bombas' : 'Pedir ' + actionLabel(currentType(), s);
     execute.className = ct ? 'primary big' : 'danger big';
-    decodeHelp.textContent = isLocatorMode(s) ? 'Este modo usa GPS do aparelho, sem senha para decodificar.' : isTerminalMode(s) ? (terminalDecodeAvailable(s) ? 'Decodifique a senha randômica antes de validar o domínio.' : 'A decodificação só aparece quando o terminal pedir revalidação randômica.') : 'Use se o Controlador não passou a senha manualmente.';
+    decodeHelp.textContent = protectionRole ? 'As bombas já estão armadas. Proteja os locais e impeça que o Time 1 conclua os desarmes.' : isLocatorMode(s) ? 'Este modo usa GPS do aparelho, sem senha para decodificar.' : isTerminalMode(s) ? (terminalDecodeAvailable(s) ? 'Decodifique a senha randômica antes de validar o domínio.' : 'A decodificação só aparece quando o terminal pedir revalidação randômica.') : 'Use se o Controlador não passou a senha manualmente.';
     requestDecode.textContent = isLocatorMode(s) ? 'Sem decodificação' : isTerminalMode(s) ? (terminalDecodeAvailable(s) ? 'Decodificar revalidação' : 'Sem decodificação') : 'Pedir decodificação';
+    requestDecode.disabled = protectionRole;
     movementAlert.hidden = !s.locatorMovementDetected;
     movementAlertText.textContent = 'O ' + (s.locatorArtifactName || 'artefato') + ' foi deslocado aproximadamente ' + Math.round(Number(s.locatorMovementMeters || 0)) + ' m da posição inicial.';
-    if (s.locatorMovementDetected && s.locatorMovementNoticeId > lastMovementNoticeId && sessionStorage.getItem(playerKey)) {
+    if (s.locatorMovementDetected && s.locatorMovementNoticeId > lastMovementNoticeId && localStorage.getItem(playerKey)) {
       lastMovementNoticeId = s.locatorMovementNoticeId;
-      sessionStorage.setItem('airsoft-locator-alert-v1', String(lastMovementNoticeId));
+      localStorage.setItem('airsoft-locator-alert-v1', String(lastMovementNoticeId));
       showPopup('Artefato encontrado', 'O artefato foi deslocado pela primeira vez. Consulte o Localizador para acompanhar sua posição.', 'Alerta GPS');
     }
     const bombActivationToken = String(s.resetId || 0) + ':' + String(s.bombActivationId || 0);
-    if (s.bombActivationAlertEnabled !== false && s.bombActivationId > 0 && bombActivationToken !== lastBombActivationToken && sessionStorage.getItem(playerKey)) {
+    if (s.bombActivationAlertEnabled !== false && s.bombActivationId > 0 && bombActivationToken !== lastBombActivationToken && localStorage.getItem(playerKey)) {
       lastBombActivationToken = bombActivationToken;
-      sessionStorage.setItem('airsoft-bomb-activation-alert-v1', bombActivationToken);
+      localStorage.setItem('airsoft-bomb-activation-alert-v1', bombActivationToken);
       showPopup(
         'Bomba ativada',
         s.locatorOnBombActivated
@@ -414,8 +626,12 @@
     }
   }
   function renderLocator(s) {
-    const hasTarget = s.locatorArtifactLat != null && s.locatorArtifactLng != null;
-    if (!s.locatorEnabled) {
+    const selectedBomb = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? (s.bombSequence || [])[Number(s.bombSequenceIndex || 0)] : null;
+    const targetLat = selectedBomb ? selectedBomb.lat : s.locatorArtifactLat;
+    const targetLng = selectedBomb ? selectedBomb.lng : s.locatorArtifactLng;
+    const targetEnabled = selectedBomb ? selectedBomb.locatorEnabled !== false : s.locatorEnabled;
+    const hasTarget = targetLat != null && targetLng != null;
+    if (!targetEnabled) {
       locatorDistance.textContent = 'DESLIGADO';
       locatorDirection.textContent = 'O GPS da bomba está desligado pelo Controlador.';
       locatorAccuracy.textContent = '----';
@@ -442,14 +658,14 @@
     }
     const lat = locatorPosition.coords.latitude;
     const lng = locatorPosition.coords.longitude;
-    const distance = distanceMeters(lat, lng, Number(s.locatorArtifactLat), Number(s.locatorArtifactLng));
-    const bearing = bearingDegrees(lat, lng, Number(s.locatorArtifactLat), Number(s.locatorArtifactLng));
+    const distance = distanceMeters(lat, lng, Number(targetLat), Number(targetLng));
+    const bearing = bearingDegrees(lat, lng, Number(targetLat), Number(targetLng));
     const close = distance <= Number(s.locatorProximityMeters || 12);
     locatorDistance.textContent = distance >= 1000 ? (distance / 1000).toFixed(2) + ' km' : Math.round(distance) + ' m';
     locatorDirection.textContent = close ? 'Artefato dentro do raio de encontro.' : 'Siga para ' + compassLabel(bearing) + ' / ' + Math.round(bearing) + ' graus.';
     locatorAccuracy.textContent = Math.round(locatorPosition.coords.accuracy || 0) + ' m';
     locatorStatus.textContent = close ? 'Encontrado' : 'Rastreando';
-    locatorUpdated.textContent = 'Artefato atualizado às ' + (s.locatorLastArtifactFix || s.locatorLastMasterFix || '----') + (s.locatorArtifactAccuracy != null ? ' · precisão do artefato ±' + s.locatorArtifactAccuracy + ' m.' : '.');
+    locatorUpdated.textContent = 'Artefato atualizado às ' + (s.locatorLastArtifactFix || s.locatorLastMasterFix || '----') + (s.locatorArtifactAccuracy != null ? ' · precisão do artefato ±' + s.locatorArtifactAccuracy + ' m' : '') + ' · ' + (s.locatorUpdateMode === 'realtime' ? 'tempo real.' : 'intervalo de 10 s.');
     locatorArrow.style.transform = 'rotate(' + bearing + 'deg)';
   }
   function resetQr(st, type) {
@@ -665,6 +881,7 @@
     const s = AirsoftBus.read();
     const type = currentType();
     if (!s.running || s.finished) { showPopup('Jogo inativo', 'O controlador precisa iniciar a partida antes desta ação.', 'Bloqueado'); return; }
+    if (type === 'arm' && s.bombDeploymentMode === 'allArmed' && !isDataMode(s)) { showPopup('Função de proteção', 'Todas as bombas já começaram armadas. Seu time deve proteger os artefatos e impedir o desarme.', 'Missão'); return; }
     if (s.operation || s.pending) { showPopup('Etapa pendente', 'Já existe uma operação ou senha aguardando finalização na bomba.', 'Bloqueado'); return; }
     if (type === 'arm' && s.bombSeconds != null) { showPopup(isDataMode(s) ? 'Dados vulneráveis' : 'Bomba já armada', isDataMode(s) ? 'A extração já abriu a janela de vazamento. Agora somente o Time 1 pode tentar bloquear.' : 'A bomba já está em contagem. Agora somente o CT pode tentar o desarme.', 'Bloqueado'); return; }
     if (type === 'defuse' && s.bombSeconds == null) { showPopup(isDataMode(s) ? 'Sem vazamento ativo' : 'Bomba não armada', isDataMode(s) ? 'O bloqueio só fica disponível depois que os dados entram em janela de vazamento.' : 'O desarme só fica disponível depois que a bomba entra em contagem.', 'Bloqueado'); return; }
@@ -810,11 +1027,50 @@
       return completed;
     });
   }
+  requestRegistration.onclick = () => {
+    const s = AirsoftBus.read();
+    const name = playerName.value.trim();
+    const email = playerEmail.value.trim();
+    const phone = playerPhone.value.trim();
+    const emergencyContact = emergencyName.value.trim();
+    const emergencyContactPhone = emergencyPhone.value.trim();
+    const organization = hasOrganization.checked ? organizationName.value.trim() : '';
+    if (!s.playerRegistrationOpen) { showPopup('Cadastro fechado', 'O Controlador ainda não abriu o cadastro de jogadores.', 'Times'); return; }
+    if (name.length < 2) { showPopup('Nome necessário', 'Informe um nome ou indicativo com pelo menos dois caracteres.', 'Cadastro'); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { showPopup('Email inválido', 'Informe um endereço de email válido.', 'Cadastro'); return; }
+    if (phone.replace(/\D/g, '').length < 8) { showPopup('Celular inválido', 'Informe um celular de contato válido.', 'Cadastro'); return; }
+    if (emergencyContact.length < 2 || emergencyContactPhone.replace(/\D/g, '').length < 8) { showPopup('Contato de emergência', 'Informe nome e telefone válidos para o contato de emergência.', 'Cadastro'); return; }
+    if (hasOrganization.checked && organization.length < 2) { showPopup('Agremiação necessária', 'Informe o nome da sua agremiação ou desmarque essa opção.', 'Cadastro'); return; }
+    AirsoftBus.update(st => {
+      st.players = (st.players || []).filter(p => p.id !== playerId);
+      st.players.push({ id:playerId, name:name.slice(0,40), email:email.slice(0,80), phone:phone.slice(0,24), emergencyName:emergencyContact.slice(0,50), emergencyPhone:emergencyContactPhone.slice(0,24), organization:organization.slice(0,50), status:'pending', team:null, requestedAt:Date.now(), lastSeen:Date.now(), lat:null, lng:null, accuracy:null, lastFix:null });
+    });
+    localStorage.setItem(playerResetKey, String(s.resetId));
+    showPopup('Solicitação enviada', 'Aguarde o Controlador aprovar e definir seu time.', 'Cadastro');
+  };
+  cancelRegistration.onclick = () => {
+    AirsoftBus.update(st => { st.players = (st.players || []).filter(p => p.id !== playerId || p.status === 'approved'); });
+    localStorage.setItem(registrationStateKey, 'none');
+    [playerName, hasOrganization, organizationName, playerEmail, playerPhone, emergencyName, emergencyPhone].forEach(field => field.disabled = false);
+    requestRegistration.disabled = false;
+    cancelRegistration.hidden = true;
+    registrationStateTitle.textContent = 'Cadastro em edição';
+    registrationStatus.textContent = 'Corrija os dados e envie novamente.';
+  };
+  hasOrganization.onchange = () => {
+    organizationField.hidden = !hasOrganization.checked;
+    if (!hasOrganization.checked) organizationName.value = '';
+  };
   registerCt.onclick = () => setPlayerRole('ct');
   registerTerrorist.onclick = () => setPlayerRole('terrorist');
   role.onchange = () => render(AirsoftBus.read());
   applyRegistration();
+  AirsoftMaps.create(squadMap).then(instance => {
+    googleSquadMap = instance;
+    if (instance) renderSquad(AirsoftBus.read());
+  });
   AirsoftBus.subscribe(render);
+  setInterval(() => render(AirsoftBus.read()), 1000);
 </script>
 </body>
 </html>

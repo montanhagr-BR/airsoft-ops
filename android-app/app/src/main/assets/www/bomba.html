@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Airsoft Ops - Bomba</title>
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <script src="supabase-config.js?v=20260930-1"></script>
+  <script src="supabase.js?v=20260930-1"></script>
+  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
+  <script src="airsoft-cloud.js?v=20260930-1" defer></script>
+  <style>
+    body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
+    main { min-height: 100vh; display: grid; place-items: center; padding: 18px; box-sizing: border-box; background: radial-gradient(circle at 20% 0%, #12382a, transparent 28rem), linear-gradient(135deg, #050708, #111719); }
+    .device { position:relative; width: min(100%, 960px); min-height: 720px; border: 1px solid #2b3a3d; background: #090d0f; display: grid; grid-template-rows: 1fr auto; gap: 18px; padding: 18px; box-shadow: 0 24px 80px rgba(0,0,0,.6); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge { border: 1px solid #2b3a3d; background: #172024; padding: 7px 10px; text-transform: uppercase; font-size: 12px; }
+    .artifactStatusBar { position:absolute; inset:12px 12px auto; z-index:6; pointer-events:none; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .statusPod { max-width:min(42%,260px); border:1px solid #6f6746; background:rgba(7,9,7,.92); padding:7px; box-shadow:0 5px 18px rgba(0,0,0,.65); display:grid; gap:5px; }
+    .statusPod.right { justify-items:end; text-align:right; }
+    .statusPod .badge { width:fit-content; max-width:100%; padding:4px 7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:transparent; border-color:#3e412f; font-size:10px; }
+    .device > .center { padding-top:38px; }
+    .green { color: #34d399; } .red { color: #fb4e4e; } .amber { color: #f2b84b; } .blue { color: #4ea7ff; }
+    .center { display: grid; gap: 18px; place-items: center; text-align: center; }
+    h1 { margin: 0; font-size: clamp(24px, 5vw, 54px); text-transform: uppercase; }
+    .timers { width: min(100%, 760px); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .timerBox { border: 1px solid #2b3a3d; background: #050708; padding: 14px; display: grid; gap: 8px; }
+    .label { color: #8fa09a; font-size: 12px; text-transform: uppercase; }
+    .timer { font-size: clamp(48px, 10vw, 110px); color: #fb4e4e; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .timer.small { color: #f2b84b; }
+    .qr { width: 150px; height: 150px; padding: 10px; background: #e8f0ed; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .qr span { background: #050708; }
+    .keypad { width: min(100%, 360px); display: grid; gap: 8px; }
+    .keypad.locked { opacity: .45; }
+    .display { min-height: 54px; display: grid; place-items: center; border: 1px solid #2b3a3d; background: #050708; color: #34d399; font-size: 28px; font-weight: 900; }
+    .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    button { min-height: 54px; border: 1px solid #2b3a3d; background: #172024; color: #e8f0ed; font: inherit; font-weight: 800; cursor: pointer; }
+    button:disabled { cursor: not-allowed; filter: grayscale(1); opacity: .55; }
+    .ok { background: #34d399; color: #03110c; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; overflow:auto; overscroll-behavior:contain; background: rgba(0,0,0,.64); z-index: 10; }
+    .popupLayer[hidden] { display: none; }
+    .popup { width: min(100%, 520px); max-height:calc(100dvh - 24px); overflow:auto; border: 1px solid #34d399; background: #10171a; padding: 20px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; text-align: left; }
+    .popup strong { color: #34d399; text-transform: uppercase; font-size: 12px; }
+    .popup h2 { margin: 0; text-transform: uppercase; font-size: 24px; }
+    .popup p { margin: 0; color: #c4d2ce; line-height: 1.45; }
+    .winnerText { color: #34d399; text-shadow: 0 0 24px rgba(52,211,153,.34); }
+    .device.notebookMode { border-radius: 10px; min-height: 640px; }
+    .device.notebookMode .center { border: 1px solid #334235; background: #050806; padding: 18px; box-shadow: inset 0 0 60px rgba(93,159,184,.08); }
+    .device.notebookMode .qr { border-color: #5d9fb8; }
+    .device.notebookMode .keypad { width: min(100%, 420px); }
+    .deviceSetupLayer { position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:12px; overflow:auto; overscroll-behavior:contain; background:rgba(0,0,0,.9); box-sizing:border-box; }
+    .deviceSetupLayer[hidden] { display:none; }
+    .deviceSetup { width:min(100%,520px); max-height:calc(100dvh - 24px); overflow:auto; border:2px solid #6d744d; background:#0b0d09; padding:22px; box-shadow:0 24px 90px #000; display:grid; gap:14px; }
+    .deviceSetup h2,.deviceSetup p { margin:0; }
+    .deviceSetup label { display:grid; gap:6px; color:#d6c78d; text-transform:uppercase; font-size:12px; }
+    .deviceSetup input,.deviceSetup select { min-height:48px; border:1px solid #596046; background:#050604; color:#f3ecd1; padding:0 12px; font:inherit; }
+    .deviceSetupStatus { min-height:42px; padding:10px; border:1px solid #353b2c; color:#c8cbb8; line-height:1.4; }
+    @media (max-width: 720px), (max-height: 520px) {
+      .timers { grid-template-columns: 1fr; }
+      .deviceSetup { width:min(100%,680px); padding:12px; gap:8px; }
+      .deviceSetup h2 { font-size:18px; }
+      .deviceSetup p { font-size:12px; line-height:1.3; }
+      .deviceSetup input,.deviceSetup select,.deviceSetup button { min-height:40px; }
+      .deviceSetupStatus { min-height:0; padding:7px 9px; }
+      .popup { padding:14px; gap:8px; }
+    }
+  </style>
+  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
+  <style id="android-webview-compat">
+    html.androidApp [hidden] { display:none !important; }
+    html.androidApp body { overflow:hidden !important; }
+    html.androidApp .device { opacity:1 !important; visibility:visible !important; }
+    html.androidApp body::after,
+    html.androidApp .device::before,
+    html.androidApp .device::after {
+      mix-blend-mode:normal !important;
+      backdrop-filter:none !important;
+      filter:none !important;
+    }
+    html, body { width:100%; min-width:0; height:100%; min-height:100%; }
+    html.androidApp body.bombMode,
+    html.androidApp body.bombMode main {
+      width:100vw !important;
+      height:100vh !important;
+      min-height:100vh !important;
+      overflow:hidden !important;
+    }
+    html.androidApp body.bombMode main {
+      position:fixed !important;
+      inset:0 !important;
+      display:grid !important;
+      place-items:center !important;
+      padding:0 !important;
+    }
+    html.androidApp body.bombMode .device {
+      position:fixed !important;
+      top:0 !important;
+      left:50% !important;
+      width:var(--android-bomb-width, 540px) !important;
+      height:auto !important;
+      min-width:0 !important;
+      min-height:0 !important;
+      aspect-ratio:3 / 2 !important;
+      transform:translateX(-50%) !important;
+    }
+    html.androidApp .popupLayer,
+    html.androidApp .deviceSetupLayer {
+      box-sizing:border-box !important;
+      padding:24px max(24px, env(safe-area-inset-left)) !important;
+    }
+    html.androidApp .popup,
+    html.androidApp .deviceSetup {
+      width:min(680px, calc(100vw - 48px)) !important;
+      max-height:calc(100vh - 48px) !important;
+      box-sizing:border-box !important;
+      padding:24px !important;
+      gap:14px !important;
+      font-size:18px !important;
+      transform:none !important;
+    }
+    html.androidApp .deviceSetup {
+      height:calc(100vh - 48px) !important;
+      min-height:260px !important;
+    }
+    html.androidApp .popup { min-height:220px !important; }
+    html.androidApp .popup strong,
+    html.androidApp .deviceSetup label { font-size:14px !important; }
+    html.androidApp .popup h2,
+    html.androidApp .deviceSetup h2 { font-size:28px !important; }
+    html.androidApp .popup button,
+    html.androidApp .deviceSetup button,
+    html.androidApp .deviceSetup input,
+    html.androidApp .deviceSetup select { min-height:52px !important; }
+    @media (max-height:600px) {
+      html.androidApp .popup,
+      html.androidApp .deviceSetup {
+        padding:16px !important;
+        gap:9px !important;
+        font-size:16px !important;
+      }
+      html.androidApp .popup h2,
+      html.androidApp .deviceSetup h2 { font-size:22px !important; }
+    }
+  </style>
+  <script>
+    if (document.documentElement.classList.contains('androidApp')) {
+      const sizeBombForAndroid = () => {
+        const width = Math.max(360, Math.min(window.innerWidth, window.innerHeight * 1.5));
+        document.documentElement.style.setProperty('--android-bomb-width', width + 'px');
+      };
+      sizeBombForAndroid();
+      addEventListener('resize', sizeBombForAndroid, { passive:true });
+      addEventListener('orientationchange', sizeBombForAndroid, { passive:true });
+    }
+  </script>
+  <link rel="stylesheet" href="airsoft-brand.css?v=20260930-1">
+</head>
+<body>
+<main>
+  <section class="device">
+    <div class="artifactStatusBar">
+      <div class="statusPod">
+        <span class="badge red" id="bombState">Preparação</span>
+      </div>
+      <div class="statusPod right">
+        <span class="badge blue" id="mode">Bomba clássica</span>
+        <span class="badge amber" id="pending">Solicitação: nenhuma</span>
+      </div>
+    </div>
+    <div class="center">
+      <h1 id="phase">Aguardando início</h1>
+      <div class="timers">
+        <div class="timerBox"><span class="label">Tempo de jogo</span><div class="timer" id="gameTimer">18:00</div></div>
+        <div class="timerBox"><span class="label" id="resultTimerLabel">Tempo da bomba</span><div class="timer small" id="bombTimer">--:--</div></div>
+      </div>
+      <section class="laptopScreen" id="laptopScreen" hidden aria-label="Notebook cenográfico">
+        <div class="laptopTopbar">
+          <span class="windowDots"><i></i><i></i><i></i></span>
+          <span id="laptopName">NBK-17 Operações</span>
+          <span id="laptopSignal">LOCKED</span>
+        </div>
+        <div class="laptopView active" id="laptopLogin">
+          <div class="loginPanel">
+            <div class="loginAvatar"><span></span></div>
+            <span class="terminalTag">SECURE OS</span>
+            <h2 id="loginUser">Operador bloqueado</h2>
+            <p id="loginHint">Escaneie o QR e solicite acesso pelo celular.</p>
+            <div class="loginFields">
+              <span>Credencial de acesso</span>
+              <div class="fakeInput">********</div>
+              <span>Chave operacional</span>
+              <div class="fakeInput mutedInput">Aguardando validação</div>
+            </div>
+            <div class="passwordLine"><span></span><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="laptopView" id="laptopFolders">
+          <div class="fileManager">
+            <aside class="fileSidebar">
+              <b>Locais</b>
+              <span>Home</span>
+              <span>Documentos</span>
+              <span>Downloads</span>
+              <span>Rede segura</span>
+              <b>Dispositivos</b>
+              <span>Partição básica</span>
+              <span>Volume criptografado</span>
+            </aside>
+            <section class="fileWorkspace">
+              <div class="fileToolbar">
+                <span>‹</span><span>›</span><b>Home / operações / dados</b><em>Pesquisar</em>
+              </div>
+              <div class="folderGrid" id="folderGrid"></div>
+              <div class="fileStrip"><span id="folderFileName">rotas-extracao.enc</span><b id="folderFileState">CRIPTOGRAFADO</b></div>
+            </section>
+          </div>
+        </div>
+        <div class="laptopView" id="laptopFile">
+          <article class="openFile">
+            <header><span id="openFileName">rotas-extracao.enc</span><b>ARQUIVO ABERTO</b></header>
+            <div class="editorToolbar"><span>Arquivo</span><span>Editar</span><span>Ver</span><span>Criptografia</span><b>somente leitura</b></div>
+            <div class="fileLines">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <p id="payloadInfo">Pacote pronto para envio.</p>
+          </article>
+        </div>
+        <div class="laptopView" id="laptopMail">
+          <div class="mailSentIcon"><span></span></div>
+          <h2>Email enviado</h2>
+          <p id="mailRecipient">Destino confirmado.</p>
+        </div>
+      </section>
+      <section class="terminalScreen" id="terminalScreen" hidden aria-label="Terminal de dominação">
+        <div class="terminalHeader">
+          <span id="terminalName">TERMINAL AX-07</span>
+          <b id="terminalOwner">NEUTRO</b>
+        </div>
+        <div class="terminalCore">
+          <div class="captureRing" id="captureRing">DOMÍNIO</div>
+          <p id="terminalHint">Aguardando captura com dupla confirmação.</p>
+        </div>
+        <div class="terminalScores">
+          <div><span id="terminalTeam1Name">Time 1</span><b id="terminalTeam1Time">00:00</b></div>
+          <div><span id="terminalTeam2Name">Time 2</span><b id="terminalTeam2Time">00:00</b></div>
+        </div>
+      </section>
+      <section class="locatorScreen" id="locatorScreen" hidden aria-label="Localizador de artefato">
+        <div class="locatorBeacon">
+          <span></span>
+          <i></i>
+        </div>
+        <h2 id="locatorArtifactTitle">Artefato AX-07</h2>
+        <p id="locatorArtifactStatus">Sinal aguardando ativação do Controlador.</p>
+        <div class="locatorCoords">
+          <span>LAT <b id="locatorLat">----</b></span>
+          <span>LNG <b id="locatorLng">----</b></span>
+        </div>
+      </section>
+      <aside class="bombHardware" aria-hidden="true">
+        <div class="hardwareWires"><i></i><i></i><i></i><i></i></div>
+        <div class="hazardPlate"><span>!</span><b>ALTA TENSÃO</b></div>
+        <div class="speakerPlate"><span></span><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="armedLamp"><span></span><b>ARMADO</b></div>
+        <div class="chargePack"><i></i><i></i><i></i><b>CARGA CENOGRÁFICA</b></div>
+      </aside>
+      <b class="qrTitle" id="qrTitle">Escanear código</b>
+      <div class="qr" id="stageQr" aria-label="QR code cenográfico">
+        <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
+        <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
+        <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
+        <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
+        <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+        <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
+        <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
+      </div>
+      <div class="keypad locked" id="keypad">
+        <div class="display" id="display">----</div>
+        <div class="keys" id="keys">
+          <button>1</button><button>2</button><button>3</button>
+          <button>4</button><button>5</button><button>6</button>
+          <button>7</button><button>8</button><button>9</button>
+          <button data-act="clear">Limpar</button><button>0</button><button class="ok" data-act="ok">OK</button>
+        </div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge green" id="qrArm">QR arme: 0/1</span>
+      <span class="badge green" id="qrDefuse">QR desarme: 0/1</span>
+    </div>
+  </section>
+</main>
+<div class="deviceSetupLayer" id="deviceSetupLayer">
+  <section class="deviceSetup" aria-labelledby="deviceSetupTitle">
+    <span class="badge amber">Pareamento de artefato</span>
+    <h2 id="deviceSetupTitle">Cadastrar este dispositivo</h2>
+    <p>Identifique este tablet ou celular. O Controlador deverá aprovar e escolher qual bomba será exibida nele.</p>
+    <label>Nome do aparelho<input id="deviceName" maxlength="40" placeholder="Ex.: Tablet maleta norte"></label>
+    <label>Tipo de dispositivo<select id="deviceType"><option value="tablet">Tablet</option><option value="phone">Celular</option></select></label>
+    <button class="primary" id="requestDeviceRegistration">Solicitar cadastro</button>
+    <p class="deviceSetupStatus" id="deviceSetupStatus">Este aparelho ainda não está cadastrado.</p>
+    <button id="deviceDemoMode">Abrir somente para demonstração</button>
+  </section>
+</div>
+<div class="popupLayer" id="popupLayer" hidden>
+  <section class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <strong id="popupKind">Bomba</strong>
+    <h2 id="popupTitle">Aviso</h2>
+    <p id="popupBody"></p>
+    <div class="progressWrap" id="bombProgress" hidden>
+      <div class="progressMeta"><span id="bombProgressLabel">Progresso</span><span id="bombProgressTime">--s</span></div>
+      <div class="progressTrack"><div class="progressFill" id="bombProgressFill"></div></div>
+    </div>
+    <button class="danger" id="popupCancel" hidden>Cancelar operação</button>
+    <button class="primary" id="popupConfirm" hidden>OK</button>
+    <button id="popupClose">Fechar</button>
+  </section>
+</div>
+<script>
+  let entry = '';
+  let popupTimer = null;
+  let progressTimer = null;
+  let progressTimeout = null;
+  let progressActive = false;
+  let progressCancel = null;
+  let confirmActive = false;
+  let lastNoticeId = 0;
+  let artifactGpsTimer = null;
+  let artifactGpsWatchId = null;
+  let artifactGpsMode = null;
+  let operationalSoundMode = null;
+  let operationalSoundTimer = null;
+  const bombDeviceStorageKey = 'airsoft-bomb-device-id-v1';
+  let bombDeviceId = localStorage.getItem(bombDeviceStorageKey);
+  if (!bombDeviceId) {
+    bombDeviceId = 'bomb-device-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem(bombDeviceStorageKey, bombDeviceId);
+  }
+  let bombDemoMode = localStorage.getItem('airsoft-bomb-demo-v1') === '1';
+  function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
+  function playOperationalSound(kind) {
+    if (window.AirsoftSound) { window.AirsoftSound.play(kind); return; }
+    try {
+      const audio = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.frequency.value = kind === 'armed' ? 960 : 620;
+      gain.gain.value = .35;
+      oscillator.connect(gain); gain.connect(audio.destination); oscillator.start();
+      setTimeout(() => { oscillator.stop(); audio.close(); }, kind === 'armed' ? 280 : 160);
+    } catch (_) {}
+  }
+  function syncOperationalSound(s) {
+    const armed = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && s.bombSeconds != null && s.running && !s.finished;
+    const locating = isLocatorMode(s) && s.locatorEnabled && s.locatorArtifactLat != null && s.locatorArtifactLng != null;
+    const nextMode = armed ? 'armed' : locating ? 'locator' : null;
+    if (nextMode === operationalSoundMode) return;
+    clearInterval(operationalSoundTimer);
+    operationalSoundTimer = null;
+    operationalSoundMode = nextMode;
+    if (!nextMode) return;
+    playOperationalSound(nextMode);
+    operationalSoundTimer = setInterval(() => playOperationalSound(nextMode), nextMode === 'armed' ? 1000 : 2400);
+  }
+  function renderSevenSegment(element, value) {
+    const activeSegments = {
+      '0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg',
+      '4': 'bcfg', '5': 'acdfg', '6': 'acdefg', '7': 'abc',
+      '8': 'abcdefg', '9': 'abcdfg', '-': 'g'
+    };
+    element.innerHTML = Array.from(String(value)).map(char => {
+      if (char === ':') return '<span class="segColon"><i></i><i></i></span>';
+      const active = activeSegments[char] || '';
+      return '<span class="segDigit">' + 'abcdefg'.split('').map(segment =>
+        '<i class="seg seg-' + segment + (active.includes(segment) ? ' active' : '') + '"></i>'
+      ).join('') + '</span>';
+    }).join('');
+  }
+  function isDataMode(s) { return s.mode === 'Roubo de dados'; }
+  function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
+  function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function activeBomb(s) {
+    const list = s.bombSequence || [];
+    const device = (s.bombDevices || []).find(item => item.id === bombDeviceId && item.status === 'approved');
+    if (device && device.bombId) return list.find(item => item.id === device.bombId) || null;
+    return list[Math.max(0, Math.min(Number(s.bombSequenceIndex || 0), list.length - 1))] || null;
+  }
+  function renderDeviceSetup(s) {
+    const device = (s.bombDevices || []).find(item => item.id === bombDeviceId);
+    if (bombDemoMode) { deviceSetupLayer.hidden = true; return; }
+    deviceSetupLayer.hidden = Boolean(device && device.status === 'approved' && device.bombId);
+    if (!device) {
+      deviceSetupStatus.textContent = 'Este aparelho ainda não está cadastrado.';
+      requestDeviceRegistration.disabled = false;
+      return;
+    }
+    deviceName.value = device.name || '';
+    deviceType.value = device.type || 'tablet';
+    if (device.status === 'approved') {
+      const bomb = (s.bombSequence || []).find(item => item.id === device.bombId);
+      deviceSetupStatus.textContent = bomb ? 'Aprovado para ' + bomb.number + ' · ' + bomb.name + '.' : 'Aprovado, aguardando uma bomba válida.';
+    } else {
+      deviceSetupStatus.textContent = 'Solicitação enviada. Aguarde a aprovação no painel do Controlador.';
+    }
+    requestDeviceRegistration.disabled = device.status === 'pending';
+  }
+  function advanceBombSequence(st) {
+    const list = st.bombSequence || [];
+    const index = Number(st.bombSequenceIndex || 0);
+    if (list[index]) list[index].status = 'defused';
+    if (index + 1 >= list.length) return false;
+    st.bombSequenceIndex = index + 1;
+    const next = list[index + 1];
+    next.status = st.bombDeploymentMode === 'allArmed' ? 'armed' : 'active';
+    st.armCode = next.armCode;
+    st.defuseCode = next.defuseCode;
+    st.resultSeconds = Number(next.resultSeconds) || 600;
+    st.locatorArtifactName = next.name;
+    st.locatorArtifactLat = next.lat == null ? null : Number(next.lat);
+    st.locatorArtifactLng = next.lng == null ? null : Number(next.lng);
+    st.locatorEnabled = next.locatorEnabled !== false;
+    st.bombSeconds = st.bombDeploymentMode === 'allArmed' ? Number(next.remainingSeconds || next.resultSeconds || 600) : null;
+    st.bombState = st.bombDeploymentMode === 'allArmed' ? 'Próxima bomba para desarme' : 'Próxima bomba liberada';
+    st.phase = st.bombDeploymentMode === 'allArmed' ? next.name + ' continua armada' : next.name + ' aguardando arme';
+    st.qrArm = 0; st.qrDefuse = 0; st.qrArmAt = null; st.qrDefuseAt = null;
+    st.qrStageNonce = Number(st.qrStageNonce || 0) + 1;
+    st.qrStageName = 'bomba-' + (index + 2);
+    st.ctHasCode = false; st.terroristHasCode = false;
+    st.ctKnownCode = '----'; st.terroristKnownCode = '----';
+    st.ctBombValidated = false; st.terroristBombValidated = false;
+    return true;
+  }
+  function gpsDistanceMeters(aLat, aLng, bLat, bLng) {
+    const toRad = value => Number(value) * Math.PI / 180;
+    const radius = 6371000;
+    const dLat = toRad(bLat - aLat);
+    const dLng = toRad(bLng - aLng);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * radius * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+  function storeArtifactPosition(pos) {
+      const lat = Number(pos.coords.latitude.toFixed(6));
+      const lng = Number(pos.coords.longitude.toFixed(6));
+      AirsoftBus.update(st => {
+        if (st.locatorTransmitOnMove && st.locatorArtifactLat != null && st.locatorArtifactLng != null) {
+          const movement = gpsDistanceMeters(st.locatorArtifactLat, st.locatorArtifactLng, lat, lng);
+          if (movement < Number(st.locatorMovementThresholdMeters || 25)) return st;
+        }
+        st.locatorArtifactLat = lat;
+        st.locatorArtifactLng = lng;
+        const bomb = activeBomb(st);
+        if (bomb && !isDataMode(st) && !isTerminalMode(st) && !isLocatorMode(st)) {
+          bomb.lat = lat; bomb.lng = lng; bomb.locatorEnabled = true;
+        }
+        st.locatorArtifactAccuracy = Math.round(pos.coords.accuracy || 0);
+        st.locatorLastArtifactFix = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        if (st.running && st.locatorOriginLat == null) {
+          st.locatorOriginLat = lat;
+          st.locatorOriginLng = lng;
+        }
+        if (st.running && st.locatorMovementAlertEnabled && !st.locatorMovementDetected && st.locatorOriginLat != null) {
+          const moved = gpsDistanceMeters(st.locatorOriginLat, st.locatorOriginLng, lat, lng);
+          if (moved >= Number(st.locatorMovementThresholdMeters || 25)) {
+            st.locatorMovementDetected = true;
+            st.locatorMovementMeters = moved;
+            st.locatorMovementNoticeId = Date.now();
+            st.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: 'Alerta: artefato deslocado pela primeira vez.' }, ...(st.log || [])].slice(0, 80);
+          }
+        }
+      });
+  }
+  function publishArtifactPosition() {
+    const current = AirsoftBus.read();
+    if (!current.locatorEnabled || !navigator.geolocation) return;
+    const highAccuracy = current.locatorAccuracyMode !== 'battery';
+    navigator.geolocation.getCurrentPosition(storeArtifactPosition, () => {}, { enableHighAccuracy: highAccuracy, timeout: highAccuracy ? 10000 : 6000, maximumAge: current.locatorAccuracyMode === 'high' ? 0 : 10000 });
+  }
+  function stopArtifactGps() {
+    if (artifactGpsTimer != null) clearInterval(artifactGpsTimer);
+    if (artifactGpsWatchId != null && navigator.geolocation) navigator.geolocation.clearWatch(artifactGpsWatchId);
+    artifactGpsTimer = null;
+    artifactGpsWatchId = null;
+    artifactGpsMode = null;
+  }
+  function syncArtifactGps(s) {
+    const nextMode = s.locatorUpdateMode === 'realtime' ? 'realtime' : '10s';
+    if (!s.locatorEnabled || !navigator.geolocation) { stopArtifactGps(); return; }
+    if (artifactGpsMode === nextMode) return;
+    stopArtifactGps();
+    artifactGpsMode = nextMode;
+    if (nextMode === 'realtime') {
+      const highAccuracy = s.locatorAccuracyMode !== 'battery';
+      artifactGpsWatchId = navigator.geolocation.watchPosition(storeArtifactPosition, () => {}, { enableHighAccuracy: highAccuracy, maximumAge: s.locatorAccuracyMode === 'high' ? 0 : 10000, timeout: highAccuracy ? 10000 : 6000 });
+    } else {
+      publishArtifactPosition();
+      artifactGpsTimer = setInterval(publishArtifactPosition, 10000);
+    }
+  }
+  function codeLabel(type, s) {
+    if (isDataMode(s)) return type === 'arm' ? 'senha do notebook' : 'senha administrativa';
+    return type === 'arm' ? 'senha de arme' : 'senha de desarme';
+  }
+  function dataSignal(s) {
+    if (s.dataStage === 'sent') return 'MAIL SENT';
+    if (s.dataStage === 'decryptQr') return 'VALIDATE';
+    if (s.dataStage === 'decrypted') return 'FILE OPEN';
+    if (s.dataStage === 'downloaded') return 'DOWNLOADED';
+    if (s.dataStage === 'folderPick') return 'SELECT FOLDER';
+    if (s.dataStage === 'accessed') return 'ACCESS GRANTED';
+    if (s.pending) return 'PASSWORD';
+    return 'LOCKED';
+  }
+  function setLaptopView(view) {
+    [laptopLogin, laptopFolders, laptopFile, laptopMail].forEach(el => el.classList.remove('active'));
+    view.classList.add('active');
+  }
+  function renderLaptop(s) {
+    laptopScreen.hidden = !isDataMode(s);
+    if (!isDataMode(s)) return;
+    laptopName.textContent = s.dataNotebookName || 'NBK-17 Operações';
+    laptopSignal.textContent = dataSignal(s);
+    const folders = s.dataFolderOptions || ['SYSTEM_CACHE', 'OP_BLACKBOX', 'FIELD_LOGS', 'ARCHIVE_09'];
+    const correctFolder = Number.isInteger(s.dataCorrectFolder) ? s.dataCorrectFolder : 1;
+    folderGrid.innerHTML = folders.slice(0, 4).map((name, index) => {
+      const active = s.dataStage === 'folderPick' ? '' : (index === correctFolder ? ' activeFolder' : ' mutedFolder');
+      const hint = s.dataStage === 'folderPick' ? 'abrir pasta' : (index === correctFolder ? 'alvo localizado' : 'sem acesso');
+      return '<button class="folderCard' + active + '" data-folder-index="' + index + '"><span class="folderIcon"></span><b>' + name + '</b><small>' + hint + '</small></button>';
+    }).join('');
+    folderFileName.textContent = s.dataFileName || 'rotas-extracao.enc';
+    openFileName.textContent = s.dataFileName || 'rotas-extracao.enc';
+    payloadInfo.textContent = 'Pacote ' + (s.dataPayloadSize || '48 MB') + ' pronto para ' + (s.dataRecipient || 'relay@darknet.ops') + '.';
+    mailRecipient.textContent = 'Enviado para ' + (s.dataRecipient || 'relay@darknet.ops') + ' / pacote ' + (s.dataPayloadSize || '48 MB') + '.';
+    loginHint.textContent = s.pending ? 'Digite a senha no teclado do notebook.' : 'Escaneie o QR e solicite acesso pelo celular.';
+    folderFileState.textContent = s.dataStage === 'decryptQr' ? 'VALIDAÇÃO PENDENTE' : s.dataStage === 'downloaded' ? 'BAIXADO NO NOTEBOOK' : s.dataStage === 'decrypted' ? 'ARQUIVO ABERTO' : 'CRIPTOGRAFADO';
+    if (s.dataStage === 'sent') setLaptopView(laptopMail);
+    else if (s.dataStage === 'decrypted') setLaptopView(laptopFile);
+    else if (s.dataStage === 'folderPick' || s.dataStage === 'accessed' || s.dataStage === 'downloaded' || s.dataStage === 'decryptQr') setLaptopView(laptopFolders);
+    else setLaptopView(laptopLogin);
+  }
+  function renderTerminal(s) {
+    terminalScreen.hidden = !isTerminalMode(s);
+    if (!isTerminalMode(s)) return;
+    terminalName.textContent = s.terminalName || 'TERMINAL AX-07';
+    terminalTeam1Name.textContent = s.team1Name;
+    terminalTeam2Name.textContent = s.team2Name;
+    terminalTeam1Time.textContent = fmt(s.terminalTeam1Seconds || 0);
+    terminalTeam2Time.textContent = fmt(s.terminalTeam2Seconds || 0);
+    terminalOwner.textContent = s.terminalOwner === 'ct' ? s.team1Name : s.terminalOwner === 'terrorist' ? s.team2Name : 'NEUTRO';
+    captureRing.textContent = s.terminalValidationRequired ? 'VALIDAR' : s.terminalOwner ? 'DOMINADO' : 'NEUTRO';
+    terminalHint.textContent = s.terminalValidationRequired ? 'Validação obrigatória em andamento. Confirme no celular e no terminal.' : s.terminalOwner ? 'Domínio ativo. Próxima validação no contador.' : 'Aguardando captura com dupla confirmação.';
+  }
+  function renderLocator(s) {
+    locatorScreen.hidden = !isLocatorMode(s);
+    if (!isLocatorMode(s)) return;
+    locatorArtifactTitle.textContent = s.locatorArtifactName || 'Artefato AX-07';
+    const hasCoords = s.locatorArtifactLat != null && s.locatorArtifactLng != null;
+    locatorArtifactStatus.textContent = s.locatorEnabled && hasCoords ? 'Sinal GPS transmitindo para celulares cadastrados.' : hasCoords ? 'Coordenadas salvas. Sinal desligado pelo Controlador.' : 'Defina as coordenadas no controle do Controlador.';
+    locatorLat.textContent = hasCoords ? Number(s.locatorArtifactLat).toFixed(6) : '----';
+    locatorLng.textContent = hasCoords ? Number(s.locatorArtifactLng).toFixed(6) : '----';
+    locatorScreen.classList.toggle('activeSignal', Boolean(s.locatorEnabled && hasCoords));
+  }
+  function hidePopup() {
+    if (progressActive) return;
+    popupLayer.hidden = true;
+    bombProgress.hidden = true;
+    popupCancel.hidden = true;
+    popupConfirm.hidden = true;
+    confirmActive = false;
+    clearTimeout(popupTimer);
+  }
+  function showPopup(title, body, kind = 'Bomba') {
+    clearTimeout(popupTimer);
+    progressActive = false;
+    confirmActive = false;
+    popupClose.hidden = false;
+    popupCancel.hidden = true;
+    popupConfirm.hidden = true;
+    bombProgress.hidden = true;
+    popupKind.textContent = kind;
+    popupTitle.textContent = title;
+    popupBody.textContent = body;
+    popupLayer.hidden = false;
+    popupTimer = setTimeout(hidePopup, 15000);
+  }
+  function showConfirm(title, body, kind = 'Notebook') {
+    clearTimeout(popupTimer);
+    progressActive = false;
+    confirmActive = true;
+    popupKind.textContent = kind;
+    popupTitle.textContent = title;
+    popupBody.textContent = body;
+    popupClose.hidden = true;
+    popupCancel.hidden = false;
+    popupConfirm.hidden = false;
+    bombProgress.hidden = true;
+    popupLayer.hidden = false;
+  }
+  function showBombProgress(title, seconds, onComplete, onCancel) {
+    const total = Math.max(1, Number(seconds) || 1);
+    const startedAt = Date.now();
+    const progressState = AirsoftBus.read();
+    const progressKind = isTerminalMode(progressState) ? 'Terminal' : 'Notebook';
+    clearTimeout(popupTimer);
+    clearInterval(progressTimer);
+    clearTimeout(progressTimeout);
+    progressActive = true;
+    progressCancel = onCancel;
+    popupKind.textContent = progressKind;
+    popupTitle.textContent = title;
+    popupBody.textContent = 'Operação local em andamento na tela do ' + (progressKind === 'Terminal' ? 'terminal.' : 'notebook.');
+    popupClose.hidden = true;
+    popupCancel.hidden = false;
+    popupConfirm.hidden = true;
+    bombProgress.hidden = false;
+    popupLayer.hidden = false;
+    function tick() {
+      const elapsed = Math.min(total, (Date.now() - startedAt) / 1000);
+      const percent = Math.round((elapsed / total) * 100);
+      bombProgressFill.style.width = percent + '%';
+      bombProgressTime.textContent = percent + '%';
+      bombProgressLabel.textContent = elapsed >= total ? 'Processo concluído' : 'Processando arquivo';
+    }
+    tick();
+    progressTimer = setInterval(tick, 250);
+    progressTimeout = setTimeout(() => {
+      clearInterval(progressTimer);
+      progressActive = false;
+      popupClose.hidden = false;
+      popupCancel.hidden = true;
+      bombProgressFill.style.width = '100%';
+      bombProgressTime.textContent = '100%';
+      bombProgressLabel.textContent = 'Processo concluído';
+      onComplete();
+      showPopup('Operação concluída', 'A etapa local foi finalizada.', progressKind);
+    }, total * 1000);
+  }
+  popupClose.onclick = hidePopup;
+  popupCancel.onclick = () => {
+    if (confirmActive) {
+      const s = AirsoftBus.read();
+      AirsoftBus.update(st => {
+        st.pending = null;
+        st.operation = null;
+        if (s.pending && s.pending.type === 'dataDecodeConfirm') {
+          st.bombState = 'Notebook travado';
+          st.phase = 'Credencial cancelada';
+        } else {
+          st.bombState = st.dataStage === 'downloaded' ? 'Dados baixados' : 'Operação cancelada';
+          st.phase = 'Operador cancelou a solicitação';
+        }
+      });
+      AirsoftBus.log('Operador cancelou solicitação no notebook.');
+      showPopup('Solicitação cancelada', 'A etapa foi recusada no notebook.', 'Cancelado');
+      return;
+    }
+    if (!progressActive) return;
+    clearInterval(progressTimer);
+    clearTimeout(progressTimeout);
+    progressActive = false;
+    popupClose.hidden = false;
+    popupCancel.hidden = true;
+    bombProgress.hidden = true;
+    if (progressCancel) progressCancel();
+    showPopup('Operação cancelada', 'O operador cancelou a etapa local no notebook.', 'Cancelado');
+  };
+  function startTerminalCapture(team) {
+    const seconds = AirsoftBus.read().terminalCaptureSeconds;
+    AirsoftBus.update(st => {
+      st.pending = null;
+      st.bombState = 'Capturando terminal';
+      st.phase = 'Barra de guarda no terminal';
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type: team, kind: 'terminalCapture' };
+    });
+    const opId = AirsoftBus.read().operationId;
+    showBombProgress('Guardando captura', seconds, () => {
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        st.terminalOwner = team;
+        st.terminalValidationRequired = false;
+        st.terminalValidationTeam = null;
+        st.terminalValidationCode = '----';
+        st.bombSeconds = st.terminalValidationIntervalSeconds;
+        st.bombState = team === 'ct' ? st.team1Name + ' dominando' : st.team2Name + ' dominando';
+        st.phase = 'Domínio ativo';
+        st.noticeId += 1;
+        st.notice = { kind: 'Terminal', title: 'Terminal dominado', body: 'Domínio confirmado. Aguarde a próxima validação periódica.' };
+      });
+      AirsoftBus.log('Terminal capturado com dupla conferência.');
+    }, () => {
+      AirsoftBus.update(st => { st.operation = null; st.pending = null; st.bombState = 'Captura cancelada'; st.phase = 'Terminal sem alteração'; });
+      AirsoftBus.log('Operador cancelou captura no terminal.');
+    });
+  }
+  function startTerminalValidation(team) {
+    AirsoftBus.update(st => {
+      st.pending = null;
+      st.bombState = 'Validando domínio';
+      st.phase = 'Barra de guarda no terminal';
+      st.operationId += 1;
+      st.operation = { id: st.operationId, type: team, kind: 'terminalValidation' };
+    });
+    const opId = AirsoftBus.read().operationId;
+    const seconds = AirsoftBus.read().actionSeconds;
+    showBombProgress('Guardando validação', seconds, () => {
+      AirsoftBus.update(st => {
+        if (!st.operation || st.operation.id !== opId) return;
+        st.operation = null;
+        st.terminalOwner = team;
+        st.terminalValidationRequired = false;
+        st.terminalValidationTeam = null;
+        st.terminalValidationCode = '----';
+        st.bombSeconds = st.terminalValidationIntervalSeconds;
+        st.bombState = team === 'ct' ? st.team1Name + ' dominando' : st.team2Name + ' dominando';
+        st.phase = 'Validação renovada';
+        st.noticeId += 1;
+        st.notice = { kind: 'Terminal', title: 'Domínio validado', body: 'A validação periódica foi confirmada no celular e no terminal.' };
+      });
+      AirsoftBus.log('Domínio validado com dupla conferência.');
+    }, () => {
+      AirsoftBus.update(st => { st.operation = null; st.pending = null; st.bombState = 'Validação cancelada'; st.phase = 'Aguardando validação'; });
+      AirsoftBus.log('Operador cancelou validação no terminal.');
+    });
+  }
+  popupConfirm.onclick = () => {
+    const s = AirsoftBus.read();
+    if (!s.pending) return;
+    if (s.pending.type === 'dataDecodeConfirm') {
+      const target = s.pending.credential;
+      AirsoftBus.update(st => {
+        if (target === 'decrypt') {
+          st.terroristHasCode = true;
+          st.terroristKnownCode = st.dataDecryptCode;
+          st.phase = 'Senha de descriptografia entregue';
+        } else if (target === 'defuse') {
+          st.ctHasCode = true;
+          st.ctKnownCode = st.defuseCode;
+          st.phase = 'Senha administrativa entregue';
+        } else {
+          st.terroristHasCode = true;
+          st.terroristKnownCode = st.armCode;
+          st.phase = 'Senha do notebook entregue';
+        }
+        st.pending = null;
+        st.bombState = st.dataStage === 'locked' ? 'Notebook travado' : st.bombState;
+      });
+      AirsoftBus.log('Operador confirmou credencial decodificada.');
+      showPopup('Credencial confirmada', 'A senha foi liberada no celular do jogador.', 'Notebook');
+    } else if (s.pending.type === 'dataDownloadConfirm') {
+      AirsoftBus.update(st => {
+        st.pending = null;
+        st.bombState = 'Baixando dados';
+        st.phase = 'Download local no notebook';
+        st.operationId += 1;
+        st.operation = { id: st.operationId, type: 'arm', kind: 'bombDownload' };
+      });
+      const opId = AirsoftBus.read().operationId;
+      showBombProgress('Baixando dados no notebook', s.dataDownloadSeconds, () => {
+        AirsoftBus.update(st => {
+          if (!st.operation || st.operation.id !== opId) return;
+          st.operation = null;
+          st.dataStage = 'downloaded';
+          st.dataDownloaded = true;
+          st.bombState = 'Dados baixados';
+          st.phase = 'Dados salvos no notebook';
+          st.noticeId += 1;
+          st.notice = { kind: 'Notebook', title: 'Download concluído', body: 'O arquivo está pronto para descriptografia.' };
+        });
+        AirsoftBus.log('Download concluído no notebook.');
+      }, () => {
+        AirsoftBus.update(st => { st.operation = null; st.pending = null; st.bombState = 'Download cancelado'; st.phase = 'Operador cancelou o download'; });
+        AirsoftBus.log('Operador cancelou o download no notebook.');
+      });
+    } else if (s.pending.type === 'terminalCaptureConfirm') {
+      const team = s.pending.team;
+      if (s.terminalCaptureNeedsCode) {
+        AirsoftBus.update(st => {
+          st.pending = { type: 'terminalCaptureCode', label: 'senha de captura do terminal', team };
+          st.bombState = 'Senha de captura';
+          st.phase = 'Digite a senha no teclado do terminal';
+        });
+        showPopup('Senha necessária', 'Digite a senha de captura configurada pelo Controlador no teclado do terminal.', 'Terminal');
+      } else {
+        startTerminalCapture(team);
+      }
+    } else if (s.pending.type === 'terminalValidationConfirm') {
+      const team = s.pending.team;
+      if (s.terminalRandomRevalidateCode) {
+        AirsoftBus.update(st => {
+          st.pending = { type: 'terminalValidationCode', label: 'senha randômica de revalidação', team };
+          st.bombState = 'Senha de revalidação';
+          st.phase = 'Digite a senha randômica decodificada';
+        });
+        showPopup('Senha randômica', 'Digite no terminal a senha que foi decodificada no celular do jogador.', 'Terminal');
+      } else {
+        startTerminalValidation(team);
+      }
+    }
+  };
+  popupLayer.addEventListener('click', e => { if (e.target === popupLayer) hidePopup(); });
+  function renderKeys(s) {
+    if (s.pending && s.pending.type === 'dataEmail') {
+      keys.classList.add('emailKeys');
+      keys.innerHTML = [
+        '<div class="keyRow">' + 'qwertyuiop'.split('').map(part => '<button data-text="' + part + '">' + part + '</button>').join('') + '</div>',
+        '<div class="keyRow midRow">' + 'asdfghjkl'.split('').map(part => '<button data-text="' + part + '">' + part + '</button>').join('') + '</div>',
+        '<div class="keyRow lowRow">' + 'zxcvbnm'.split('').map(part => '<button data-text="' + part + '">' + part + '</button>').join('') + '</div>',
+        '<div class="keyRow">' + '0123456789'.split('').map(part => '<button data-text="' + part + '">' + part + '</button>').join('') + '</div>',
+        '<div class="keyRow actionRow"><button data-text="@">@</button><button data-text=".">.</button><button data-text="_">_</button><button data-text="-">-</button><button data-act="clear">Limpar</button><button class="ok" data-act="ok">OK</button></div>'
+      ].join('');
+    } else {
+      keys.classList.remove('emailKeys');
+      keys.innerHTML = '<button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button><button>9</button><button data-act="clear">Limpar</button><button>0</button><button class="ok" data-act="ok">OK</button>';
+    }
+  }
+  function isKeyboardPending(s) {
+    return Boolean(s.pending && ['arm', 'defuse', 'dataAccess', 'dataAdmin', 'dataDecrypt', 'dataEmail', 'terminalCaptureCode', 'terminalValidationCode'].includes(s.pending.type));
+  }
+  function render(s) {
+    renderDeviceSetup(s);
+    syncArtifactGps(s);
+    syncOperationalSound(s);
+    document.body.classList.toggle('dataMode', isDataMode(s));
+    document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
+    document.body.classList.toggle('terminalMode', isTerminalMode(s));
+    document.body.classList.toggle('locatorMode', isLocatorMode(s));
+    document.querySelector('.device').classList.toggle('notebookMode', isDataMode(s));
+    renderLaptop(s);
+    renderTerminal(s);
+    renderLocator(s);
+    const selectedBomb = activeBomb(s);
+    bombState.textContent = s.bombState;
+    mode.textContent = s.mode + (selectedBomb && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? ' · ' + selectedBomb.name + ' (' + (Number(s.bombSequenceIndex || 0) + 1) + '/' + s.bombSequence.length + ')' : '');
+    phase.textContent = s.phase;
+    resultTimerLabel.textContent = isDataMode(s) ? 'Progresso hostil' : isTerminalMode(s) ? 'Validação' : isLocatorMode(s) ? 'Sinal GPS' : 'Tempo da bomba';
+    if (s.winner) {
+      phase.textContent = s.winner;
+      phase.classList.add('winnerText');
+    } else {
+      phase.classList.remove('winnerText');
+    }
+    renderSevenSegment(gameTimer, fmt(s.gameSeconds));
+    const displayedBombSeconds = selectedBomb && s.bombDeploymentMode === 'allArmed' ? Number(selectedBomb.remainingSeconds ?? selectedBomb.resultSeconds ?? 0) : s.bombSeconds;
+    renderSevenSegment(bombTimer, fmt(displayedBombSeconds));
+    pending.textContent = s.pending ? 'Solicitação: ' + s.pending.label : 'Solicitação: nenhuma';
+    const qrEnabled = s.qrRequired !== false;
+    const qrVariant = Math.abs(Number(s.qrStageNonce || 0)) % 6;
+    stageQr.className = 'qr qrVariant' + qrVariant + (qrEnabled ? '' : ' qrDisabled');
+    stageQr.style.setProperty('--qr-cell', (16 + qrVariant * 2) + 'px');
+    qrTitle.textContent = qrEnabled ? 'QR • ETAPA ' + String(Number(s.qrStageNonce || 0) + 1).padStart(2, '0') : 'QR DESATIVADO';
+    qrArm.textContent = s.bombDeploymentMode === 'allArmed' && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? 'Time 2: proteção ativa' : qrEnabled ? (isDataMode(s) ? 'QR invasor: ' : isTerminalMode(s) ? 'QR Time 2: ' : isLocatorMode(s) ? 'GPS Time 2: ' : 'QR arme: ') + s.qrArm + '/' + s.armFactors : 'QR invasor: dispensado';
+    qrDefuse.textContent = qrEnabled ? (isDataMode(s) ? 'QR defesa: ' : isTerminalMode(s) ? 'QR Time 1: ' : isLocatorMode(s) ? 'GPS Time 1: ' : 'QR desarme: ') + s.qrDefuse + '/' + s.defuseFactors : 'QR defesa: dispensado';
+    renderKeys(s);
+    const keyboardPending = isKeyboardPending(s);
+    keypad.classList.toggle('locked', !keyboardPending);
+    keys.querySelectorAll('button').forEach(btn => btn.disabled = !keyboardPending);
+    if (!keyboardPending && entry) { entry = ''; updateDisplay(); }
+    if (!keyboardPending) display.textContent = 'BLOQ';
+    if (s.notice && s.noticeId !== lastNoticeId) {
+      if (s.pending && (s.pending.type === 'dataDecodeConfirm' || s.pending.type === 'dataDownloadConfirm' || s.pending.type === 'terminalCaptureConfirm' || s.pending.type === 'terminalValidationConfirm')) showConfirm(s.notice.title, s.notice.body, s.notice.kind || 'Solicitação');
+      else showPopup(s.notice.title, s.notice.body, s.notice.kind || 'Solicitação');
+      lastNoticeId = s.noticeId;
+    }
+  }
+  requestDeviceRegistration.onclick = () => {
+    const name = deviceName.value.trim();
+    if (!name) { deviceSetupStatus.textContent = 'Digite um nome para identificar este aparelho.'; deviceName.focus(); return; }
+    AirsoftBus.update(s => {
+      s.bombDevices = s.bombDevices || [];
+      let device = s.bombDevices.find(item => item.id === bombDeviceId);
+      if (!device) {
+        device = { id:bombDeviceId, name, type:deviceType.value, status:'pending', bombId:null, requestedAt:Date.now(), approvedAt:null, lastSeen:Date.now() };
+        s.bombDevices.push(device);
+      } else {
+        device.name = name; device.type = deviceType.value; device.status = 'pending'; device.bombId = null; device.requestedAt = Date.now(); device.lastSeen = Date.now();
+      }
+      return s;
+    });
+    AirsoftBus.log('Novo dispositivo solicitou cadastro como bomba: ' + name + '.');
+  };
+  deviceDemoMode.onclick = () => { bombDemoMode = true; localStorage.setItem('airsoft-bomb-demo-v1', '1'); deviceSetupLayer.hidden = true; };
+  setInterval(() => {
+    if (bombDemoMode) return;
+    const state = AirsoftBus.read();
+    const device = (state.bombDevices || []).find(item => item.id === bombDeviceId);
+    if (!device) return;
+    AirsoftBus.update(s => { const current = (s.bombDevices || []).find(item => item.id === bombDeviceId); if (current) current.lastSeen = Date.now(); return s; });
+  }, 10000);
+  function updateDisplay() { display.textContent = isKeyboardPending(AirsoftBus.read()) ? (entry || '----') : 'BLOQ'; }
+  function validate() {
+    const s = AirsoftBus.read();
+    if (!s.pending) { showPopup('Sem solicitação', 'Nenhuma ação está aguardando senha nesta bomba.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
+    if (!s.running || s.finished) { showPopup('Jogo inativo', 'O teclado só valida senha durante uma partida ativa.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
+    if (!isDataMode(s) && s.pending.type === 'arm' && s.bombSeconds != null) { showPopup('Arme bloqueado', 'A bomba já está em contagem.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
+    if (!isDataMode(s) && s.pending.type === 'defuse' && s.bombSeconds == null) { showPopup('Desarme bloqueado', 'A bomba ainda não está armada.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
+    const expected = s.pending.type === 'dataAccess' ? s.armCode : s.pending.type === 'dataAdmin' ? s.defuseCode : s.pending.type === 'dataDecrypt' ? s.dataDecryptCode : s.pending.type === 'dataEmail' ? s.dataRecipient : s.pending.type === 'terminalCaptureCode' ? s.terminalCaptureCode : s.pending.type === 'terminalValidationCode' ? s.terminalValidationCode : s.pending.type === 'arm' ? s.armCode : s.defuseCode;
+    const validEntry = s.pending.type === 'dataEmail' ? entry.toLowerCase() === String(expected).toLowerCase() : entry === expected;
+    if (!validEntry) {
+      AirsoftBus.update(st => {
+        if (st.penaltyEnabled && st.penaltySeconds > 0) {
+          if (s.pending.type === 'defuse' && st.bombSeconds != null) st.bombSeconds = Math.max(0, st.bombSeconds - st.penaltySeconds);
+          if (s.pending.type === 'arm') st.gameSeconds = Math.max(0, st.gameSeconds - st.penaltySeconds);
+        }
+      });
+      showPopup('Senha incorreta', s.penaltyEnabled ? 'Penalidade aplicada pelo controle do Controlador.' : 'A senha digitada não libera esta etapa.', 'Alerta');
+      entry = ''; updateDisplay(); AirsoftBus.log('Senha incorreta digitada na bomba.'); return;
+    }
+    if (s.pending.type === 'terminalCaptureCode') {
+      const team = s.pending.team;
+      entry = '';
+      updateDisplay();
+      startTerminalCapture(team);
+      return;
+    }
+    if (s.pending.type === 'terminalValidationCode') {
+      const team = s.pending.team;
+      entry = '';
+      updateDisplay();
+      startTerminalValidation(team);
+      return;
+    }
+    AirsoftBus.update(st => {
+      if (st.pending.type === 'dataAccess') {
+        st.terroristBombValidated = true;
+        st.terroristHasCode = true;
+        st.dataStage = 'folderPick';
+        st.bombState = 'Escolha a pasta';
+        st.phase = 'Selecione a pasta correta no notebook';
+      } else if (st.pending.type === 'dataAdmin') {
+        st.ctBombValidated = true;
+        st.ctHasCode = true;
+        st.armCode = String(Math.floor(1000 + Math.random() * 9000));
+        st.terroristHasCode = false;
+        st.terroristKnownCode = '----';
+        st.dataStage = 'locked';
+        st.bombState = 'Notebook travado';
+        st.phase = 'Senha alterada pelo CT';
+        st.qrArm = 0;
+      } else if (st.pending.type === 'dataDecrypt') {
+        st.bombState = 'Descriptografando';
+        st.phase = 'Barra local na bomba';
+        st.operationId += 1;
+        st.operation = { id: st.operationId, type: 'arm', kind: 'bombDecrypt' };
+      } else if (st.pending.type === 'dataEmail') {
+        st.bombState = 'Enviando dados';
+        st.phase = 'Email validado';
+        st.operationId += 1;
+        st.operation = { id: st.operationId, type: 'arm', kind: 'bombSend' };
+      } else if (st.pending.type === 'arm') {
+        st.terroristBombValidated = true;
+        st.terroristHasCode = true;
+        if (isDataMode(st)) {
+          st.dataStage = 'folderPick';
+          st.bombState = 'Escolha a pasta';
+          st.phase = 'Selecione a pasta correta no notebook';
+        } else {
+          st.bombState = 'Armada';
+          st.phase = 'Contagem da bomba';
+          st.bombSeconds = st.resultSeconds;
+          st.bombActivationId = Number(st.bombActivationId || 0) + 1;
+          st.bombActivatedAt = Date.now();
+          if (st.locatorOnBombActivated) st.locatorEnabled = true;
+        }
+      } else {
+        st.ctBombValidated = true;
+        st.ctHasCode = true;
+        if (isDataMode(st)) {
+          st.armCode = String(Math.floor(1000 + Math.random() * 9000));
+          st.terroristHasCode = false;
+          st.terroristKnownCode = '----';
+          st.dataStage = 'locked';
+          st.bombState = 'Notebook travado';
+          st.phase = 'Senha alterada pelo CT';
+          st.qrArm = 0;
+        } else {
+          const hasNextBomb = advanceBombSequence(st);
+          if (!hasNextBomb) {
+            st.bombState = 'Sequência neutralizada';
+            st.phase = 'Todas as bombas foram neutralizadas';
+            st.winner = st.team1Name + ' venceu';
+            st.running = false;
+            st.finished = true;
+            st.bombSeconds = null;
+          }
+        }
+      }
+      st.pending = null;
+    });
+    if (isDataMode(s) && s.pending.type === 'dataDecrypt') {
+      const opId = AirsoftBus.read().operationId;
+      showBombProgress('Descriptografando arquivo', s.dataDecryptSeconds, () => {
+        AirsoftBus.update(st => {
+          if (!st.operation || st.operation.id !== opId) return;
+          st.operation = null;
+          st.dataStage = 'decryptQr';
+          st.bombState = 'Validar descriptografia';
+          st.phase = 'Validar descriptografia pelo celular';
+          st.noticeId += 1;
+          st.notice = { kind: 'Descriptografia', title: 'Validar descriptografia', body: 'Confirme a validação pelo celular terrorista para abrir o arquivo.' };
+        });
+        AirsoftBus.log('Descriptografia local concluída. Validação final pendente.');
+      }, () => {
+        AirsoftBus.update(st => { st.operation = null; st.pending = null; st.bombState = 'Descriptografia cancelada'; st.phase = 'Operador cancelou a etapa'; });
+        AirsoftBus.log('Operador cancelou a descriptografia na bomba.');
+      });
+    } else if (isDataMode(s) && s.pending.type === 'dataEmail') {
+      const opId = AirsoftBus.read().operationId;
+      showBombProgress('Enviando pacote', s.dataSendSeconds, () => {
+        AirsoftBus.update(st => {
+          if (!st.operation || st.operation.id !== opId) return;
+          st.operation = null;
+          st.dataStage = 'sent';
+          st.dataSent = true;
+          st.bombState = 'Dados enviados';
+          st.phase = 'Fim de jogo';
+          st.winner = st.team2Name + ' venceu';
+          st.running = false;
+          st.finished = true;
+        });
+        AirsoftBus.log('Email correto digitado. Dados enviados.');
+      }, () => {
+        AirsoftBus.update(st => { st.operation = null; st.pending = null; st.bombState = 'Envio cancelado'; st.phase = 'Operador cancelou o envio'; });
+        AirsoftBus.log('Operador cancelou o envio no notebook.');
+      });
+    } else {
+      AirsoftBus.log(isDataMode(s) ? (s.pending.type === 'dataAccess' ? 'Notebook acessado. Aguardando escolha da pasta.' : 'Senha do notebook alterada pelo CT.') : (s.pending.type === 'arm' ? 'Bomba armada após senha correta.' : 'Bomba desarmada após senha correta.'));
+      showPopup('Senha validada', isDataMode(s) ? (s.pending.type === 'dataAccess' ? 'Acesso liberado. Escolha a pasta correta no notebook.' : 'Senha alterada. O acesso hostil foi bloqueado.') : (s.pending.type === 'arm' ? 'A bomba foi armada e a contagem começou.' : 'A bomba foi neutralizada.'), 'Autorizado');
+    }
+    entry = ''; updateDisplay();
+  }
+  keys.addEventListener('click', e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    const act = e.target.dataset.act;
+    if (act === 'clear') entry = '';
+    else if (act === 'ok') { validate(); return; }
+    else if (e.target.dataset.text) entry += e.target.dataset.text;
+    else if (entry.length < 32) entry += e.target.textContent;
+    updateDisplay();
+  });
+  laptopFolders.addEventListener('click', e => {
+    const card = e.target.closest('[data-folder-index]');
+    if (!card) return;
+    const s = AirsoftBus.read();
+    if (!isDataMode(s) || s.dataStage !== 'folderPick') return;
+    const selected = Number(card.dataset.folderIndex);
+    const correct = Number.isInteger(s.dataCorrectFolder) ? s.dataCorrectFolder : 1;
+    if (selected !== correct) {
+      showPopup('Pasta incorreta', 'Essa pasta não contém o pacote configurado pelo Controlador.', 'Acesso negado');
+      AirsoftBus.log('Operador escolheu pasta incorreta.');
+      return;
+    }
+    AirsoftBus.update(st => {
+      st.dataStage = 'accessed';
+      st.bombState = 'Pasta alvo aberta';
+      st.phase = 'Pronto para download';
+      st.noticeId += 1;
+      st.notice = { kind: 'Notebook', title: 'Pasta correta', body: 'A pasta alvo foi aberta. O download pode ser solicitado pelo celular.' };
+    });
+    AirsoftBus.log('Pasta alvo selecionada no notebook.');
+  });
+  AirsoftBus.subscribe(render);
+</script>
+</body>
+</html>

@@ -1,14 +1,32 @@
 const AirsoftBus = (() => {
   const key = 'airsoft-ops-state-v1';
+  let channel = null;
+  try {
+    channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('airsoft-ops-state-v1') : null;
+  } catch {
+    channel = null;
+  }
   const defaults = {
     running: false,
     finished: false,
     mode: 'Bomba clássica',
     team1Name: 'Time 1 - CT',
     team2Name: 'Time 2 - Terrorista',
+    playerRegistrationOpen: true,
+    teamTrackingEnabled: true,
+    keepOrganizationsTogether: true,
+    teamStartPositions: { ct: null, terrorist: null },
+    tacticalAreas: [],
+    bombDevices: [],
+    players: [],
     resetId: 0,
     gameSeconds: 1080,
     bombSeconds: null,
+    bombSequenceIndex: 0,
+    bombDeploymentMode: 'sequential',
+    bombSequence: [
+      { id:'bomb-1', name:'Bomba Alpha', armCode:'4072', defuseCode:'7294', resultSeconds:600, status:'waiting', locatorEnabled:true, lat:null, lng:null, remoteArmEnabled:true, remoteDefuseEnabled:true }
+    ],
     actionSeconds: 10,
     resultSeconds: 15,
     penaltySeconds: 5,
@@ -51,6 +69,9 @@ const AirsoftBus = (() => {
     locatorArtifactName: 'Artefato AX-07',
     gameObjectives: 'Localize o artefato, cumpra as etapas do modo de jogo e aguarde novas ordens do Controlador.',
     locatorEnabled: false,
+    locatorUpdateMode: '10s',
+    locatorTransmitOnMove: false,
+    locatorAccuracyMode: 'high',
     bombActivationAlertEnabled: true,
     locatorOnBombActivated: false,
     bombActivationId: 0,
@@ -102,6 +123,7 @@ const AirsoftBus = (() => {
   function write(state) {
     localStorage.setItem(key, JSON.stringify(state));
     window.dispatchEvent(new CustomEvent('airsoft-state', { detail: state }));
+    if (channel) channel.postMessage({ type: 'state-changed' });
   }
 
   function stamp() {
@@ -129,6 +151,7 @@ const AirsoftBus = (() => {
     const handler = () => fn(read());
     window.addEventListener('storage', handler);
     window.addEventListener('airsoft-state', handler);
+    if (channel) channel.addEventListener('message', handler);
     handler();
   }
 
