@@ -4,46 +4,42 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Montanha Bomb System | Portal Web</title>
-  <link rel="stylesheet" href="portal.css?v=20261001-1">
-  <script src="supabase-config.js?v=20261001-1"></script>
-  <script src="supabase.js?v=20261001-1"></script>
-  <script src="portal.js?v=20261001-1" defer></script>
+  <link rel="stylesheet" href="portal.css?v=20261001-2">
+  <script src="supabase-config.js?v=20261001-2"></script>
+  <script src="supabase.js?v=20261001-2"></script>
+  <script src="portal.js?v=20261001-2" defer></script>
 </head>
 <body>
 
+  <!-- HEADER -->
   <header class="portalHeader">
     <div class="portalHeaderInner">
       <div class="portalBrand">
         <b>MONTANHA BOMB SYSTEM</b>
-        <small>Portal Web para Notebooks · Artefato e Controle</small>
+        <small>Portal Web · Controle e Bomba</small>
       </div>
 
       <div class="userBadge" id="userBadge" hidden>
-        <div class="userAvatar">O</div>
+        <div class="userAvatar" id="userAvatar">O</div>
         <div class="userInfo">
-          <b>Operador</b>
-          <small>autenticado</small>
+          <b id="userName">Operador</b>
+          <small id="userEmail">autenticado</small>
         </div>
         <button class="btnDanger" onclick="AirsoftPortal.logout()" type="button">Sair</button>
       </div>
     </div>
   </header>
 
+  <!-- MAIN CONTAINER -->
   <main class="portalMain">
 
-    <!-- Status Banner -->
+    <!-- Status Alert Banner -->
     <div class="statusMsg" id="portalStatus" hidden></div>
 
-    <!-- AUTHENTICATION SECTION -->
+    <!-- TELA 1: AUTENTICAÇÃO (EXIBIDA QUANDO DESLOGADO) -->
     <section class="portalBox authContainer" id="authSection">
       <h2>Autenticação de Acesso</h2>
-      <p>Acesse com sua conta para criar salas, utilizar notebooks como artefato ou gerenciar a operação no controle.</p>
-
-      <div class="authNav">
-        <button class="active" id="tabLoginBtn" onclick="AirsoftPortal.switchAuthTab('login')" type="button">Entrar</button>
-        <button id="tabSignupBtn" onclick="AirsoftPortal.switchAuthTab('signup')" type="button">Cadastrar</button>
-        <button id="tabResetBtn" onclick="AirsoftPortal.switchAuthTab('reset')" type="button">Recuperar</button>
-      </div>
+      <p>Acesse com sua conta para utilizar este computador como Controle ou Bomba.</p>
 
       <!-- Google OAuth Sign In -->
       <button class="btnGoogle" onclick="AirsoftPortal.loginWithGoogle()" type="button">
@@ -58,7 +54,13 @@
 
       <div class="divider">ou utilize e-mail e senha</div>
 
-      <!-- Login Form -->
+      <div class="authNav">
+        <button class="active" id="tabLoginBtn" onclick="AirsoftPortal.switchAuthTab('login')" type="button">Entrar</button>
+        <button id="tabSignupBtn" onclick="AirsoftPortal.switchAuthTab('signup')" type="button">Cadastrar</button>
+        <button id="tabResetBtn" onclick="AirsoftPortal.switchAuthTab('reset')" type="button">Recuperar</button>
+      </div>
+
+      <!-- Form: Login -->
       <form id="formLogin" onsubmit="event.preventDefault(); AirsoftPortal.loginWithEmail(document.getElementById('loginEmail').value, document.getElementById('loginPass').value);">
         <div class="formGroup">
           <label for="loginEmail">E-mail</label>
@@ -68,10 +70,10 @@
           <label for="loginPass">Senha</label>
           <input id="loginPass" placeholder="••••••••" required type="password">
         </div>
-        <button class="btnPrimary" style="margin-top: 18px;" type="submit">Entrar no Sistema</button>
+        <button class="btnPrimary" style="margin-top: 18px;" type="submit">Entrar</button>
       </form>
 
-      <!-- Sign Up Form -->
+      <!-- Form: Cadastro -->
       <form id="formSignup" hidden onsubmit="event.preventDefault(); AirsoftPortal.signUpWithEmail(document.getElementById('signupName').value, document.getElementById('signupEmail').value, document.getElementById('signupPass').value);">
         <div class="formGroup">
           <label for="signupName">Nome Completo / Indicativo</label>
@@ -88,7 +90,7 @@
         <button class="btnPrimary" style="margin-top: 18px;" type="submit">Cadastrar Conta</button>
       </form>
 
-      <!-- Reset Password Form -->
+      <!-- Form: Recuperação de Senha -->
       <form id="formReset" hidden onsubmit="event.preventDefault(); AirsoftPortal.resetPassword(document.getElementById('resetEmail').value);">
         <div class="formGroup">
           <label for="resetEmail">E-mail de Cadastro</label>
@@ -96,38 +98,46 @@
         </div>
         <button class="btnPrimary" style="margin-top: 18px;" type="submit">Enviar E-mail de Recuperação</button>
       </form>
-
     </section>
 
-    <!-- DASHBOARD SECTION (LOGGED IN) -->
+    <!-- TELA 2: DASTBOARD (EXIBIDA APÓS O LOGIN) -->
     <section class="portalBox" id="dashboardSection" hidden>
-      <h1>Painel Operacional do Operador</h1>
-      <p>Sessão vinculada à sua conta. Apenas você tem permissão de Controle nas salas criadas por este usuário.</p>
+      <h1>Painel de Operações</h1>
+      <p>Selecione se deseja gerenciar o jogo como **Controle** ou transformar este notebook em uma **Bomba**.</p>
 
       <div class="dashboardGrid">
 
-        <!-- SECTION 1: TELA DE CONTROLE -->
-        <div style="border: 1px solid var(--portal-orange); background: rgba(18,14,8,0.85); padding: 20px; border-radius: 4px; display: grid; gap: 14px; box-shadow: inset 3px 0 var(--portal-orange);">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>1. TELA DE CONTROLE</h2>
-            <span style="background:var(--portal-orange-dark); color:#fff; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:2px; text-transform:uppercase;">Exclusivo do Criador</span>
+        <!-- CARD 1: CONTROLE -->
+        <div class="opCard highlightCard">
+          <div class="opCardHeader">
+            <h2>CONTROLE</h2>
+            <span class="tagOwner">Exclusivo do Criador</span>
           </div>
-          <p>Crie e gerencie o jogo como Controlador. O acesso ao Controle é protegido e restrito ao seu usuário.</p>
+          <p>Crie uma nova sala de operação ou acesse o controle das suas partidas ativas.</p>
 
           <div class="formGroup">
-            <label for="newOpName">Nome da Nova Operação</label>
-            <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha Blackout" value="Operação Montanha">
+            <label for="newOpName">Nome da Operação</label>
+            <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Montanha">
           </div>
 
           <button class="btnPrimary" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)" type="button">
             Criar Sala e Abrir Controle
           </button>
+
+          <div style="margin-top: 8px;">
+            <label style="color:var(--portal-paper); font-size:11px; font-weight:bold; text-transform:uppercase;">Minhas Operações Ativas</label>
+            <div class="sessionList" id="mySessionsList" style="margin-top: 6px;">
+              <p class="muted">Carregando salas...</p>
+            </div>
+          </div>
         </div>
 
-        <!-- SECTION 2: TELA DE BOMBA (ARTEFATO NOTEBOOK) -->
-        <div style="border: 1px solid var(--portal-border); background: rgba(8,7,4,0.72); padding: 20px; border-radius: 4px; display: grid; gap: 14px;">
-          <h2>2. TELA DE BOMBA (ARTEFATO NOTEBOOK)</h2>
-          <p>Transforme este computador em uma bomba cenográfica ou terminal de dados. Funciona em qualquer sala mediante código de 6 caracteres.</p>
+        <!-- CARD 2: BOMBA (ARTEFATO NOTEBOOK) -->
+        <div class="opCard">
+          <div class="opCardHeader">
+            <h2>BOMBA (NOTEBOOK)</h2>
+          </div>
+          <p>Transforme este notebook no artefato/bomba cenográfica de uma sala existente.</p>
 
           <div class="formGroup">
             <label for="joinRoomCode">Código da Sala (6 caracteres)</label>
@@ -138,42 +148,22 @@
 
           <div class="roleActionGrid">
             <button class="btnPrimary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'artifact')" type="button">
-              Abrir como Bomba / Artefato
+              Entrar como Bomba
             </button>
             <button class="btnSecondary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'controller')" type="button">
-              Acessar Controle (Apenas Criador)
+              Entrar como Controle
             </button>
           </div>
         </div>
 
       </div>
-
-      <!-- Active Sessions Created By User -->
-      <div style="margin-top: 16px;">
-        <h2>Minhas Operações Ativas (Acesso Rápido ao Controle)</h2>
-        <p style="margin-bottom: 12px;">Salas criadas com a sua conta. Clique para reabrir como Controlador ou Artefato.</p>
-        <div class="sessionList" id="mySessionsList">
-          <p class="muted">Carregando salas...</p>
-        </div>
-      </div>
-
-      <!-- Quick Launchers -->
-      <div style="border-top: 1px solid rgba(117,90,50,0.4); padding-top: 18px; display: grid; gap: 10px;">
-        <h2>Ferramentas Locais / Protótipo</h2>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <a class="btnSecondary" href="bomba.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Artefato Local</a>
-          <a class="btnSecondary" href="controle.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Controle Local</a>
-          <a class="btnSecondary" href="jogador.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Jogador Local</a>
-          <a class="btnSecondary" href="teste-integrado.html" style="text-decoration:none; display:inline-block; text-align:center; padding:10px 14px;">Abrir Teste Integrado</a>
-        </div>
-      </div>
-
     </section>
 
   </main>
 
+  <!-- FOOTER -->
   <footer>
-    Airsoft Ops · Montanha Bomb System v0.7.0 · Portal Web para Notebooks
+    Montanha Bomb System v0.7.0
   </footer>
 
 </body>

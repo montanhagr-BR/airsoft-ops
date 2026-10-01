@@ -299,6 +299,36 @@ body {
   gap: 20px;
 }
 
+.opCard {
+  border: 1px solid var(--portal-border);
+  background: rgba(8, 7, 4, 0.72);
+  padding: 20px;
+  border-radius: 4px;
+  display: grid;
+  gap: 14px;
+}
+.opCard.highlightCard {
+  border-color: var(--portal-orange);
+  background: rgba(18, 14, 8, 0.88);
+  box-shadow: inset 3px 0 var(--portal-orange);
+}
+.opCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.tagOwner {
+  background: var(--portal-orange-dark);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .codeEntry {
   display: grid;
   grid-template-columns: 1fr auto;

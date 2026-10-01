@@ -286,7 +286,7 @@ const AirsoftPortal = (() => {
             </div>
             <div style="display:flex; gap:6px;">
               <button class="btnSecondary" onclick="AirsoftPortal.rejoinSession('${session.id}', '${session.join_code}', '${escapeHtml(name)}', 'controller')">Controle</button>
-              <button class="btnSecondary" onclick="AirsoftPortal.rejoinSession('${session.id}', '${session.join_code}', '${escapeHtml(name)}', 'artifact')">Artefato</button>
+              <button class="btnSecondary" onclick="AirsoftPortal.rejoinSession('${session.id}', '${session.join_code}', '${escapeHtml(name)}', 'artifact')">Bomba</button>
             </div>
           </div>
         `;
@@ -309,6 +309,9 @@ const AirsoftPortal = (() => {
     const authBox = document.getElementById('authSection');
     const dashboardBox = document.getElementById('dashboardSection');
     const userBadge = document.getElementById('userBadge');
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
 
     if (currentUser) {
       if (authBox) authBox.hidden = true;
@@ -317,9 +320,9 @@ const AirsoftPortal = (() => {
         userBadge.hidden = false;
         const name = currentUser.user_metadata?.full_name || currentUser.email || 'Operador';
         const initial = name.charAt(0).toUpperCase();
-        userBadge.querySelector('.userAvatar').textContent = initial;
-        userBadge.querySelector('.userInfo b').textContent = name;
-        userBadge.querySelector('.userInfo small').textContent = currentUser.email || 'Sessão ativa';
+        if (userAvatar) userAvatar.textContent = initial;
+        if (userName) userName.textContent = name;
+        if (userEmail) userEmail.textContent = currentUser.email || 'autenticado';
       }
     } else {
       if (authBox) authBox.hidden = false;
