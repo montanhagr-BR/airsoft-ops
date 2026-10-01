@@ -6,10 +6,14 @@ const AirsoftPortal = (() => {
 
   function getClient() {
     if (!supabase) {
-      if (!config.url || !config.publishableKey || !window.supabase) {
-        throw new Error('Supabase não configurado em supabase-config.js');
+      const cfg = window.AIRSOFT_SUPABASE_CONFIG || {};
+      const url = cfg.url || 'https://qmkkkmmglldodviufdug.supabase.co';
+      const key = cfg.publishableKey || cfg.anonKey || cfg.apiKey || 'sb_publishable_5ETkNIPTIwlod4tz4g7pRA_FEJOtx3D';
+
+      if (!window.supabase) {
+        throw new Error('SDK do Supabase não foi carregado.');
       }
-      supabase = window.supabase.createClient(config.url, config.publishableKey, {
+      supabase = window.supabase.createClient(url, key, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
