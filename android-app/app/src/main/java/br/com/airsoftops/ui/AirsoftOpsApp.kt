@@ -2,6 +2,7 @@ package br.com.airsoftops.ui
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -76,7 +77,7 @@ fun AirsoftOpsApp(viewModel: GameViewModel = viewModel()) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (state.selectedRole) {
-                null -> PrototypeWebScreen(AppRole.PORTAL, viewModel::leaveRole)
+                null -> RoleSelection(onSelect = viewModel::selectRole)
                 AppRole.CONTROLLER -> PrototypeWebScreen(AppRole.CONTROLLER, viewModel::leaveRole)
                 AppRole.ARTIFACT -> PrototypeWebScreen(AppRole.ARTIFACT, viewModel::leaveRole)
                 AppRole.PLAYER -> PrototypeWebScreen(AppRole.PLAYER, viewModel::leaveRole)
@@ -90,84 +91,180 @@ fun AirsoftOpsApp(viewModel: GameViewModel = viewModel()) {
 private fun RoleSelection(onSelect: (AppRole) -> Unit) {
     var choosingEntry by remember { mutableStateOf(false) }
 
-    Box(Modifier.fillMaxSize().background(Color(0xFF090704))) {
-        Image(
-            painter = painterResource(R.drawable.airsoft_ops_identity),
-            contentDescription = "Montanha Bomb System",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        Text(
-            text = "MONTANHA\nBOMB SYSTEM",
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 22.dp),
-            color = Color(0xFFFF7A22),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color(0xFF080C0B))
+    ) {
         Column(
             Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(Color.Black.copy(alpha = .72f))
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            BrandImageButton(
-                bottomHalf = false,
-                description = "Entrar em uma operação",
-                onClick = { choosingEntry = true },
-                modifier = Modifier.fillMaxWidth()
-            )
-            BrandImageButton(
-                bottomHalf = true,
-                description = "Criar jogo",
-                onClick = { onSelect(AppRole.CONTROLLER) },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Spacer(Modifier.height(12.dp))
+
+            // Logo & Title Header
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.airsoft_ops_identity),
+                    contentDescription = "Airsoft Ops Logo",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxWidth(.82f)
+                        .height(210.dp)
+                )
+
+                Text(
+                    text = "AIRSOFT OPS",
+                    color = Color(0xFFF2B84B),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = "SISTEMA TÁTICO OPERACIONAL",
+                    color = Color(0xFF8FA09A),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // Proportioned Action Buttons
+            Column(
+                Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { choosingEntry = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF34D399),
+                        contentColor = Color(0xFF03110C)
+                    )
+                ) {
+                    Text(
+                        "ENTRAR NA OPERAÇÃO",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 16.sp
+                    )
+                }
+
+                Button(
+                    onClick = { onSelect(AppRole.CONTROLLER) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF2B84B),
+                        contentColor = Color(0xFF171003)
+                    )
+                ) {
+                    Text(
+                        "CRIAR JOGO / CONTROLADOR",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 16.sp
+                    )
+                }
+
+                OutlinedButton(
+                    onClick = { onSelect(AppRole.PORTAL) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFF4EA7FF)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF4EA7FF)
+                    )
+                ) {
+                    Text(
+                        "PORTAL WEB / MINHA CONTA",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
         }
 
+        // Selection Modal
         if (choosingEntry) {
             Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = .78f))
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = .82f))
                     .clickable { choosingEntry = false }
             )
             Column(
                 Modifier
                     .align(Alignment.Center)
-                    .fillMaxWidth(.86f)
-                    .background(Color(0xFF0C0D09))
-                    .border(1.dp, Color(0xFFC06C22))
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxWidth(.88f)
+                    .background(Color(0xFF10171A), shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, Color(0xFFF2B84B), shape = RoundedCornerShape(12.dp))
+                    .padding(22.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Text("ENTRAR NA OPERAÇÃO", color = Color(0xFFF0DFB6), fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                Text("Escolha como este aparelho será usado.", color = Color(0xFFB7B09B))
-                Button(
-                    onClick = { onSelect(AppRole.ARTIFACT) },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                    shape = RoundedCornerShape(3.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B5526), contentColor = Color(0xFFFFEBC0))
-                ) { Text("ARTEFATO / BOMBA", fontWeight = FontWeight.Bold, fontSize = 17.sp) }
+                Text(
+                    "ENTRAR NA OPERAÇÃO",
+                    color = Color(0xFFF2B84B),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    "Escolha como este dispositivo será utilizado na partida:",
+                    color = Color(0xFFC4D2CE),
+                    fontSize = 13.sp
+                )
                 Button(
                     onClick = { onSelect(AppRole.PLAYER) },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
-                    shape = RoundedCornerShape(3.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4B5526), contentColor = Color(0xFFFFEBC0))
-                ) { Text("JOGADOR", fontWeight = FontWeight.Bold, fontSize = 17.sp) }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF34D399),
+                        contentColor = Color(0xFF03110C)
+                    )
+                ) {
+                    Text("JOGADOR", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
                 Button(
-                    onClick = { onSelect(AppRole.PORTAL) },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(3.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C3118), contentColor = Color(0xFFE8D4A8))
-                ) { Text("MINHA CONTA / PORTAL WEB", fontWeight = FontWeight.Bold, fontSize = 15.sp) }
+                    onClick = { onSelect(AppRole.ARTIFACT) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFB4E4E),
+                        contentColor = Color(0xFF190404)
+                    )
+                ) {
+                    Text("DISPOSITIVO BOMBA / ARTEFATO", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
                 OutlinedButton(
                     onClick = { choosingEntry = false },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(3.dp)
-                ) { Text("CANCELAR") }
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text("CANCELAR", color = Color(0xFF8FA09A))
+                }
             }
         }
     }
