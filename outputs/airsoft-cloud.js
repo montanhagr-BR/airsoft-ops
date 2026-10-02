@@ -344,9 +344,10 @@ const AirsoftCloud = (() => {
     header.className = 'cloudHeader';
     header.hidden = true;
     header.innerHTML = '<div><small>OPERAÇÃO</small><b data-operation-title>OPERAÇÃO</b></div>' +
-      '<nav><button data-leave-control type="button">Sair do controle</button><button class="danger" data-close-room type="button">Fechar sala</button><button data-leave-room type="button">Sair da sala</button></nav>';
+      '<nav><button data-menu type="button">Retornar ao menu</button><button data-leave-control type="button">Sair do controle</button><button class="danger" data-close-room type="button">Fechar sala</button><button data-leave-room type="button">Sair da sala</button></nav>';
     document.body.appendChild(header);
     header.querySelector('[data-leave-control]').onclick = leaveControl;
+    header.querySelector('[data-menu]').onclick = leaveControl;
     header.querySelector('[data-close-room]').onclick = closeRoom;
     header.querySelector('[data-leave-room]').onclick = leaveRoom;
     renderHeader();
@@ -356,8 +357,12 @@ const AirsoftCloud = (() => {
     mountHeader();
     window.addEventListener('airsoft-state', event => scheduleSync(event.detail));
     if (!connection) return;
-    try { await subscribe(); } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); }
-    renderGate();
+    try {
+      await subscribe();
+      if (leaving || !connection) return;
+      openApp();
+      window.dispatchEvent(new CustomEvent('airsoft-room-ready'));
+    } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
   return { createRoom, joinRoom, leaveRoom };

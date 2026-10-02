@@ -7,10 +7,10 @@
   <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
-  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
+  <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261001-1"></script>
   <script src="airsoft-maps.js?v=20261001-1"></script>
-  <script src="airsoft-cloud.js?v=20261002-8" defer></script>
+  <script src="airsoft-cloud.js?v=20261002-9" defer></script>
   <style>
     * { box-sizing: border-box; }
     html { min-width: 0; overflow-x: hidden; }
@@ -217,7 +217,7 @@
   <nav class="controlTabs" aria-label="Áreas do controle">
     <button class="active" data-control-tab="operation">Operação</button>
     <button data-control-tab="config">Configuração</button>
-    <button data-control-tab="teams">Equipes</button>
+    <button data-control-tab="teams">Pré-cadastro / Equipes</button>
     <button data-control-tab="map">Mapa</button>
   </nav>
   <div class="grid">
@@ -1196,7 +1196,11 @@
     googleTacticalMap = instance;
     if (instance) renderTeamControl(AirsoftBus.read());
   });
-  showControlTab('operation');
+  showControlTab('teams');
+  window.addEventListener('airsoft-room-ready', () => {
+    const state = AirsoftBus.read();
+    showControlTab(state.running || state.finished ? 'operation' : 'teams');
+  });
   start.onclick = () => {
     saveConfig();
     AirsoftBus.update(s => {
@@ -1206,6 +1210,8 @@
         applyActiveBomb(s);
       }
       s.running = true;
+      s.startedAt = Date.now();
+      s.log = [];
       s.finished = false;
       s.bombState = s.mode === 'Roubo de dados' ? 'Notebook travado' : s.mode === 'Dominação de terminal' ? 'Terminal neutro' : s.mode === 'Localização de artefato' ? 'Localizador pronto' : 'Jogo ativo';
       s.phase = s.mode === 'Roubo de dados' ? 'Aguardando invasão' : s.mode === 'Dominação de terminal' ? 'Aguardando captura' : s.mode === 'Localização de artefato' ? 'Aguardando sinal GPS' : 'Partida em andamento';
@@ -1247,6 +1253,7 @@
       s.locatorMovementMeters = 0;
     });
     AirsoftBus.log('Controlador iniciou o jogo.');
+    showControlTab('operation');
     const current = AirsoftBus.read();
     showPopup('Jogo iniciado', isDataMode(current) ? 'O notebook travado está no ar. Jogadores já podem validar QR e iniciar invasão ou defesa.' : isTerminalMode(current) ? 'O terminal está neutro. Os times podem capturar com QR no celular e OK no terminal.' : isLocatorMode(current) ? 'O localizador está pronto. Ative o sinal e confirme as coordenadas do artefato.' : 'A bomba e os celulares já podem receber ações dos jogadores.');
   };
@@ -1442,6 +1449,8 @@
     showPopup('Desarme remoto concluído', active.name + ' foi neutralizada pelo Centro de comando.', 'Controle');
   };
   ticker = setInterval(() => {
+    const currentState = AirsoftBus.read();
+    if (!currentState.running || currentState.finished) return;
     AirsoftBus.update(s => {
       if (!s.running || s.finished) return;
       s.gameSeconds = Math.max(0, s.gameSeconds - 1);

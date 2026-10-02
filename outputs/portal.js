@@ -206,6 +206,13 @@ const AirsoftPortal = (() => {
     renderState();
   }
 
+  function menu() {
+    recoveringPassword = false;
+    currentTab = 'login';
+    setStatus('');
+    access();
+  }
+
   function newRegistration() {
     const form = document.getElementById('preRegistrationForm');
     form.reset();
@@ -567,6 +574,7 @@ const AirsoftPortal = (() => {
   return {
     access,
     home,
+    menu,
     newRegistration,
     finishGame,
     getClient,
