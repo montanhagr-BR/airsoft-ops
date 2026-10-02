@@ -112,15 +112,28 @@
         }
         const areas = (state.tacticalAreas || []).filter(area => !team || area.visibility === 'all' || area.visibility === team);
         areas.forEach(area => {
-          if (!hasPosition(area)) return;
           const color = areaColor(area.type);
-          const circle = new maps.Circle({
-            map, center:{ lat:Number(area.lat), lng:Number(area.lng) }, radius:Number(area.radiusMeters || 50),
-            strokeColor:color, strokeOpacity:.95, strokeWeight:2, fillColor:color, fillOpacity:.2,
-            clickable:false
-          });
-          overlays.push(circle);
-          bounds.extend(circle.getCenter());
+          if (area.points && area.points.length >= 3) {
+            const polyPath = area.points.filter(hasPosition).map(p => ({ lat:Number(p.lat), lng:Number(p.lng) }));
+            if (polyPath.length >= 3) {
+              const polygon = new maps.Polygon({
+                map, paths: polyPath,
+                strokeColor: color, strokeOpacity: 0.95, strokeWeight: 2,
+                fillColor: color, fillOpacity: 0.28,
+                clickable: false
+              });
+              overlays.push(polygon);
+              polyPath.forEach(pt => bounds.extend(pt));
+            }
+          } else if (hasPosition(area)) {
+            const circle = new maps.Circle({
+              map, center:{ lat:Number(area.lat), lng:Number(area.lng) }, radius:Number(area.radiusMeters || 50),
+              strokeColor:color, strokeOpacity:.95, strokeWeight:2, fillColor:color, fillOpacity:.2,
+              clickable:false
+            });
+            overlays.push(circle);
+            bounds.extend(circle.getCenter());
+          }
         });
         ['ct','terrorist'].forEach(teamId => {
           if (team && team !== teamId) return;
