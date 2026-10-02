@@ -251,6 +251,24 @@ const AirsoftPortal = (() => {
     await loadUserSessions();
   }
 
+  async function finishGame(session) {
+    if (!currentUser || session.status === 'finished' || session.status === 'archived') return;
+    if (!confirm('Encerrar este jogo? Os cronômetros e as inscrições serão encerrados.')) return;
+    try {
+      const client = getClient();
+      const snapshot = await client.from('game_sessions').select('state').eq('id', session.id).eq('controller_id', currentUser.id).single();
+      if (snapshot.error) throw snapshot.error;
+      const state = { ...snapshot.data.state, running: false, finished: true,
+        bombState: 'Fim de jogo', phase: 'Encerrado pelo Controlador', winner: 'Sem vencedor',
+        pending: null, operation: null, bombSeconds: null };
+      const result = await client.from('game_sessions').update({ state, status: 'finished',
+        registration_open: false, updated_at: new Date().toISOString() }).eq('id', session.id).eq('controller_id', currentUser.id);
+      if (result.error) throw result.error;
+      setStatus('Jogo encerrado. Você pode iniciar outra partida. Arquive este jogo para liberar uma das 3 vagas.', 'ok');
+      await loadUserSessions();
+    } catch (error) { setStatus('Não foi possível encerrar o jogo: ' + error.message, 'error'); }
+  }
+
   async function updatePassword(password, confirmation) {
     if (!recoveringPassword || !currentUser) {
       setStatus('Abra o link de recuperacao enviado por e-mail.', 'error');
@@ -438,6 +456,15 @@ const AirsoftPortal = (() => {
           window.PreRegistration?.openOrganizer(session);
         });
         actions.append(organize);
+        if (session.status !== 'finished') {
+          const finish = document.createElement('button');
+          finish.type = 'button'; finish.className = 'btnDanger'; finish.textContent = 'Encerrar jogo';
+          finish.addEventListener('click', async () => {
+            finish.disabled = true;
+            try { await finishGame(session); } finally { finish.disabled = false; }
+          });
+          actions.append(finish);
+        }
         const archive = document.createElement('button');
         archive.type = 'button'; archive.className = 'btnSecondary'; archive.textContent = 'Arquivar';
         archive.disabled = session.status === 'running';
@@ -541,6 +568,7 @@ const AirsoftPortal = (() => {
     access,
     home,
     newRegistration,
+    finishGame,
     getClient,
     getUser: () => currentUser,
     initAuth,

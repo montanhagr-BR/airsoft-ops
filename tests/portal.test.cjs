@@ -126,6 +126,27 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   login.api.access();
   assert.equal(login.nodes.get('dashboardSection').hidden, false);
   assert.ok(login.calls.some(call => call[0] === 'my_waitlist_events'));
+  const ending = fixture();
+  await ending.api.initAuth();
+  ending.context.confirm = () => true;
+  let finalUpdate;
+  const endQuery = { select() { return this; }, eq() { return this; },
+    async single() { return { data: { state: { running: true, gameSeconds: 123, players: [{ id: 'player' }] } } }; },
+    update(value) { finalUpdate = value; return this; },
+    then(resolve) { resolve({ error: null }); },
+    neq() { return this; }, order() { return this; }, async limit() { return { data: [] }; } };
+  ending.client.from = () => endQuery;
+  await ending.api.finishGame({ id: 'room', status: 'running' });
+  assert.equal(finalUpdate.status, 'finished');
+  assert.equal(finalUpdate.registration_open, false);
+  assert.equal(finalUpdate.state.running, false);
+  assert.equal(finalUpdate.state.finished, true);
+  assert.equal(finalUpdate.state.gameSeconds, 123);
+  assert.equal(finalUpdate.state.players[0].id, 'player');
+  finalUpdate = null;
+  ending.context.confirm = () => false;
+  await ending.api.finishGame({ id: 'room', status: 'setup' });
+  assert.equal(finalUpdate, null);
   login.client.from = () => ({ select() { return this; }, eq() { return this; }, neq() { return this; }, order() { return this; }, async limit() { return { error: { message: 'offline' } }; } });
   await login.api.loadUserSessions();
   assert.equal(login.nodes.get('controllerCard').hidden, true);

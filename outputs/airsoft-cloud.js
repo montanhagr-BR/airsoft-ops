@@ -193,7 +193,8 @@ const AirsoftCloud = (() => {
       await leaveRoom();
       return;
     }
-    if (role === 'controller' || !payload.new.state) return;
+    if ((role === 'controller' && payload.new.status !== 'finished') || !payload.new.state) return;
+    if (payload.new.status === 'finished') clearTimeout(syncTimer);
     applyingRemote = true;
     AirsoftBus.write(payload.new.state);
     applyingRemote = false;
