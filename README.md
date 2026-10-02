@@ -24,7 +24,7 @@ Abra `outputs/teste-integrado.html` para testar as três interfaces juntas ou ab
 - `outputs/bomba.html`
 - `outputs/jogador.html`
 
-As telas trocam informações pelo armazenamento local do navegador. Para testes entre aparelhos reais será necessário substituir essa comunicação por um servidor, Wi-Fi ou Bluetooth.
+O teste integrado usa armazenamento local do navegador. As salas online usam Supabase para autenticacao, dados e atualizacoes entre aparelhos. Consulte `SUPABASE-SETUP.md` para configurar o banco.
 
 ## Documentação
 
@@ -33,7 +33,7 @@ As telas trocam informações pelo armazenamento local do navegador. Para testes
 
 ## Estado do projeto
 
-O aplicativo Android está em desenvolvimento. A versão nativa atual compartilha o estado apenas dentro do processo; o próximo marco será persistência local e pareamento real antes da integração com a nuvem.
+O aplicativo Android esta em desenvolvimento e abre as interfaces web em uma WebView com recursos locais e comunicacao Supabase. A maquina de estados Kotlin tem testes separados; o fluxo visual utilizado no app ainda precisa de testes de aparelho e reconexao.
 # Google Maps tático
 
 O módulo de mapas aceita fotografia aérea do Google Maps, bases de saída, jogadores, artefatos e áreas circulares com visibilidade por equipe.
@@ -47,5 +47,7 @@ Sem uma chave válida, o sistema mantém o mapa esquemático offline como altern
 
 # Portal web
 
-A página `outputs/index.html` é o acesso para notebooks usados como Controle ou Artefato. Ela oferece cadastro por e-mail/senha e login Google, mas não cria jogos. Consulte `AUTENTICACAO-WEB.md` para ativar os provedores e executar a migração de segurança do Controle.
+A página `outputs/index.html` e o inicio compartilhado pelo site e Android. O login aparece ao acessar; a sessao e mantida para usos posteriores. O painel permite criar operacoes, entrar como Controle, Artefato ou Jogador e preparar inscricoes antecipadas por link.
+
+Execute `supabase/migrations/005_pre_registration.sql` para ativar as inscricoes. Consulte `REVISAO-E-MELHORIAS.md` para o fluxo, limites atuais e opcoes visuais, de sistema e jogabilidade. Os testes locais do portal podem ser executados com `node tests/portal.test.cjs`.
 

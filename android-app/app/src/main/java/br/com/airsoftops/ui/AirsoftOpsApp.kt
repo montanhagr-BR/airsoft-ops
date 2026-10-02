@@ -76,7 +76,7 @@ fun AirsoftOpsApp(viewModel: GameViewModel = viewModel()) {
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when (state.selectedRole) {
-                null -> RoleSelection(viewModel::selectRole)
+                null -> PrototypeWebScreen(AppRole.PORTAL, viewModel::leaveRole)
                 AppRole.CONTROLLER -> PrototypeWebScreen(AppRole.CONTROLLER, viewModel::leaveRole)
                 AppRole.ARTIFACT -> PrototypeWebScreen(AppRole.ARTIFACT, viewModel::leaveRole)
                 AppRole.PLAYER -> PrototypeWebScreen(AppRole.PLAYER, viewModel::leaveRole)

@@ -196,6 +196,14 @@ const AirsoftCloud = (() => {
   async function subscribe() {
     if (!connection) return;
     await ensureAuth();
+    const snapshot = await client.from('game_sessions').select('state,status').eq('id', connection.sessionId).single();
+    if (snapshot.error) throw snapshot.error;
+    if (snapshot.data.status === 'archived') { await leaveRoom(); return; }
+    if (snapshot.data.state) {
+      applyingRemote = true;
+      try { AirsoftBus.write(snapshot.data.state); }
+      finally { applyingRemote = false; }
+    }
     if (channel) await client.removeChannel(channel);
     channel = client.channel('airsoft-' + connection.sessionId)
       .on('postgres_changes', { event:'UPDATE', schema:'public', table:'game_sessions', filter:'id=eq.' + connection.sessionId }, consumeSession)
