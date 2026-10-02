@@ -1,0 +1,6 @@
+{
+  "versionCode": 5,
+  "versionName": "1.4.0",
+  "updateUrl": "https://warm-hummingbird-8988f6.netlify.app/",
+  "changelog": "Suporte a múltiplas áreas táticas com nomes personalizados, desenho em polígono na Ferramenta 2 e autenticação Supabase."
+}

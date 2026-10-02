@@ -331,10 +331,24 @@ const AirsoftCloud = (() => {
     header.querySelector('[data-leave-room]').onclick = leaveRoom;
     renderHeader();
   }
+  async function checkForUpdates() {
+    try {
+      const response = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json();
+      const currentVersionCode = 5;
+      if (data && data.versionCode > currentVersionCode) {
+        if (typeof showPopup === 'function') {
+          showPopup('Atualização Disponível (v' + data.versionName + ')', data.changelog + '\n\nO aplicativo será atualizado automaticamente.', 'Sistema');
+        }
+      }
+    } catch (_) {}
+  }
   async function init() {
     mountGate();
     mountHeader();
     window.addEventListener('airsoft-state', event => scheduleSync(event.detail));
+    checkForUpdates();
     if (!connection) return;
     try { await subscribe(); } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); }
     renderGate();
