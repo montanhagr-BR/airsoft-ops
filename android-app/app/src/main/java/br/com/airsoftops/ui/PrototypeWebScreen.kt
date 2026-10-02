@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
@@ -65,10 +66,14 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             isFocusableInTouchMode = true
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.cacheMode = WebSettings.LOAD_NO_CACHE
+            settings.databaseEnabled = true
+            settings.cacheMode = WebSettings.LOAD_DEFAULT
             settings.allowFileAccess = false
             settings.allowContentAccess = false
             settings.mediaPlaybackRequiresUserGesture = false
+            val cookieManager = CookieManager.getInstance()
+            cookieManager.setAcceptCookie(true)
+            cookieManager.setAcceptThirdPartyCookies(this, true)
             addJavascriptInterface(AppSoundBridge(context), "AirsoftSound")
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(
@@ -154,7 +159,6 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     callback.invoke(origin, granted, false)
                 }
             }
-            clearCache(true)
             requestFocus()
             val suffix = if (role == AppRole.CONTROLLER) "" else "?android=1"
             loadUrl("https://airsoft.local/$page$suffix")

@@ -145,9 +145,16 @@
               const nameMarker = new maps.Marker({
                 map,
                 position: { lat: centerLat, lng: centerLng },
-                label: { text: area.name || 'Área', color: '#fff', fontWeight: '900', fontSize: '12px' },
-                icon: { path: maps.SymbolPath.CIRCLE, scale: 0 },
-                zIndex: 4
+                label: { text: area.name || 'Área', color: '#ffffff', fontWeight: '900', fontSize: '13px' },
+                icon: {
+                  path: maps.SymbolPath.CIRCLE,
+                  fillColor: color,
+                  fillOpacity: 0.92,
+                  strokeColor: '#ffffff',
+                  strokeWeight: 2,
+                  scale: 10
+                },
+                zIndex: 6
               });
               overlays.push(nameMarker);
             }
@@ -163,6 +170,18 @@
             const circleMarker = new maps.Marker({
               map,
               position: circle.getCenter(),
+              label: { text: area.name || 'Área', color: '#ffffff', fontWeight: '900', fontSize: '13px' },
+              icon: {
+                path: maps.SymbolPath.CIRCLE,
+                fillColor: color,
+                fillOpacity: 0.92,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+                scale: 10
+              },
+              zIndex: 6
+            });
+            overlays.push(circleMarker);
               label: { text: area.name || 'Área', color: '#fff', fontWeight: '900', fontSize: '12px' },
               icon: { path: maps.SymbolPath.CIRCLE, scale: 0 },
               zIndex: 4
