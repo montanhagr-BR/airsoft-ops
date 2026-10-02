@@ -41,7 +41,9 @@ const AirsoftPortal = (() => {
   }
 
   function getRedirectUrl() {
-    const url = new URL(window.location.href);
+    const url = new URL(window.location.protocol === 'file:'
+      ? (config.webRedirectUrl || 'https://warm-hummingbird-8988f6.netlify.app/')
+      : window.location.href);
     if (destination === 'registration') url.searchParams.set('flow', 'registration');
     return url.origin + url.pathname + url.search;
   }
@@ -128,7 +130,8 @@ const AirsoftPortal = (() => {
         email,
         password,
         options: {
-          data: { full_name: name || 'Operador' }
+          data: { full_name: String(name || '').trim() || 'Operador' },
+          emailRedirectTo: getRedirectUrl()
         }
       });
       if (error) throw error;
@@ -170,6 +173,10 @@ const AirsoftPortal = (() => {
       if (error) throw error;
       currentUser = null;
       accessRequested = false;
+      destination = 'dashboard';
+      currentTab = 'login';
+      recoveringPassword = false;
+      document.getElementById('formLogin').reset();
       for (const role of ['controller', 'artifact', 'player']) localStorage.removeItem('airsoft-cloud-session-v1-' + role);
       setStatus('Sessão encerrada.');
       renderState();
@@ -190,6 +197,8 @@ const AirsoftPortal = (() => {
 
   function home() {
     accessRequested = false;
+    destination = 'dashboard';
+    currentTab = 'login';
     setStatus('');
     renderState();
   }
