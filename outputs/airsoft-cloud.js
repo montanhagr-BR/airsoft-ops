@@ -299,6 +299,7 @@ const AirsoftCloud = (() => {
     document.documentElement.classList.add('cloudActive');
     if (gate) gate.hidden = true;
     renderHeader();
+    window.dispatchEvent(new CustomEvent('airsoft-room-ready'));
   }
   function renderGate() {
     if (!gate) return;
@@ -360,8 +361,8 @@ const AirsoftCloud = (() => {
     try {
       await subscribe();
       if (leaving || !connection) return;
-      openApp();
-      window.dispatchEvent(new CustomEvent('airsoft-room-ready'));
+      if (role === 'controller') renderGate();
+      else openApp();
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
