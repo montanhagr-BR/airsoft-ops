@@ -668,11 +668,20 @@
     }).join('') : '<p class="muted">Nenhum jogador encontrado.</p>';
     const mapFilter = mapTeamFilter.value === 'all' ? null : mapTeamFilter.value;
     const field = s.fieldBoundary || { points: [], closed: false };
-    finishFieldBoundary.disabled = field.closed || field.points.length < 3;
-    undoFieldBoundary.disabled = !field.points.length;
-    clearFieldBoundary.disabled = !field.points.length;
-    fieldDrawingHelp.textContent = (googleTacticalMap ? 'Mapa de satélite. ' : 'Mapa esquemático: posições relativas, sem coordenadas GPS. ') +
-      (field.closed ? 'Limite do campo definido. Escolha uma ferramenta para posicionar bases, áreas e artefato.' : field.points.length + ' pontos marcados. Marque pelo menos 3 pontos e clique em Fechar contorno.');
+    const activeTool = mapPlacementTool.value;
+    const activePts = s.activeDrawingPoints || [];
+    if (activeTool === 'polygon_area') {
+      finishFieldBoundary.disabled = activePts.length < 3;
+      undoFieldBoundary.disabled = !activePts.length;
+      clearFieldBoundary.disabled = !activePts.length;
+      fieldDrawingHelp.textContent = `Desenho da Área de Interesse: ${activePts.length} pontos marcados. Marque pelo menos 3 pontos e clique em Fechar Área de Interesse.`;
+    } else {
+      finishFieldBoundary.disabled = field.closed || (activePts.length < 3 && field.points.length < 3);
+      undoFieldBoundary.disabled = !activePts.length && !field.points.length;
+      clearFieldBoundary.disabled = !activePts.length && !field.points.length;
+      fieldDrawingHelp.textContent = (googleTacticalMap ? 'Mapa de satélite. ' : 'Mapa esquemático: posições relativas, sem coordenadas GPS. ') +
+        (field.closed ? 'Limite do campo definido. Escolha uma ferramenta para posicionar bases, áreas e artefato.' : (activePts.length || field.points.length) + ' pontos marcados. Marque pelo menos 3 pontos e clique em Fechar contorno.');
+    }
     if (googleTacticalMap) {
       googleTacticalMap.render(s, { filter:mapFilter });
     } else {
@@ -1152,57 +1161,90 @@
   rosterPrev.onclick = () => { rosterPage = Math.max(0, rosterPage - 1); renderTeamControl(AirsoftBus.read()); };
   rosterNext.onclick = () => { rosterPage += 1; renderTeamControl(AirsoftBus.read()); };
   mapTeamFilter.onchange = () => renderTeamControl(AirsoftBus.read());
-  let activePolygonPoints = [];
+  mapPlacementTool.onchange = () => {
+    const tool = mapPlacementTool.value;
+    AirsoftBus.update(s => {
+      s.activeDrawingTool = tool;
+      s.activeDrawingPoints = [];
+    });
+    if (tool === 'polygon_area') {
+      finishFieldBoundary.textContent = 'Fechar Área de Interesse';
+      undoFieldBoundary.textContent = 'Desfazer ponto';
+      clearFieldBoundary.textContent = 'Limpar área';
+    } else {
+      finishFieldBoundary.textContent = 'Fechar contorno';
+      undoFieldBoundary.textContent = 'Desfazer último ponto';
+      clearFieldBoundary.textContent = 'Limpar limite';
+    }
+  };
   function placeMapItem(point) {
     const tool = mapPlacementTool.value;
     if (tool === 'none') return;
     if (AirsoftBus.read().running) { showPopup('Campo bloqueado', 'Encerre a partida antes de alterar o campo.', 'Mapa'); return; }
     AirsoftBus.update(s => {
-      if (tool === 'boundary') {
-        const field = s.fieldBoundary || { points: [], closed: false };
-        if (!field.closed) s.fieldBoundary = { points: [...field.points, point], closed: false };
-      } else if (tool === 'polygon_area') {
-        activePolygonPoints.push(point);
-      } else if (tool === 'artifact') {
+      s.activeDrawingTool = tool;
+      s.activeDrawingPoints = [...(s.activeDrawingPoints || []), point];
+      if (tool === 'artifact') {
         s.fieldArtifact = point;
         if (point.lat != null && point.lng != null) { s.locatorArtifactLat = point.lat; s.locatorArtifactLng = point.lng; }
       } else if (tool === 'ct' || tool === 'terrorist') {
         s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
       }
-      return s;
     });
     AirsoftBus.log('Ponto adicionado ao mapa.');
   }
+
   finishFieldBoundary.onclick = () => {
     const tool = mapPlacementTool.value;
-    if (tool === 'polygon_area') {
-      if (activePolygonPoints.length < 3) { showPopup('Área incompleta', 'Marque pelo menos 3 pontos no mapa para fechar a área de interesse.', 'Mapa'); return; }
+    const current = AirsoftBus.read();
+    const pts = current.activeDrawingPoints || [];
+    if (tool === 'polygon_area' || current.activeDrawingTool === 'polygon_area') {
+      if (pts.length < 3) { showPopup('Área incompleta', 'Marque pelo menos 3 pontos no mapa para fechar a área de interesse.', 'Mapa'); return; }
       AirsoftBus.update(s => {
         s.tacticalAreas = [...(s.tacticalAreas || []), {
           id: 'area-' + Date.now(),
           name: tacticalAreaName.value.trim() || 'Área personalizada',
           type: tacticalAreaType.value,
           visibility: tacticalAreaVisibility.value,
-          points: [...activePolygonPoints],
+          points: [...pts],
           closed: true
         }];
+        s.activeDrawingPoints = [];
+        s.activeDrawingTool = null;
       });
-      activePolygonPoints = [];
       mapPlacementTool.value = 'none';
       AirsoftBus.log('Controlador adicionou uma área poligonal personalizada.');
     } else {
-      if (AirsoftBus.read().running) return;
-      AirsoftBus.update(s => { if (s.fieldBoundary?.points.length >= 3) s.fieldBoundary.closed = true; });
+      if (current.running) return;
+      if (pts.length < 3) { showPopup('Limite incompleto', 'Marque pelo menos 3 pontos no mapa para fechar o limite do campo.', 'Mapa'); return; }
+      AirsoftBus.update(s => {
+        s.fieldBoundary = { points: [...pts], closed: true };
+        s.activeDrawingPoints = [];
+        s.activeDrawingTool = null;
+      });
       mapPlacementTool.value = 'none';
     }
   };
+
   undoFieldBoundary.onclick = () => {
     if (AirsoftBus.read().running) return;
-    AirsoftBus.update(s => { if (s.fieldBoundary) s.fieldBoundary = { points: s.fieldBoundary.points.slice(0,-1), closed: false }; });
+    AirsoftBus.update(s => {
+      if (s.activeDrawingPoints && s.activeDrawingPoints.length > 0) {
+        s.activeDrawingPoints.pop();
+      }
+    });
   };
+
   clearFieldBoundary.onclick = () => {
     if (AirsoftBus.read().running) return;
-    AirsoftBus.update(s => { s.fieldBoundary = { points: [], closed: false }; });
+    const tool = mapPlacementTool.value;
+    AirsoftBus.update(s => {
+      s.activeDrawingPoints = [];
+      s.activeDrawingTool = null;
+      if (tool === 'boundary') {
+        s.fieldBoundary = { points: [], closed: false };
+      }
+    });
   };
   controlTeamMap.addEventListener('click', e => {
     if (googleTacticalMap) return;
