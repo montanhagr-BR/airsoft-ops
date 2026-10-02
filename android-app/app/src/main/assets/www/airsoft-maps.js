@@ -139,6 +139,17 @@
               });
               overlays.push(polygon);
               polyPath.forEach(pt => bounds.extend(pt));
+
+              const centerLat = polyPath.reduce((sum, p) => sum + p.lat, 0) / polyPath.length;
+              const centerLng = polyPath.reduce((sum, p) => sum + p.lng, 0) / polyPath.length;
+              const nameMarker = new maps.Marker({
+                map,
+                position: { lat: centerLat, lng: centerLng },
+                label: { text: area.name || 'Área', color: '#fff', fontWeight: '900', fontSize: '12px' },
+                icon: { path: maps.SymbolPath.CIRCLE, scale: 0 },
+                zIndex: 4
+              });
+              overlays.push(nameMarker);
             }
           } else if (hasPosition(area)) {
             const circle = new maps.Circle({
@@ -148,6 +159,15 @@
             });
             overlays.push(circle);
             bounds.extend(circle.getCenter());
+
+            const circleMarker = new maps.Marker({
+              map,
+              position: circle.getCenter(),
+              label: { text: area.name || 'Área', color: '#fff', fontWeight: '900', fontSize: '12px' },
+              icon: { path: maps.SymbolPath.CIRCLE, scale: 0 },
+              zIndex: 4
+            });
+            overlays.push(circleMarker);
           }
         });
         ['ct','terrorist'].forEach(teamId => {
