@@ -293,7 +293,19 @@ const AirsoftCloud = (() => {
       setStatus('Não foi possível abrir a câmera. Digite o código.', 'error');
     }
   }
-  function openApp() {
+  async function openApp() {
+    if (role === 'controller' && connection) {
+      const current = AirsoftBus.read();
+      if (!current.running && !current.finished) {
+        const preparation = { ...current, running: false, finished: false, startedAt: null,
+          playerRegistrationOpen: true, log: [], phase: 'Inscrições abertas · preparação', bombState: 'Pré-cadastro' };
+        const result = await client.from('game_sessions').update({ state: preparation, registration_open: true,
+          updated_at: new Date().toISOString() }).eq('id', connection.sessionId);
+        if (result.error) { setStatus('Não foi possível abrir as inscrições: ' + result.error.message, 'error'); return; }
+        applyingRemote = true;
+        try { AirsoftBus.write(preparation); } finally { applyingRemote = false; }
+      }
+    }
     stopScanner();
     document.documentElement.classList.remove('cloudLocked');
     document.documentElement.classList.add('cloudActive');

@@ -10,7 +10,7 @@
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261001-1"></script>
   <script src="airsoft-maps.js?v=20261001-1"></script>
-  <script src="airsoft-cloud.js?v=20261002-10" defer></script>
+  <script src="airsoft-cloud.js?v=20261002-11" defer></script>
   <style>
     * { box-sizing: border-box; }
     html { min-width: 0; overflow-x: hidden; }
@@ -889,7 +889,12 @@
     renderBombOperations(s);
     const bombMode = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
     bombSequenceConfig.hidden = !bombMode;
-    game.textContent = fmt(s.gameSeconds); bomb.textContent = fmt(s.bombSeconds); state.textContent = s.bombState; phase.textContent = s.phase;
+    const preparation = !s.running && !s.finished;
+    game.textContent = preparation ? 'Aguardando início' : fmt(s.gameSeconds);
+    bomb.textContent = preparation ? '--:--' : fmt(s.bombSeconds);
+    state.textContent = s.bombState; phase.textContent = s.phase;
+    start.disabled = s.running || s.finished;
+    end.disabled = !s.running;
     winner.textContent = s.winner || '----';
     modeSummary.textContent = isDataMode(s) ? 'Roubo de dados: notebook, pastas, download, descriptografia e envio' : isTerminalMode(s) ? 'Dominação: capturar, guardar e revalidar por QR antes de voltar a neutro' : isLocatorMode(s) ? 'Localização: celulares recebem distância e direção aproximada do artefato' : s.mode + ': ' + normalizedBombSequence(s).length + ' bomba(s) em sequência';
     team1QrName.textContent = s.team1Name;
@@ -1202,6 +1207,8 @@
     showControlTab(state.running || state.finished ? 'operation' : 'teams');
   });
   start.onclick = () => {
+    const beforeStart = AirsoftBus.read();
+    if (beforeStart.running || beforeStart.finished) return;
     saveConfig();
     AirsoftBus.update(s => {
       if (!isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s)) {
@@ -1210,6 +1217,7 @@
         applyActiveBomb(s);
       }
       s.running = true;
+      s.playerRegistrationOpen = false;
       s.startedAt = Date.now();
       s.log = [];
       s.finished = false;
