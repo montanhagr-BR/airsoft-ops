@@ -135,31 +135,68 @@ const AirsoftCloud = (() => {
     await leaveRoom();
     setStatus('Sala fechada', 'ok');
   }
+  let pendingControllerState = null;
+  let pendingMemberState = null;
+
   async function publishControllerState(state) {
-    if (!connection || role !== 'controller' || syncing) return;
+    if (!connection || role !== 'controller') return;
+    if (syncing) {
+      pendingControllerState = state;
+      return;
+    }
     syncing = true;
-    const result = await client.from('game_sessions').update({
-      state,
-      state_version:Number(state.cloudVersion || 0) + 1,
-      status:state.finished ? 'finished' : state.running ? 'running' : 'setup',
-      updated_at:new Date().toISOString()
-    }).eq('id', connection.sessionId);
-    syncing = false;
-    if (result.error) setStatus('Falha ao sincronizar: ' + result.error.message, 'error');
+    const stateToPublish = state;
+    pendingControllerState = null;
+    try {
+      const result = await client.from('game_sessions').update({
+        state: stateToPublish,
+        state_version: Number(stateToPublish.cloudVersion || 0) + 1,
+        status: stateToPublish.finished ? 'finished' : stateToPublish.running ? 'running' : 'setup',
+        updated_at: new Date().toISOString()
+      }).eq('id', connection.sessionId);
+      if (result.error) setStatus('Falha ao sincronizar: ' + result.error.message, 'error');
+    } catch (e) {
+      setStatus('Erro de rede: ' + e.message, 'error');
+    } finally {
+      syncing = false;
+      if (pendingControllerState) {
+        const next = pendingControllerState;
+        pendingControllerState = null;
+        publishControllerState(next);
+      }
+    }
   }
+
   async function publishMemberEvent(state) {
-    if (!connection || role === 'controller' || syncing) return;
+    if (!connection || role === 'controller') return;
+    if (syncing) {
+      pendingMemberState = state;
+      return;
+    }
     syncing = true;
-    const result = await client.from('game_events').insert({
-      session_id:connection.sessionId,
-      user_id:user.id,
-      device_id:deviceId(),
-      event_type:'state_proposal',
-      payload:{ state }
-    });
-    syncing = false;
-    if (result.error) setStatus('Falha ao enviar ação: ' + result.error.message, 'error');
+    const stateToPublish = state;
+    pendingMemberState = null;
+    try {
+      const result = await client.from('game_events').insert({
+        session_id: connection.sessionId,
+        user_id: user.id,
+        device_id: deviceId(),
+        event_type: 'state_proposal',
+        payload: { state: stateToPublish }
+      });
+      if (result.error) setStatus('Falha ao enviar ação: ' + result.error.message, 'error');
+    } catch (e) {
+      setStatus('Erro de rede: ' + e.message, 'error');
+    } finally {
+      syncing = false;
+      if (pendingMemberState) {
+        const next = pendingMemberState;
+        pendingMemberState = null;
+        publishMemberEvent(next);
+      }
+    }
   }
+
   function scheduleSync(state) {
     if (applyingRemote || !connection || !client) return;
     clearTimeout(syncTimer);

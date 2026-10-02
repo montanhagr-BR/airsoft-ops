@@ -363,7 +363,11 @@
       render(AirsoftBus.read());
     }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
   }
-  function currentPlayer(s = AirsoftBus.read()) { return (s.players || []).find(p => p.id === playerId); }
+  function currentPlayer(s = AirsoftBus.read()) {
+    const savedEmail = (typeof playerEmail !== 'undefined' && playerEmail ? playerEmail.value : '').trim().toLowerCase();
+    const savedPhone = (typeof playerPhone !== 'undefined' && playerPhone ? playerPhone.value : '').replace(/\D/g, '');
+    return (s.players || []).find(p => p.id === playerId || (savedEmail && p.email && p.email.toLowerCase() === savedEmail) || (savedPhone && p.phone && p.phone.replace(/\D/g, '') === savedPhone));
+  }
   function publishPlayerPosition(pos) {
     const s = AirsoftBus.read();
     const player = currentPlayer(s);
