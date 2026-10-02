@@ -14,6 +14,7 @@ const AirsoftCloud = (() => {
   let gate = null;
   let header = null;
   let scannerStream = null;
+  let leaving = false;
 
   function readConnection() {
     try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch { return null; }
@@ -102,23 +103,30 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Falha ao entrar', 'error'); }
   }
   async function leaveRoom() {
+    if (leaving) return;
+    leaving = true;
+    stopScanner();
     clearTimeout(syncTimer);
     clearInterval(heartbeat);
-    if (client && channel) await client.removeChannel(channel);
+    const previousChannel = channel;
     channel = null;
     saveConnection(null);
-    setStatus('Modo local');
-    document.documentElement.classList.add('cloudLocked');
-    renderGate();
+    if (client && previousChannel) client.removeChannel(previousChannel).catch(() => {});
+    returnToPortal();
+  }
+  function returnToPortal() {
+    const params = new URLSearchParams(location.search);
+    const target = new URL('index.html', location.href);
+    target.searchParams.set('flow', 'dashboard');
+    if (params.has('android')) target.searchParams.set('android', params.get('android'));
+    location.replace(target.href);
   }
   function leaveControl() {
+    leaving = true;
     stopScanner();
-    document.documentElement.classList.add('cloudLocked');
-    document.documentElement.classList.remove('cloudActive');
-    if (gate) {
-      gate.hidden = false;
-      renderGate();
-    }
+    clearTimeout(syncTimer);
+    clearInterval(heartbeat);
+    returnToPortal();
   }
   async function closeRoom() {
     if (role !== 'controller' || !connection) return;
@@ -170,7 +178,7 @@ const AirsoftCloud = (() => {
     if (result.error) setStatus('Falha ao enviar ação: ' + result.error.message, 'error');
   }
   function scheduleSync(state) {
-    if (applyingRemote || !connection || !client) return;
+    if (leaving || applyingRemote || !connection || !client) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
       if (role === 'controller') publishControllerState(state);
@@ -318,6 +326,7 @@ const AirsoftCloud = (() => {
       '<h1 data-member-start>Entrar na sala</h1><div data-member-start><p>Digite o código fornecido pelo Controlador ou leia o QR Code.</p><div class="cloudCodeEntry"><input data-gate-code maxlength="6" inputmode="text" placeholder="CÓDIGO"><button data-gate-join type="button">Entrar</button></div><button class="secondary" data-gate-scan type="button">Ler QR Code</button></div>' +
       '<div data-connected-start hidden><p class="cloudReady">SALA PRONTA</p><h2 data-gate-operation>OPERAÇÃO</h2><strong data-gate-room>------</strong><img data-gate-qr alt="QR Code para entrar na sala"><button data-gate-enter type="button">Abrir</button><button class="secondary" data-gate-change type="button">Sair da sala</button></div>' +
       '<div data-cloud-scanner hidden><video playsinline muted></video><button class="secondary" data-scan-close type="button">Fechar câmera</button></div>' +
+      '<button class="secondary" data-gate-home type="button">Voltar ao painel principal</button>' +
       '<small data-gate-status>Conexão segura via Supabase</small></div>';
     document.body.appendChild(gate);
     gate.querySelector('[data-gate-create]').onclick = createRoom;
@@ -327,6 +336,7 @@ const AirsoftCloud = (() => {
     gate.querySelector('[data-scan-close]').onclick = stopScanner;
     gate.querySelector('[data-gate-enter]').onclick = openApp;
     gate.querySelector('[data-gate-change]').onclick = leaveRoom;
+    gate.querySelector('[data-gate-home]').onclick = leaveControl;
     renderGate();
   }
   function mountHeader() {

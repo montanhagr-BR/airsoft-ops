@@ -590,5 +590,5 @@ document.addEventListener('DOMContentLoaded', () => {
   AirsoftPortal.initAuth();
   const params = new URLSearchParams(window.location.search);
   if (params.has('registration') || params.get('flow') === 'registration') AirsoftPortal.access('registration');
-  else if (window.location.hash.includes('access_token') || params.has('code')) AirsoftPortal.access();
+  else if (params.get('flow') === 'dashboard' || window.location.hash.includes('access_token') || params.has('code')) AirsoftPortal.access();
 });
