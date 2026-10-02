@@ -58,8 +58,10 @@
     }
     element.innerHTML = '';
     element.classList.add('googleMapActive');
+
+    const defaultCenter = config.defaultCenter || { lat:-15.6014, lng:-56.0979 };
     const map = new maps.Map(element, {
-      center: config.defaultCenter || { lat:-15.6014, lng:-56.0979 },
+      center: defaultCenter,
       zoom: Number(config.defaultZoom || 17),
       mapTypeId: 'satellite',
       mapTypeControl: true,
@@ -67,6 +69,16 @@
       fullscreenControl: true,
       gestureHandling: 'greedy'
     });
+
+    // Automatically center map on Controller's GPS location if available
+    if (navigator.geolocation) {
+      try {
+        navigator.geolocation.getCurrentPosition(position => {
+          map.setCenter({ lat: position.coords.latitude, lng: position.coords.longitude });
+        }, () => {}, { timeout: 6000, maximumAge: 60000 });
+      } catch (_) {}
+    }
+
     let overlays = [];
     let fitted = false;
     let userMoved = false;
