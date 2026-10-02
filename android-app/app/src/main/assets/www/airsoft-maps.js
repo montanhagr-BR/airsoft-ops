@@ -105,6 +105,21 @@
           overlays.push(contour);
           fieldPath.forEach(point => bounds.extend(point));
         }
+
+        const drawingPoints = (state.activeDrawingPoints || []).filter(hasPosition).map(p => ({ lat:Number(p.lat), lng:Number(p.lng) }));
+        if (drawingPoints.length) {
+          const draftLine = new maps.Polyline({
+            map, path: drawingPoints, strokeColor: '#e4b83f', strokeWeight: 3, strokeOpacity: 0.9,
+            clickable: false
+          });
+          overlays.push(draftLine);
+          drawingPoints.forEach(pt => {
+            const dot = new maps.Marker({ map, position: pt, icon: { path: maps.SymbolPath.CIRCLE, scale: 6, fillColor: '#e4b83f', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 1 }, zIndex: 10 });
+            overlays.push(dot);
+            bounds.extend(pt);
+          });
+        }
+
         if (!team && hasPosition(state.fieldArtifact)) {
           const point = { lat:Number(state.fieldArtifact.lat), lng:Number(state.fieldArtifact.lng) };
           overlays.push(makeMarker(maps, map, point, { title:'Posição planejada do artefato', label:'A', color:'#c69b2b', shape:'diamond', zIndex:6 }));
