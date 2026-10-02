@@ -322,11 +322,11 @@
         <div class="sectionHead"><div><h2>Rastreamento da partida</h2><p>Posições relativas recebidas dos celulares aprovados e do artefato.</p></div><span class="sectionTag">Mapa</span></div>
         <div class="two"><label>Exibir no mapa <select id="mapTeamFilter"><option value="all">Todos</option><option value="ct">Time 1</option><option value="terrorist">Time 2</option></select></label><div class="mapLegend"><span>● Time 1</span><span>■ Time 2</span><span>◆ Artefato</span></div></div>
         <div class="mapPlanner">
-          <label>Ferramenta<select id="mapPlacementTool"><option value="none">Somente visualizar</option><option value="boundary">Desenhar limite do campo</option><option value="ct">Base Time 1</option><option value="terrorist">Base Time 2</option><option value="area">Nova área</option><option value="artifact">Posição do artefato</option></select></label>
+          <label>Ferramenta<select id="mapPlacementTool"><option value="none">Somente visualizar</option><option value="boundary">1. Desenhar Limite do Campo (Campo)</option><option value="polygon_area">2. Desenhar Área (Safe Zone / Objetivo / Risco)</option><option value="ct">3. Base Time 1 (Início)</option><option value="terrorist">4. Base Time 2 (Início)</option><option value="artifact">5. Posição Inicial da Bomba</option></select></label>
           <label>Nome da área<input id="tacticalAreaName" maxlength="32" value="Ponto estratégico"></label>
           <label>Tipo<select id="tacticalAreaType"><option value="objective">Objetivo</option><option value="risk">Risco</option><option value="safe">Área segura</option><option value="restricted">Restrita</option></select></label>
           <label>Visível para<select id="tacticalAreaVisibility"><option value="all">Todos</option><option value="ct">Somente Time 1</option><option value="terrorist">Somente Time 2</option><option value="controller">Somente Controlador</option></select></label>
-          <label>Raio da área<select id="tacticalAreaRadius"><option value="25">25 metros</option><option value="50" selected>50 metros</option><option value="100">100 metros</option><option value="200">200 metros</option></select></label>
+          <label>Raio da área<select id="tacticalAreaRadius" hidden><option value="50" selected>50 metros</option></select></label>
         </div>
         <div class="mapPlannerActions"><button id="centerMapOnMe" type="button">Minha localização</button><button id="clearStartPositions" type="button">Limpar bases</button><button id="clearTacticalAreas" class="danger" type="button">Limpar áreas</button><span class="muted">Use a imagem de satélite, escolha uma ferramenta e toque no local desejado.</span></div>
         <div class="organizationLegend" id="organizationLegend"></div>
@@ -1152,6 +1152,7 @@
   rosterPrev.onclick = () => { rosterPage = Math.max(0, rosterPage - 1); renderTeamControl(AirsoftBus.read()); };
   rosterNext.onclick = () => { rosterPage += 1; renderTeamControl(AirsoftBus.read()); };
   mapTeamFilter.onchange = () => renderTeamControl(AirsoftBus.read());
+  let activePolygonPoints = [];
   function placeMapItem(point) {
     const tool = mapPlacementTool.value;
     if (tool === 'none') return;
@@ -1160,24 +1161,40 @@
       if (tool === 'boundary') {
         const field = s.fieldBoundary || { points: [], closed: false };
         if (!field.closed) s.fieldBoundary = { points: [...field.points, point], closed: false };
+      } else if (tool === 'polygon_area') {
+        activePolygonPoints.push(point);
       } else if (tool === 'artifact') {
         s.fieldArtifact = point;
         if (point.lat != null && point.lng != null) { s.locatorArtifactLat = point.lat; s.locatorArtifactLng = point.lng; }
-      } else if (tool === 'ct' || tool === 'terrorist') s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
-      else s.tacticalAreas = [...(s.tacticalAreas || []), {
-        id:'area-' + Date.now(), name:tacticalAreaName.value.trim() || 'Área estratégica',
-        type:tacticalAreaType.value, visibility:tacticalAreaVisibility.value,
-        radiusMeters:Number(tacticalAreaRadius.value), radius:14, ...point
-      }];
+      } else if (tool === 'ct' || tool === 'terrorist') {
+        s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
+      }
       return s;
     });
-    AirsoftBus.log(tool === 'area' ? 'Controlador adicionou uma área estratégica ao mapa.' : 'Controlador definiu uma base inicial no mapa.');
-    if (!['area','boundary'].includes(tool)) mapPlacementTool.value = 'none';
+    AirsoftBus.log('Ponto adicionado ao mapa.');
   }
   finishFieldBoundary.onclick = () => {
-    if (AirsoftBus.read().running) return;
-    AirsoftBus.update(s => { if (s.fieldBoundary?.points.length >= 3) s.fieldBoundary.closed = true; });
-    mapPlacementTool.value = 'none';
+    const tool = mapPlacementTool.value;
+    if (tool === 'polygon_area') {
+      if (activePolygonPoints.length < 3) { showPopup('Área incompleta', 'Marque pelo menos 3 pontos no mapa para fechar a área de interesse.', 'Mapa'); return; }
+      AirsoftBus.update(s => {
+        s.tacticalAreas = [...(s.tacticalAreas || []), {
+          id: 'area-' + Date.now(),
+          name: tacticalAreaName.value.trim() || 'Área personalizada',
+          type: tacticalAreaType.value,
+          visibility: tacticalAreaVisibility.value,
+          points: [...activePolygonPoints],
+          closed: true
+        }];
+      });
+      activePolygonPoints = [];
+      mapPlacementTool.value = 'none';
+      AirsoftBus.log('Controlador adicionou uma área poligonal personalizada.');
+    } else {
+      if (AirsoftBus.read().running) return;
+      AirsoftBus.update(s => { if (s.fieldBoundary?.points.length >= 3) s.fieldBoundary.closed = true; });
+      mapPlacementTool.value = 'none';
+    }
   };
   undoFieldBoundary.onclick = () => {
     if (AirsoftBus.read().running) return;
