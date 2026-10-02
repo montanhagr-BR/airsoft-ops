@@ -206,6 +206,51 @@ const AirsoftPortal = (() => {
     renderState();
   }
 
+  function newRegistration() {
+    const form = document.getElementById('preRegistrationForm');
+    form.reset();
+    form.elements.email.value = currentUser?.email || '';
+    form.elements.name.value = currentUser?.user_metadata?.full_name || '';
+    form.querySelector('button[type="submit"]').disabled = false;
+    document.getElementById('preRegistrationTitle').textContent = 'Inscrição antecipada';
+    document.getElementById('preRegistrationStatus').textContent = '';
+    document.getElementById('registrationNextActions').hidden = true;
+    access('registration');
+  }
+
+  async function loadWaitlistEvents() {
+    const list = document.getElementById('myWaitlistEvents');
+    if (!list || !currentUser) return;
+    const ownerId = currentUser.id;
+    list.textContent = 'Consultando inscrições...';
+    try {
+      const { data, error } = await getClient().rpc('my_waitlist_events');
+      if (currentUser?.id !== ownerId) return;
+      if (error) throw error;
+      list.textContent = '';
+      if (!data?.length) { list.textContent = 'Você ainda não está na lista de espera de nenhum evento.'; return; }
+      for (const event of data) {
+        const card = document.createElement('div');
+        card.className = 'sessionCard';
+        const label = document.createElement('span');
+        label.textContent = `${event.operation_name} | ${event.join_code} | ${event.event_status === 'running' ? 'Em andamento' : event.event_status === 'finished' ? 'Encerrado' : 'Lista de espera'}`;
+        const enter = document.createElement('button');
+        enter.type = 'button'; enter.className = 'btnSecondary'; enter.textContent = 'Participar';
+        enter.disabled = event.event_status === 'finished';
+        enter.addEventListener('click', () => joinGameSession(event.join_code, 'player'));
+        card.append(label, enter); list.append(card);
+      }
+    } catch (error) { if (currentUser?.id === ownerId) list.textContent = 'Não foi possível consultar seus eventos: ' + error.message; }
+  }
+
+  async function archiveGame(session) {
+    if (session.status === 'running') { setStatus('Encerre a partida antes de arquivar.', 'error'); return; }
+    if (!confirm('Arquivar esta partida e liberar uma das 3 vagas?')) return;
+    const { error } = await getClient().from('game_sessions').update({ status: 'archived', registration_open: false, updated_at: new Date().toISOString() }).eq('id', session.id);
+    if (error) { setStatus(error.message, 'error'); return; }
+    await loadUserSessions();
+  }
+
   async function updatePassword(password, confirmation) {
     if (!recoveringPassword || !currentUser) {
       setStatus('Abra o link de recuperacao enviado por e-mail.', 'error');
@@ -331,6 +376,7 @@ const AirsoftPortal = (() => {
   async function loadUserSessions() {
     const listEl = document.getElementById('mySessionsList');
     if (!listEl || !currentUser) return;
+    loadWaitlistEvents();
     const request = ++sessionsRequest;
     const ownerId = currentUser.id;
     const controllerCard = document.getElementById('controllerCard');
@@ -345,7 +391,7 @@ const AirsoftPortal = (() => {
         .eq('controller_id', ownerId)
         .neq('status', 'archived')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(100);
 
       if (request !== sessionsRequest || currentUser?.id !== ownerId) return;
       if (error) throw error;
@@ -366,7 +412,7 @@ const AirsoftPortal = (() => {
         heading.textContent = name;
         const description = document.createElement('small');
         description.className = 'muted';
-        description.textContent = `Codigo: ${session.join_code} | Status: ${session.status}`;
+        description.textContent = `Código: ${session.join_code} | ${session.status === 'running' ? 'Em andamento' : session.status === 'finished' ? 'Encerrado' : 'Preparação / lista de espera'}`;
         details.append(heading, description);
         const actions = document.createElement('div');
         actions.style.cssText = 'display:flex; gap:6px;';
@@ -385,13 +431,18 @@ const AirsoftPortal = (() => {
         const organize = document.createElement('button');
         organize.type = 'button';
         organize.className = 'btnSecondary';
-        organize.textContent = 'Inscrições';
+        organize.textContent = 'Lista de espera';
         organize.addEventListener('click', () => {
           destination = 'organizer';
           renderState();
           window.PreRegistration?.openOrganizer(session);
         });
         actions.append(organize);
+        const archive = document.createElement('button');
+        archive.type = 'button'; archive.className = 'btnSecondary'; archive.textContent = 'Arquivar';
+        archive.disabled = session.status === 'running';
+        archive.addEventListener('click', () => archiveGame(session));
+        actions.append(archive);
         card.append(details, actions);
         listEl.append(card);
       });
@@ -489,6 +540,7 @@ const AirsoftPortal = (() => {
   return {
     access,
     home,
+    newRegistration,
     getClient,
     getUser: () => currentUser,
     initAuth,

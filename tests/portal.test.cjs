@@ -116,6 +116,16 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   login.client.from = () => ({ select() { return this; }, eq() { return this; }, neq() { return this; }, order() { return this; }, async limit() { return { data: [] }; } });
   await login.api.loadUserSessions();
   assert.equal(login.nodes.get('controllerCard').hidden, true);
+  const form = login.context.document.getElementById('preRegistrationForm');
+  form.elements = { email: { value: '' }, name: { value: '' } };
+  form.querySelector = () => ({ disabled: false });
+  form.reset = () => { form.elements.email.value = ''; form.elements.name.value = ''; };
+  login.api.newRegistration();
+  assert.equal(login.nodes.get('preRegistrationSection').hidden, false);
+  assert.equal(login.nodes.get('registrationNextActions').hidden, true);
+  login.api.access();
+  assert.equal(login.nodes.get('dashboardSection').hidden, false);
+  assert.ok(login.calls.some(call => call[0] === 'my_waitlist_events'));
   login.client.from = () => ({ select() { return this; }, eq() { return this; }, neq() { return this; }, order() { return this; }, async limit() { return { error: { message: 'offline' } }; } });
   await login.api.loadUserSessions();
   assert.equal(login.nodes.get('controllerCard').hidden, true);

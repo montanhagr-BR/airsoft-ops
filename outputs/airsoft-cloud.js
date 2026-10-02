@@ -145,7 +145,16 @@ const AirsoftCloud = (() => {
       updated_at:new Date().toISOString()
     }).eq('id', connection.sessionId);
     syncing = false;
-    if (result.error) setStatus('Falha ao sincronizar: ' + result.error.message, 'error');
+    if (result.error) {
+      // Restore the authoritative state when a limit rejects a local start.
+      const snapshot = await client.from('game_sessions').select('state').eq('id', connection.sessionId).single();
+      if (!snapshot.error && snapshot.data?.state) {
+        applyingRemote = true;
+        try { AirsoftBus.write(snapshot.data.state); } finally { applyingRemote = false; }
+      }
+      setStatus('Falha ao sincronizar: ' + result.error.message, 'error');
+      if (state.running) alert(result.error.message);
+    }
   }
   async function publishMemberEvent(state) {
     if (!connection || role === 'controller' || syncing) return;

@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="portal.css?v=20261002-3">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
-  <script src="portal.js?v=20261002-4" defer></script>
-  <script src="pre-registration.js?v=20261001-1" defer></script>
+  <script src="portal.js?v=20261002-5" defer></script>
+  <script src="pre-registration.js?v=20261002-5" defer></script>
 </head>
 <body>
 
@@ -139,7 +139,7 @@
         </div>
         <div class="opCard">
           <h2>Inscrição antecipada</h2>
-          <p>Envie seus dados antes do evento e acompanhe a aprovação da inscrição e a definição da equipe.</p>
+          <p>Entre na lista de espera para o organizador estimar quantos vão jogar. Você pode se inscrever em vários eventos.</p>
           <button class="btnPrimary" type="button" onclick="AirsoftPortal.access('registration')">Fazer inscrição antecipada</button>
         </div>
         <div class="opCard highlightCard" id="controllerCard" hidden>
@@ -148,9 +148,10 @@
           <div class="sessionList" id="mySessionsList" aria-live="polite"></div>
         </div>
       </div>
+      <section class="opCard"><h2>Meus eventos</h2><p>Suas inscrições antecipadas não impedem sua participação em outras partidas.</p><div id="myWaitlistEvents" class="sessionList" aria-live="polite"></div></section>
       <details class="opCard">
         <summary>Criar uma partida</summary>
-        <p>Crie sua operação para organizar inscrições e assumir o Controle.</p>
+        <p>Até 3 jogos por organizador, com apenas 1 iniciado por vez. Os demais podem receber inscrições antecipadas. Arquive um jogo para liberar uma vaga.</p>
         <div class="formGroup"><label for="newOpName">Nome da operação</label><input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Montanha"></div>
         <button class="btnPrimary" type="button" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)">Criar partida</button>
       </details>
@@ -164,6 +165,7 @@
     <section class="portalBox" id="preRegistrationSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar</button>
       <h2 id="preRegistrationTitle">Inscrição antecipada</h2>
+      <p>Esta é uma lista de espera para estimar o público. A participação e a equipe serão definidas quando você entrar na partida.</p>
       <form id="preRegistrationForm">
         <div class="registrationGrid">
           <label class="formGroup">Código da operação<input name="code" maxlength="6" pattern="[A-Za-z0-9]{6}" required></label>
@@ -178,12 +180,17 @@
         <button class="btnPrimary" type="submit">Enviar inscrição</button>
       </form>
       <p id="preRegistrationStatus" role="status"></p>
+      <div id="registrationNextActions" class="roleActionGrid" hidden>
+        <button class="btnPrimary" type="button" onclick="AirsoftPortal.access()">Participar de uma partida</button>
+        <button class="btnSecondary" type="button" onclick="AirsoftPortal.newRegistration()">Inscrever-se em outro evento</button>
+      </div>
       <button class="btnSecondary" id="refreshRegistration" type="button">Consultar inscrição</button>
     </section>
 
     <section class="portalBox" id="organizerSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar às operações</button>
-      <h2 id="organizerTitle">Preparação de equipes</h2>
+      <h2 id="organizerTitle">Lista de espera</h2>
+      <p>Interessados neste evento. A lista não aprova jogadores nem define equipes; faça isso no Controle quando entrarem na partida.</p>
       <label class="consentLine"><input id="preRegistrationOpen" type="checkbox"> Inscrições antecipadas abertas</label>
       <div class="shareRow"><input id="registrationLink" readonly aria-label="Link de inscrição"><button class="btnSecondary" id="copyRegistrationLink" type="button">Copiar link</button></div>
       <div class="rosterToolbar"><input id="preRegistrationSearch" placeholder="Buscar jogador ou agremiação" aria-label="Buscar inscrições"><button id="registrationPrev" type="button" class="btnSecondary">Anterior</button><span id="registrationPage"></span><button id="registrationNext" type="button" class="btnSecondary">Próxima</button></div>
