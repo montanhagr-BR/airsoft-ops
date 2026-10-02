@@ -43,6 +43,7 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   f.api.access();
   assert.equal(f.nodes.get('dashboardSection').hidden, false);
   await f.api.loadUserSessions();
+  assert.equal(f.nodes.get('controllerCard').hidden, false);
   assert.ok(f.calls.some(c => c[0] === 'filter' && c[1] === 'controller_id'));
   const card = f.nodes.get('mySessionsList').children.at(-1);
   assert.equal(card.children[0].children[0].textContent, "D'Agua <teste>");
@@ -73,6 +74,7 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   assert.equal(f.storage.get('airsoft-cloud-session-v1-artifact'), undefined);
   assert.equal(f.nodes.get('welcomeSection').hidden, false);
   assert.equal(f.nodes.get('authSection').hidden, true);
+  assert.equal(f.nodes.get('controllerCard').hidden, true);
   const anonymous = fixture({ id: 'guest', is_anonymous: true });
   await anonymous.api.initAuth();
   anonymous.api.access();
@@ -111,5 +113,11 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   login.client.auth.signInWithPassword = async () => ({ data: { user: { id: 'owner' } } });
   await login.api.loginWithEmail('test@example.com', 'abcdef');
   assert.equal(login.nodes.get('dashboardSection').hidden, false);
+  login.client.from = () => ({ select() { return this; }, eq() { return this; }, neq() { return this; }, order() { return this; }, async limit() { return { data: [] }; } });
+  await login.api.loadUserSessions();
+  assert.equal(login.nodes.get('controllerCard').hidden, true);
+  login.client.from = () => ({ select() { return this; }, eq() { return this; }, neq() { return this; }, order() { return this; }, async limit() { return { error: { message: 'offline' } }; } });
+  await login.api.loadUserSessions();
+  assert.equal(login.nodes.get('controllerCard').hidden, true);
   console.log('PASS: inicio, sessao, salas, dispositivo, inscricao, nome seguro, senha e acesso negado.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -6,6 +6,7 @@ const AirsoftPortal = (() => {
   let accessRequested = false;
   let destination = 'dashboard';
   let currentTab = 'login'; // 'login', 'signup', 'reset'
+  let sessionsRequest = 0;
 
   function getClient() {
     if (!supabase) {
@@ -172,6 +173,8 @@ const AirsoftPortal = (() => {
       const { error } = await client.auth.signOut();
       if (error) throw error;
       currentUser = null;
+      sessionsRequest++;
+      document.getElementById('controllerCard').hidden = true;
       accessRequested = false;
       destination = 'dashboard';
       currentTab = 'login';
@@ -328,22 +331,31 @@ const AirsoftPortal = (() => {
   async function loadUserSessions() {
     const listEl = document.getElementById('mySessionsList');
     if (!listEl || !currentUser) return;
+    const request = ++sessionsRequest;
+    const ownerId = currentUser.id;
+    const controllerCard = document.getElementById('controllerCard');
+    const status = document.getElementById('sessionsStatus');
+    if (controllerCard) controllerCard.hidden = true;
+    if (status) status.textContent = 'Consultando suas partidas...';
     try {
       const client = getClient();
       const { data, error } = await client
         .from('game_sessions')
         .select('id, join_code, status, state, created_at')
-        .eq('controller_id', currentUser.id)
+        .eq('controller_id', ownerId)
         .neq('status', 'archived')
         .order('created_at', { ascending: false })
         .limit(5);
 
+      if (request !== sessionsRequest || currentUser?.id !== ownerId) return;
       if (error) throw error;
+      if (status) status.textContent = '';
       if (!data || data.length === 0) {
         listEl.innerHTML = '<p class="muted">Nenhuma operação ativa criada por você no momento.</p>';
         return;
       }
 
+      if (controllerCard) controllerCard.hidden = false;
       listEl.innerHTML = '';
       data.forEach(session => {
         const name = (session.state && session.state.operationName) || 'OPERAÇÃO';
@@ -384,6 +396,8 @@ const AirsoftPortal = (() => {
         listEl.append(card);
       });
     } catch (err) {
+      if (request !== sessionsRequest || currentUser?.id !== ownerId) return;
+      if (status) status.textContent = 'Não foi possível consultar suas partidas. Acesse o painel novamente para tentar.';
       listEl.innerHTML = `<p class="muted" style="color:var(--portal-error);">Não foi possível carregar suas salas: ${escapeHtml(err.message)}</p>`;
     }
   }

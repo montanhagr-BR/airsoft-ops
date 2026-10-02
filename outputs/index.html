@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="portal.css?v=20261002-3">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
-  <script src="portal.js?v=20261002-2" defer></script>
+  <script src="portal.js?v=20261002-4" defer></script>
   <script src="pre-registration.js?v=20261001-1" defer></script>
 </head>
 <body>
@@ -128,65 +128,39 @@
 
     <!-- TELA 2: DASTBOARD (EXIBIDA APÓS O LOGIN) -->
     <section class="portalBox" id="dashboardSection" hidden>
-      <h1>Painel de Operações</h1>
-      <button class="btnSecondary" type="button" onclick="AirsoftPortal.access('registration')">Inscrever-se em uma partida</button>
-      <p>Selecione se deseja gerenciar o jogo como **Controle** ou transformar este notebook em uma **Bomba**.</p>
-
+      <h1>O que você deseja fazer?</h1>
+      <p>Entre em uma partida ou prepare sua próxima operação.</p>
       <div class="dashboardGrid">
-
-        <!-- CARD 1: CONTROLE -->
-        <div class="opCard highlightCard">
-          <div class="opCardHeader">
-            <h2>CONTROLE</h2>
-            <span class="tagOwner">Exclusivo do Criador</span>
-          </div>
-          <p>Crie uma nova sala de operação ou acesse o controle das suas partidas ativas.</p>
-
-          <div class="formGroup">
-            <label for="newOpName">Nome da Operação</label>
-            <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Montanha">
-          </div>
-
-          <button class="btnPrimary" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)" type="button">
-            Criar Sala e Abrir Controle
-          </button>
-
-          <div style="margin-top: 8px;">
-            <label style="color:var(--portal-paper); font-size:11px; font-weight:bold; text-transform:uppercase;">Minhas Operações Ativas</label>
-            <div class="sessionList" id="mySessionsList" style="margin-top: 6px;">
-              <p class="muted">Carregando salas...</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- CARD 2: BOMBA (ARTEFATO NOTEBOOK) -->
         <div class="opCard">
-          <div class="opCardHeader">
-            <h2>BOMBA (NOTEBOOK)</h2>
-          </div>
-          <p>Transforme este notebook no artefato/bomba cenográfica de uma sala existente.</p>
-
-          <div class="formGroup">
-            <label for="joinRoomCode">Código da Sala (6 caracteres)</label>
-            <div class="codeEntry">
-              <input id="joinRoomCode" maxlength="6" placeholder="Ex.: A1B2C3" type="text">
-            </div>
-          </div>
-
-          <div class="roleActionGrid">
-            <button class="btnPrimary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'artifact')" type="button">
-              Entrar como Bomba
-            </button>
-            <button class="btnSecondary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'controller')" type="button">
-              Entrar como Controle
-            </button>
-            <button class="btnSecondary" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'player')" type="button">Entrar como Jogador</button>
-          </div>
+          <h2>Inscrever-se em uma partida</h2>
+          <p>Informe o código recebido do organizador para entrar como jogador. Sua participação depende da aprovação do Controle.</p>
+          <div class="formGroup"><label for="joinRoomCode">Código da partida</label><input id="joinRoomCode" maxlength="6" pattern="[A-Za-z0-9]{6}" placeholder="Ex.: A1B2C3" autocomplete="off"></div>
+          <button class="btnPrimary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'player')">Entrar na partida</button>
         </div>
-
+        <div class="opCard">
+          <h2>Inscrição antecipada</h2>
+          <p>Envie seus dados antes do evento e acompanhe a aprovação da inscrição e a definição da equipe.</p>
+          <button class="btnPrimary" type="button" onclick="AirsoftPortal.access('registration')">Fazer inscrição antecipada</button>
+        </div>
+        <div class="opCard highlightCard" id="controllerCard" hidden>
+          <h2>Controlador</h2>
+          <p>Gerencie as partidas que você criou, prepare as equipes e abra o Controle.</p>
+          <div class="sessionList" id="mySessionsList" aria-live="polite"></div>
+        </div>
       </div>
+      <details class="opCard">
+        <summary>Criar uma partida</summary>
+        <p>Crie sua operação para organizar inscrições e assumir o Controle.</p>
+        <div class="formGroup"><label for="newOpName">Nome da operação</label><input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Montanha"></div>
+        <button class="btnPrimary" type="button" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)">Criar partida</button>
+      </details>
+      <details class="opCard">
+        <summary>Configurar dispositivo como Bomba</summary>
+        <div class="formGroup"><label for="artifactRoomCode">Código da partida</label><input id="artifactRoomCode" maxlength="6" placeholder="Ex.: A1B2C3" autocomplete="off"></div>
+        <button class="btnSecondary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('artifactRoomCode').value, 'artifact')">Entrar como Bomba</button>
+      </details>
+      <p id="sessionsStatus" class="muted" role="status"></p>
     </section>
-
     <section class="portalBox" id="preRegistrationSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar</button>
       <h2 id="preRegistrationTitle">Inscrição antecipada</h2>
@@ -225,3 +199,4 @@
 
 </body>
 </html>
+
