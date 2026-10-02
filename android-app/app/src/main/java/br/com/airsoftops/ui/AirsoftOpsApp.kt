@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -96,112 +97,119 @@ private fun RoleSelection(onSelect: (AppRole) -> Unit) {
             .fillMaxSize()
             .background(Color(0xFF080C0B))
     ) {
-        Column(
+        // Full screen logo respecting aspect ratio
+        Image(
+            painter = painterResource(R.drawable.airsoft_ops_identity),
+            contentDescription = "Airsoft Ops Logo",
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+        )
+
+        // Gradient overlay for button legibility
+        Box(
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.25f),
+                            Color.Black.copy(alpha = 0.45f),
+                            Color.Black.copy(alpha = 0.88f)
+                        )
+                    )
+                )
+        )
+
+        // Header Title at Top
+        Column(
+            Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 36.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Spacer(Modifier.height(12.dp))
+            Text(
+                text = "AIRSOFT OPS",
+                color = Color(0xFFF2B84B),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Black,
+                fontFamily = FontFamily.Monospace,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "SISTEMA TÁTICO OPERACIONAL",
+                color = Color(0xFFE8E5DA),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace,
+                textAlign = TextAlign.Center
+            )
+        }
 
-            // Logo & Title Header
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.airsoft_ops_identity),
-                    contentDescription = "Airsoft Ops Logo",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .fillMaxWidth(.82f)
-                        .height(210.dp)
+        // Action Buttons at Bottom
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = { choosingEntry = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF34D399),
+                    contentColor = Color(0xFF03110C)
                 )
-
+            ) {
                 Text(
-                    text = "AIRSOFT OPS",
-                    color = Color(0xFFF2B84B),
-                    fontSize = 28.sp,
+                    "ENTRAR NA OPERAÇÃO",
                     fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace,
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = "SISTEMA TÁTICO OPERACIONAL",
-                    color = Color(0xFF8FA09A),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    textAlign = TextAlign.Center
+                    fontSize = 16.sp
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
-
-            // Proportioned Action Buttons
-            Column(
-                Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            Button(
+                onClick = { onSelect(AppRole.CONTROLLER) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF2B84B),
+                    contentColor = Color(0xFF171003)
+                )
             ) {
-                Button(
-                    onClick = { choosingEntry = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF34D399),
-                        contentColor = Color(0xFF03110C)
-                    )
-                ) {
-                    Text(
-                        "ENTRAR NA OPERAÇÃO",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 16.sp
-                    )
-                }
-
-                Button(
-                    onClick = { onSelect(AppRole.CONTROLLER) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF2B84B),
-                        contentColor = Color(0xFF171003)
-                    )
-                ) {
-                    Text(
-                        "CRIAR JOGO / CONTROLADOR",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 16.sp
-                    )
-                }
-
-                OutlinedButton(
-                    onClick = { onSelect(AppRole.PORTAL) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color(0xFF4EA7FF)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFF4EA7FF)
-                    )
-                ) {
-                    Text(
-                        "PORTAL WEB / MINHA CONTA",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
-                }
+                Text(
+                    "CRIAR JOGO / CONTROLADOR",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp
+                )
             }
 
-            Spacer(Modifier.height(16.dp))
+            OutlinedButton(
+                onClick = { onSelect(AppRole.PORTAL) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, Color(0xFF4EA7FF)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color(0xFF0A1118).copy(alpha = 0.75f),
+                    contentColor = Color(0xFF4EA7FF)
+                )
+            ) {
+                Text(
+                    "PORTAL WEB / MINHA CONTA",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
         }
 
         // Selection Modal
