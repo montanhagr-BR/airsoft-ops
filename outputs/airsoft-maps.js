@@ -30,7 +30,7 @@
   }
 
   function hasPosition(point) {
-    return point && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng));
+    return point && point.lat != null && point.lng != null && Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lng));
   }
 
   function makeMarker(maps, map, position, options) {
@@ -83,6 +83,21 @@
         const team = view.team || null;
         const filter = view.filter || null;
         const bounds = new maps.LatLngBounds();
+        const field = state.fieldBoundary || { points: [], closed: false };
+        const fieldPath = field.points.filter(hasPosition).map(p => ({ lat:Number(p.lat), lng:Number(p.lng) }));
+        if (fieldPath.length) {
+          const settings = { map, strokeColor:'#ef6817', strokeWeight:3, clickable:false };
+          const contour = field.closed && fieldPath.length >= 3
+            ? new maps.Polygon({ ...settings, paths:fieldPath, fillColor:'#ef6817', fillOpacity:.12 })
+            : new maps.Polyline({ ...settings, path:fieldPath });
+          overlays.push(contour);
+          fieldPath.forEach(point => bounds.extend(point));
+        }
+        if (!team && hasPosition(state.fieldArtifact)) {
+          const point = { lat:Number(state.fieldArtifact.lat), lng:Number(state.fieldArtifact.lng) };
+          overlays.push(makeMarker(maps, map, point, { title:'Posição planejada do artefato', label:'A', color:'#c69b2b', shape:'diamond', zIndex:6 }));
+          bounds.extend(point);
+        }
         const areas = (state.tacticalAreas || []).filter(area => !team || area.visibility === 'all' || area.visibility === team);
         areas.forEach(area => {
           if (!hasPosition(area)) return;

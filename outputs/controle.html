@@ -9,7 +9,7 @@
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261001-1"></script>
-  <script src="airsoft-maps.js?v=20261001-1"></script>
+  <script src="airsoft-maps.js?v=20261002-field-1"></script>
   <script src="airsoft-cloud.js?v=20261002-11" defer></script>
   <style>
     * { box-sizing: border-box; }
@@ -322,7 +322,7 @@
         <div class="sectionHead"><div><h2>Rastreamento da partida</h2><p>Posições relativas recebidas dos celulares aprovados e do artefato.</p></div><span class="sectionTag">Mapa</span></div>
         <div class="two"><label>Exibir no mapa <select id="mapTeamFilter"><option value="all">Todos</option><option value="ct">Time 1</option><option value="terrorist">Time 2</option></select></label><div class="mapLegend"><span>● Time 1</span><span>■ Time 2</span><span>◆ Artefato</span></div></div>
         <div class="mapPlanner">
-          <label>Ferramenta<select id="mapPlacementTool"><option value="none">Somente visualizar</option><option value="ct">Base Time 1</option><option value="terrorist">Base Time 2</option><option value="area">Nova área</option></select></label>
+          <label>Ferramenta<select id="mapPlacementTool"><option value="none">Somente visualizar</option><option value="boundary">Desenhar limite do campo</option><option value="ct">Base Time 1</option><option value="terrorist">Base Time 2</option><option value="area">Nova área</option><option value="artifact">Posição do artefato</option></select></label>
           <label>Nome da área<input id="tacticalAreaName" maxlength="32" value="Ponto estratégico"></label>
           <label>Tipo<select id="tacticalAreaType"><option value="objective">Objetivo</option><option value="risk">Risco</option><option value="safe">Área segura</option><option value="restricted">Restrita</option></select></label>
           <label>Visível para<select id="tacticalAreaVisibility"><option value="all">Todos</option><option value="ct">Somente Time 1</option><option value="terrorist">Somente Time 2</option><option value="controller">Somente Controlador</option></select></label>
@@ -330,6 +330,8 @@
         </div>
         <div class="mapPlannerActions"><button id="centerMapOnMe" type="button">Minha localização</button><button id="clearStartPositions" type="button">Limpar bases</button><button id="clearTacticalAreas" class="danger" type="button">Limpar áreas</button><span class="muted">Use a imagem de satélite, escolha uma ferramenta e toque no local desejado.</span></div>
         <div class="organizationLegend" id="organizationLegend"></div>
+        <p id="fieldDrawingHelp" class="muted" role="status">Escolha uma ferramenta e clique no mapa. Para os limites, marque pelo menos 3 pontos e feche o contorno.</p>
+        <div class="mapPlannerActions"><button id="finishFieldBoundary" type="button">Fechar contorno</button><button id="undoFieldBoundary" type="button">Desfazer último ponto</button><button id="clearFieldBoundary" type="button">Limpar limite</button></div>
         <div class="tacticalMap" id="controlTeamMap"></div>
         <div class="areaList" id="tacticalAreaList"></div>
       </div>
@@ -665,6 +667,12 @@
       return '<div class="playerRow" data-player-id="' + escapeHtml(p.id) + '"><div><b>' + escapeHtml(p.name) + '</b><br><small>' + escapeHtml(p.organization || 'Sem agremiação') + ' · ' + (pending ? 'Aguardando aprovação' : (online ? 'Online' : 'Sem sinal')) + (p.lastFix ? ' · GPS ' + escapeHtml(p.lastFix) : '') + '</small></div><select data-player-team><option value="ct"' + (selectedTeam === 'ct' ? ' selected' : '') + '>' + escapeHtml(s.team1Name) + '</option><option value="terrorist"' + (selectedTeam === 'terrorist' ? ' selected' : '') + '>' + escapeHtml(s.team2Name) + '</option></select><div><button class="primary" data-player-approve>' + (pending ? 'Aprovar' : 'Atualizar') + '</button> <button class="danger" data-player-remove>×</button></div><details class="playerData"><summary>Ver ficha básica</summary><p>Email: ' + escapeHtml(p.email || '----') + '<br>Celular: ' + escapeHtml(p.phone || '----') + '<br>Contato de emergência: ' + escapeHtml(p.emergencyName || '----') + '<br>Telefone de emergência: ' + escapeHtml(p.emergencyPhone || '----') + '</p></details></div>';
     }).join('') : '<p class="muted">Nenhum jogador encontrado.</p>';
     const mapFilter = mapTeamFilter.value === 'all' ? null : mapTeamFilter.value;
+    const field = s.fieldBoundary || { points: [], closed: false };
+    finishFieldBoundary.disabled = field.closed || field.points.length < 3;
+    undoFieldBoundary.disabled = !field.points.length;
+    clearFieldBoundary.disabled = !field.points.length;
+    fieldDrawingHelp.textContent = (googleTacticalMap ? 'Mapa de satélite. ' : 'Mapa esquemático: posições relativas, sem coordenadas GPS. ') +
+      (field.closed ? 'Limite do campo definido. Escolha uma ferramenta para posicionar bases, áreas e artefato.' : field.points.length + ' pontos marcados. Marque pelo menos 3 pontos e clique em Fechar contorno.');
     if (googleTacticalMap) {
       googleTacticalMap.render(s, { filter:mapFilter });
     } else {
@@ -676,7 +684,11 @@
       return '<div class="startMarker ' + team + '" style="left:' + p.x + '%;top:' + p.y + '%" title="Base inicial ' + escapeHtml(team === 'ct' ? s.team1Name : s.team2Name) + '">' + (team === 'ct' ? '1' : '2') + '</div>';
     }).join('');
     const liveMarkers = markers.map(p => '<div class="mapMarker ' + (p.kind === 'artifact' ? 'artifact' : p.team) + '" style="left:' + p.x.toFixed(1) + '%;top:' + p.y.toFixed(1) + '%;background:' + (p.kind === 'artifact' ? '#c69b2b' : organizationColor(p.organization)) + '" title="' + escapeHtml(p.name + (p.organization ? ' · ' + p.organization : ' · Sem agremiação')) + '"><span>' + escapeHtml(p.kind === 'artifact' ? 'A' : p.name.slice(0,2).toUpperCase()) + '</span></div>').join('');
-    controlTeamMap.innerHTML = areas + starts + liveMarkers + (!areas && !starts && !liveMarkers ? '<p class="muted" style="padding:42px 12px">Clique no mapa para preparar o campo ou aguarde posições GPS.</p>' : '');
+    const fieldPoints = field.points.filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+    const coordinates = fieldPoints.map(p => p.x + ',' + p.y).join(' ');
+    const outline = fieldPoints.length ? '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Limite do campo" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><' + (field.closed ? 'polygon' : 'polyline') + ' points="' + coordinates + '" fill="' + (field.closed ? 'rgba(239,104,23,.12)' : 'none') + '" stroke="#ef6817" stroke-width=".5"/>' + fieldPoints.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="1" fill="#ef6817"/>').join('') + '</svg>' : '';
+    const artifact = s.fieldArtifact && Number.isFinite(s.fieldArtifact.x) ? '<div class="startMarker" style="left:' + s.fieldArtifact.x + '%;top:' + s.fieldArtifact.y + '%;background:#c69b2b" title="Posição planejada do artefato">A</div>' : '';
+    controlTeamMap.innerHTML = outline + areas + starts + liveMarkers + artifact + (!outline && !areas && !starts && !liveMarkers && !artifact ? '<p class="muted" style="padding:42px 12px">Escolha uma ferramenta e clique para preparar o campo.</p>' : '');
     }
     tacticalAreaList.innerHTML = (s.tacticalAreas || []).map(a => '<div class="areaRow"><span><b>' + escapeHtml(a.name) + '</b><br><small>' + escapeHtml(a.type) + ' · ' + (a.visibility === 'all' ? 'Todos' : a.visibility === 'ct' ? s.team1Name : a.visibility === 'terrorist' ? s.team2Name : 'Somente Controlador') + '</small></span><button class="danger" data-area-remove="' + escapeHtml(a.id) + '" type="button">×</button></div>').join('');
     const organizations = [...new Set((s.players || []).filter(p => p.status === 'approved' && (!mapFilter || p.team === mapFilter)).map(p => p.organization || 'Sem agremiação'))].sort((a,b) => a.localeCompare(b, 'pt-BR'));
@@ -1143,8 +1155,15 @@
   function placeMapItem(point) {
     const tool = mapPlacementTool.value;
     if (tool === 'none') return;
+    if (AirsoftBus.read().running) { showPopup('Campo bloqueado', 'Encerre a partida antes de alterar o campo.', 'Mapa'); return; }
     AirsoftBus.update(s => {
-      if (tool === 'ct' || tool === 'terrorist') s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
+      if (tool === 'boundary') {
+        const field = s.fieldBoundary || { points: [], closed: false };
+        if (!field.closed) s.fieldBoundary = { points: [...field.points, point], closed: false };
+      } else if (tool === 'artifact') {
+        s.fieldArtifact = point;
+        if (point.lat != null && point.lng != null) { s.locatorArtifactLat = point.lat; s.locatorArtifactLng = point.lng; }
+      } else if (tool === 'ct' || tool === 'terrorist') s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
       else s.tacticalAreas = [...(s.tacticalAreas || []), {
         id:'area-' + Date.now(), name:tacticalAreaName.value.trim() || 'Área estratégica',
         type:tacticalAreaType.value, visibility:tacticalAreaVisibility.value,
@@ -1153,8 +1172,21 @@
       return s;
     });
     AirsoftBus.log(tool === 'area' ? 'Controlador adicionou uma área estratégica ao mapa.' : 'Controlador definiu uma base inicial no mapa.');
-    if (tool !== 'area') mapPlacementTool.value = 'none';
+    if (!['area','boundary'].includes(tool)) mapPlacementTool.value = 'none';
   }
+  finishFieldBoundary.onclick = () => {
+    if (AirsoftBus.read().running) return;
+    AirsoftBus.update(s => { if (s.fieldBoundary?.points.length >= 3) s.fieldBoundary.closed = true; });
+    mapPlacementTool.value = 'none';
+  };
+  undoFieldBoundary.onclick = () => {
+    if (AirsoftBus.read().running) return;
+    AirsoftBus.update(s => { if (s.fieldBoundary) s.fieldBoundary = { points: s.fieldBoundary.points.slice(0,-1), closed: false }; });
+  };
+  clearFieldBoundary.onclick = () => {
+    if (AirsoftBus.read().running) return;
+    AirsoftBus.update(s => { s.fieldBoundary = { points: [], closed: false }; });
+  };
   controlTeamMap.addEventListener('click', e => {
     if (googleTacticalMap) return;
     if (e.target.closest('.mapMarker,.startMarker,.tacticalArea')) return;
