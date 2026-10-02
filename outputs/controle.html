@@ -109,6 +109,7 @@
     .startMarker.terrorist { border-radius:3px; border-color:#e6786d; }
     .areaList { display:grid; gap:6px; margin-top:10px; }
     .areaRow { display:grid; min-width:0; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid #2b3a3d; background:#050708; padding:8px 10px; }
+    .areaRow input, .areaRow select { min-height:36px; padding:4px 8px; font-size:12px; }
     .areaRow span, .areaRow small { min-width:0; overflow-wrap:anywhere; }
     .sequenceSetup { display:grid; grid-template-columns:minmax(260px,1fr) auto; gap:12px; align-items:end; margin-bottom:14px; padding:12px; border:1px solid #3c4538; background:rgba(5,7,8,.42); }
     .sequenceSetup p { margin:0; max-width:420px; }
@@ -699,7 +700,29 @@
     const artifact = s.fieldArtifact && Number.isFinite(s.fieldArtifact.x) ? '<div class="startMarker" style="left:' + s.fieldArtifact.x + '%;top:' + s.fieldArtifact.y + '%;background:#c69b2b" title="Posição planejada do artefato">A</div>' : '';
     controlTeamMap.innerHTML = outline + areas + starts + liveMarkers + artifact + (!outline && !areas && !starts && !liveMarkers && !artifact ? '<p class="muted" style="padding:42px 12px">Escolha uma ferramenta e clique para preparar o campo.</p>' : '');
     }
-    tacticalAreaList.innerHTML = (s.tacticalAreas || []).map(a => '<div class="areaRow"><span><b>' + escapeHtml(a.name) + '</b><br><small>' + escapeHtml(a.type) + ' · ' + (a.visibility === 'all' ? 'Todos' : a.visibility === 'ct' ? s.team1Name : a.visibility === 'terrorist' ? s.team2Name : 'Somente Controlador') + '</small></span><button class="danger" data-area-remove="' + escapeHtml(a.id) + '" type="button">×</button></div>').join('');
+    const activeAreaEdit = document.activeElement && document.activeElement.closest('#tacticalAreaList');
+    if (!activeAreaEdit) {
+      tacticalAreaList.innerHTML = (s.tacticalAreas || []).map(a =>
+        '<div class="areaRow" data-area-id="' + escapeHtml(a.id) + '">' +
+        '<div style="display:grid;grid-template-columns:1fr minmax(110px,auto) minmax(120px,auto);gap:6px;align-items:center;min-width:0;flex:1">' +
+        '<input data-area-field="name" value="' + escapeHtml(a.name) + '" placeholder="Nome da área" maxlength="32">' +
+        '<select data-area-field="type">' +
+          '<option value="objective"' + (a.type === 'objective' ? ' selected' : '') + '>Objetivo</option>' +
+          '<option value="risk"' + (a.type === 'risk' ? ' selected' : '') + '>Risco</option>' +
+          '<option value="safe"' + (a.type === 'safe' ? ' selected' : '') + '>Área segura</option>' +
+          '<option value="restricted"' + (a.type === 'restricted' ? ' selected' : '') + '>Restrita</option>' +
+        '</select>' +
+        '<select data-area-field="visibility">' +
+          '<option value="all"' + (a.visibility === 'all' ? ' selected' : '') + '>Todos</option>' +
+          '<option value="ct"' + (a.visibility === 'ct' ? ' selected' : '') + '>' + escapeHtml(s.team1Name) + '</option>' +
+          '<option value="terrorist"' + (a.visibility === 'terrorist' ? ' selected' : '') + '>' + escapeHtml(s.team2Name) + '</option>' +
+          '<option value="controller"' + (a.visibility === 'controller' ? ' selected' : '') + '>Somente Controlador</option>' +
+        '</select>' +
+        '</div>' +
+        '<button class="danger" data-area-remove="' + escapeHtml(a.id) + '" type="button" title="Excluir área">×</button>' +
+        '</div>'
+      ).join('');
+    }
     const organizations = [...new Set((s.players || []).filter(p => p.status === 'approved' && (!mapFilter || p.team === mapFilter)).map(p => p.organization || 'Sem agremiação'))].sort((a,b) => a.localeCompare(b, 'pt-BR'));
     organizationLegend.innerHTML = organizations.map(name => '<span class="orgKey"><i class="orgSwatch" style="background:' + organizationColor(name === 'Sem agremiação' ? '' : name) + '"></i>' + escapeHtml(name) + '</span>').join('');
   }
@@ -1200,20 +1223,23 @@
     const pts = current.activeDrawingPoints || [];
     if (tool === 'polygon_area' || current.activeDrawingTool === 'polygon_area') {
       if (pts.length < 3) { showPopup('Área incompleta', 'Marque pelo menos 3 pontos no mapa para fechar a área de interesse.', 'Mapa'); return; }
+      const areaName = tacticalAreaName.value.trim() || ('Área ' + ((current.tacticalAreas || []).length + 1));
       AirsoftBus.update(s => {
         s.tacticalAreas = [...(s.tacticalAreas || []), {
           id: 'area-' + Date.now(),
-          name: tacticalAreaName.value.trim() || 'Área personalizada',
+          name: areaName,
           type: tacticalAreaType.value,
           visibility: tacticalAreaVisibility.value,
           points: [...pts],
           closed: true
         }];
         s.activeDrawingPoints = [];
-        s.activeDrawingTool = null;
+        s.activeDrawingTool = 'polygon_area';
       });
-      mapPlacementTool.value = 'none';
-      AirsoftBus.log('Controlador adicionou uma área poligonal personalizada.');
+      const nextNum = (AirsoftBus.read().tacticalAreas || []).length + 1;
+      tacticalAreaName.value = 'Área ' + nextNum;
+      AirsoftBus.log('Controlador adicionou a área "' + areaName + '".');
+      showPopup('Área salva!', '"' + areaName + '" foi criada no mapa. A Ferramenta 2 continua ativa para desenhar a próxima área.', 'Mapa');
     } else {
       if (current.running) return;
       if (pts.length < 3) { showPopup('Limite incompleto', 'Marque pelo menos 3 pontos no mapa para fechar o limite do campo.', 'Mapa'); return; }
@@ -1278,6 +1304,20 @@
     const button = e.target.closest('[data-area-remove]');
     if (!button) return;
     AirsoftBus.update(s => { s.tacticalAreas = (s.tacticalAreas || []).filter(a => a.id !== button.dataset.areaRemove); return s; });
+  });
+  tacticalAreaList.addEventListener('change', e => {
+    const row = e.target.closest('[data-area-id]');
+    const field = e.target.dataset.areaField;
+    if (!row || !field) return;
+    const id = row.dataset.areaId;
+    AirsoftBus.update(s => {
+      const area = (s.tacticalAreas || []).find(a => a.id === id);
+      if (area) {
+        if (field === 'name') area.name = e.target.value.trim() || 'Área';
+        else if (field === 'type') area.type = e.target.value;
+        else if (field === 'visibility') area.visibility = e.target.value;
+      }
+    });
   });
   clearStartPositions.onclick = () => AirsoftBus.update(s => { s.teamStartPositions = { ct:null, terrorist:null }; return s; });
   clearTacticalAreas.onclick = () => AirsoftBus.update(s => { s.tacticalAreas = []; return s; });
