@@ -937,7 +937,7 @@
     game.textContent = preparation ? 'Aguardando início' : fmt(s.gameSeconds);
     bomb.textContent = preparation ? '--:--' : fmt(s.bombSeconds);
     state.textContent = s.bombState; phase.textContent = s.phase;
-    start.disabled = s.running || s.finished;
+    start.disabled = s.running;
     end.disabled = !s.running;
     winner.textContent = s.winner || '----';
     modeSummary.textContent = isDataMode(s) ? 'Roubo de dados: notebook, pastas, download, descriptografia e envio' : isTerminalMode(s) ? 'Dominação: capturar, guardar e revalidar por QR antes de voltar a neutro' : isLocatorMode(s) ? 'Localização: celulares recebem distância e direção aproximada do artefato' : s.mode + ': ' + normalizedBombSequence(s).length + ' bomba(s) em sequência';
@@ -1339,7 +1339,7 @@
   });
   start.onclick = () => {
     const beforeStart = AirsoftBus.read();
-    if (beforeStart.running || beforeStart.finished) return;
+    if (beforeStart.running) return;
     saveConfig();
     AirsoftBus.update(s => {
       if (!isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s)) {
