@@ -347,20 +347,37 @@ const AirsoftCloud = (() => {
     document.documentElement.classList.add('cloudLocked');
     gate = document.createElement('section');
     gate.className = 'cloudGate';
-    gate.innerHTML = '<div class="cloudGateBox"><div class="cloudGateBrand">AIRSOFT OPS</div>' +
-      '<h1 data-controller-start>Criar sala</h1><div data-controller-start><p>Cadastre a operação antes de abrir o controle.</p><label class="cloudField">Nome da operação<input data-operation-name maxlength="60" placeholder="Ex.: Operação Montanha"></label><button data-gate-create type="button">Criar nova sala</button></div>' +
-      '<h1 data-member-start>Entrar na sala</h1><div data-member-start><p>Digite o código fornecido pelo Controlador ou leia o QR Code.</p><div class="cloudCodeEntry"><input data-gate-code maxlength="6" inputmode="text" placeholder="CÓDIGO"><button data-gate-join type="button">Entrar</button></div><button class="secondary" data-gate-scan type="button">Ler QR Code</button></div>' +
-      '<div data-connected-start hidden><p class="cloudReady">SALA PRONTA</p><h2 data-gate-operation>OPERAÇÃO</h2><strong data-gate-room>------</strong><img data-gate-qr alt="QR Code para entrar na sala"><button data-gate-enter type="button">Abrir</button><button class="secondary" data-gate-change type="button">Sair da sala</button></div>' +
-      '<div data-cloud-scanner hidden><video playsinline muted></video><button class="secondary" data-scan-close type="button">Fechar câmera</button></div>' +
-      '<small data-gate-status>Conexão segura via Supabase</small></div>';
+    if (role === 'controller') {
+      gate.innerHTML = '<div class="cloudGateBox"><div class="cloudGateBrand">AIRSOFT OPS · CONTROLADOR</div>' +
+        '<h1>Criar Sala de Operações</h1><p>Informe o nome da partida para iniciar o centro de comando.</p>' +
+        '<label class="cloudField">Nome da operação<input data-operation-name maxlength="60" placeholder="Ex.: Operação Tática Alpha" value="OPERAÇÃO TÁTICA"></label>' +
+        '<button data-gate-create type="button" class="primary" style="min-height:52px;font-size:16px;font-weight:900">Criar e Abrir Controle</button>' +
+        '<small data-gate-status>Conexão segura via Supabase (Modo Online/Offline)</small></div>';
+    } else {
+      gate.innerHTML = '<div class="cloudGateBox"><div class="cloudGateBrand">AIRSOFT OPS</div>' +
+        '<h1 data-member-start>Entrar na sala</h1><div data-member-start><p>Digite o código fornecido pelo Controlador ou leia o QR Code.</p><div class="cloudCodeEntry"><input data-gate-code maxlength="6" inputmode="text" placeholder="CÓDIGO"><button data-gate-join type="button">Entrar</button></div><button class="secondary" data-gate-scan type="button">Ler QR Code</button></div>' +
+        '<div data-cloud-scanner hidden><video playsinline muted></video><button class="secondary" data-scan-close type="button">Fechar câmera</button></div>' +
+        '<small data-gate-status>Conexão segura via Supabase</small></div>';
+    }
     document.body.appendChild(gate);
-    gate.querySelector('[data-gate-create]').onclick = createRoom;
-    gate.querySelector('[data-gate-join]').onclick = () => joinRoom(gate.querySelector('[data-gate-code]').value);
-    gate.querySelector('[data-gate-code]').onkeydown = event => { if (event.key === 'Enter') joinRoom(event.target.value); };
-    gate.querySelector('[data-gate-scan]').onclick = startScanner;
-    gate.querySelector('[data-scan-close]').onclick = stopScanner;
-    gate.querySelector('[data-gate-enter]').onclick = openApp;
-    gate.querySelector('[data-gate-change]').onclick = leaveRoom;
+    const createBtn = gate.querySelector('[data-gate-create]');
+    if (createBtn) {
+      createBtn.onclick = async () => {
+        await createRoom();
+        openApp();
+      };
+    }
+    const joinBtn = gate.querySelector('[data-gate-join]');
+    if (joinBtn) {
+      joinBtn.onclick = () => joinRoom(gate.querySelector('[data-gate-code]').value);
+      gate.querySelector('[data-gate-code]').onkeydown = event => { if (event.key === 'Enter') joinRoom(event.target.value); };
+      gate.querySelector('[data-gate-scan]').onclick = startScanner;
+      gate.querySelector('[data-scan-close]').onclick = stopScanner;
+    }
+    const enterBtn = gate.querySelector('[data-gate-enter]');
+    if (enterBtn) enterBtn.onclick = openApp;
+    const changeBtn = gate.querySelector('[data-gate-change]');
+    if (changeBtn) changeBtn.onclick = leaveRoom;
     renderGate();
   }
   function mountHeader() {
