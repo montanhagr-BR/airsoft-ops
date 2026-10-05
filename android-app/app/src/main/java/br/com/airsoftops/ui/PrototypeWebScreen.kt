@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.GeolocationPermissions
@@ -133,6 +134,11 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 }
             }
             webChromeClient = object : WebChromeClient() {
+                override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                    Log.d("AirsoftWebView", "${consoleMessage.message()} -- Line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
+                    return true
+                }
+
                 override fun onPermissionRequest(request: PermissionRequest) {
                     activity?.runOnUiThread {
                         val requestsCamera = request.resources.contains(
