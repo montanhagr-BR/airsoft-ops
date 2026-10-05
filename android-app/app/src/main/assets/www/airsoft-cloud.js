@@ -286,7 +286,7 @@ const AirsoftCloud = (() => {
     if (direct) return direct[0].toUpperCase();
     try {
       const parsed = new URL(text);
-      const code = parsed.searchParams.get('room') || parsed.searchParams.get('code') || '';
+      const code = parsed.searchParams.get('room') || parsed.searchParams.get('code') || parsed.searchParams.get('registration') || '';
       return /^[A-Za-z0-9]{6}$/.test(code) ? code.toUpperCase() : '';
     } catch { return ''; }
   }
@@ -346,7 +346,7 @@ const AirsoftCloud = (() => {
     document.documentElement.classList.add('cloudActive');
     if (gate) gate.hidden = true;
     renderHeader();
-    window.dispatchEvent(new CustomEvent('airsoft-room-ready'));
+    window.dispatchEvent(new CustomEvent('airsoft-room-ready', { detail: { name: user?.user_metadata?.full_name || '', email: user?.email || '' } }));
   }
   function renderGate() {
     if (!gate) return;

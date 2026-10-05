@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Portal de operações</title>
-  <link rel="stylesheet" href="portal.css?v=20261005-paridade">
+  <link rel="stylesheet" href="portal.css?v=20261005-inscricao-2">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="portal.js?v=20261005-cadastro" defer></script>
-  <script src="pre-registration.js?v=20261005" defer></script>
+  <script src="pre-registration.js?v=20261005-inscricao-2" defer></script>
 </head>
 <body>
 
@@ -185,20 +185,31 @@
     <section id="preRegistrationSection" class="portalBox" hidden>
       <button type="button" class="btnSecondary" onclick="AirsoftPortal.menu()">Voltar ao painel</button>
       <h2 id="preRegistrationTitle">Inscrição antecipada</h2>
+      <p class="registrationIntro">Escolha sua operação, preencha a ficha e aguarde a aprovação do organizador para receber sua equipe.</p>
       <form id="preRegistrationForm" class="registrationGrid">
-        <label>Código do evento<input name="code" required pattern="[A-Za-z0-9]{6}" maxlength="6"></label>
-        <button id="refreshRegistration" class="btnSecondary" type="button">Consultar evento</button>
-        <label>Nome<input name="name" required></label>
-        <label>Agremiação<input name="organization"></label>
-        <label>E-mail<input name="email" type="email" required></label>
-        <label>Telefone<input name="phone" required></label>
-        <label>Contato de emergência<input name="emergencyName" required></label>
-        <label>Telefone de emergência<input name="emergencyPhone" required></label>
-        <label><input name="consent" type="checkbox" required> Autorizo o uso destes dados pela organização do evento.</label>
-        <button class="btnPrimary" type="submit">Entrar na lista de espera</button>
+        <fieldset class="registrationGroup registrationWide"><legend>1 · Operação</legend><div class="registrationCodeRow">
+          <label>Código do evento<input name="code" required pattern="[A-Za-z0-9]{6}" maxlength="6" placeholder="A1B2C3" autocomplete="off" autocapitalize="characters"></label>
+          <button id="refreshRegistration" class="btnSecondary" type="button">Consultar evento</button>
+        </div></fieldset>
+        <fieldset class="registrationGroup"><legend>2 · Seus dados</legend>
+          <label>Nome ou indicativo<input name="name" required minlength="2" maxlength="40" autocomplete="name" placeholder="Como você será identificado"></label>
+          <label>Agremiação <small>Opcional</small><input name="organization" maxlength="50" autocomplete="organization" placeholder="Sua equipe de origem"></label>
+          <label>E-mail<input name="email" type="email" required maxlength="80" autocomplete="email" placeholder="voce@email.com"></label>
+          <label>Celular<input name="phone" type="tel" required maxlength="24" autocomplete="tel" placeholder="DDD + número"></label>
+        </fieldset>
+        <fieldset class="registrationGroup"><legend>3 · Contato de emergência</legend>
+          <p>Informe alguém que a organização possa procurar se necessário.</p>
+          <label>Nome do contato<input name="emergencyName" required minlength="2" maxlength="50" autocomplete="off" placeholder="Nome do contato"></label>
+          <label>Telefone do contato<input name="emergencyPhone" type="tel" required maxlength="24" autocomplete="off" placeholder="DDD + número"></label>
+        </fieldset>
+        <label class="registrationConsent registrationWide"><input name="consent" type="checkbox" required><span>Autorizo o uso destes dados pela organização do evento.</span></label>
+        <button class="btnPrimary registrationWide" type="submit">Enviar inscrição</button>
       </form>
-      <p id="preRegistrationStatus" role="status"></p>
-      <div id="registrationNextActions" hidden><button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Meus eventos</button></div>
+      <p id="preRegistrationStatus" class="registrationFeedback" role="status" aria-live="polite"></p>
+      <div id="registrationNextActions" class="registrationNext" hidden>
+        <button id="enterRegisteredGame" class="btnPrimary" type="button">Abrir terminal do jogador</button>
+        <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Voltar às minhas inscrições</button>
+      </div>
     </section>
     <section id="organizerSection" class="portalBox" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Voltar ao painel</button>

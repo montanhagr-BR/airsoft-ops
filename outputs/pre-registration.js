@@ -1,5 +1,7 @@
 window.PreRegistration = (() => {
   let operation = null;
+  let selectedCode = null;
+  let submitting = false;
   let page = 0;
   let initializedUser = null;
   let requestVersion = 0;
@@ -22,29 +24,39 @@ window.PreRegistration = (() => {
 
   async function loadRegistration() {
     const form = byId('preRegistrationForm');
+    const version = ++requestVersion;
     const code = form.elements.code.value.trim().toUpperCase();
+    form.elements.code.value = code;
+    selectedCode = null;
+    byId('registrationNextActions').hidden = true;
     if (!/^[A-Z0-9]{6}$/.test(code)) return;
     try {
       const { data, error } = await client().rpc('registration_operation', { requested_code: code });
       if (error) throw error;
+      if (version !== requestVersion) return;
       const info = data?.[0];
       if (!info) throw new Error('Operacao nao encontrada.');
       byId('preRegistrationTitle').textContent = info.operation_name;
       const own = await client().from('game_registrations').select('*').eq('session_id', info.session_id).eq('user_id', AirsoftPortal.getUser().id).maybeSingle();
       if (own.error) throw own.error;
+      if (version !== requestVersion) return;
       const row = own.data;
+      selectedCode = code;
       byId('registrationNextActions').hidden = !row;
       const mapping = { name:'name', organization:'organization', email:'email', phone:'phone', emergencyName:'emergency_name', emergencyPhone:'emergency_phone' };
       if (row) for (const [field,column] of Object.entries(mapping)) form.elements[field].value = row[column];
-      form.querySelector('button[type="submit"]').disabled = !info.registration_open;
-      message(row ? 'Você está na lista de espera deste evento. Pode participar ou se inscrever em outros eventos pelo painel.' : info.registration_open ? 'Lista de espera aberta. A inscrição não confirma sua participação na partida.' : 'Inscrições fechadas.');
+      form.querySelector('button[type="submit"]').disabled = !info.registration_open || row?.status === 'approved';
+      message(row?.status === 'approved' ? 'Inscrição aprovada! Abra o terminal para acessar sua equipe.' : row?.status === 'rejected' ? 'Sua inscrição foi recusada. Você pode corrigir os dados e reenviar enquanto as inscrições estiverem abertas.' : row ? 'Inscrição recebida. Aguarde o organizador aprovar e definir sua equipe.' : info.registration_open ? 'Inscrições abertas. Preencha a ficha abaixo.' : 'Inscrições fechadas para este evento.');
+      byId('enterRegisteredGame').disabled = !row || row.status === 'rejected' || !info;
+
     } catch (error) { message(error.message); }
   }
 
   async function submit(event) {
     event.preventDefault();
     const form = event.target;
-    if (!form.reportValidity()) return;
+    if (submitting || !form.reportValidity()) return;
+    submitting = true;
     const button = form.querySelector('button[type="submit"]');
     button.disabled = true;
     try {
@@ -53,9 +65,10 @@ window.PreRegistration = (() => {
       const { error } = await client().rpc('submit_game_registration', { requested_code: profile.code.trim().toUpperCase(), profile });
       if (error) throw error;
       message('Inscrição salva! Seu cadastro aparece no Controle, aguardando aprovação e definição de equipe.');
-      byId('registrationNextActions').hidden = false;
+      selectedCode = profile.code.trim().toUpperCase();
+      await loadRegistration();
     } catch (error) { message(error.message); }
-    finally { button.disabled = false; }
+    finally { submitting = false; button.disabled = false; }
   }
 
   async function openOrganizer(session) {
@@ -114,6 +127,7 @@ window.PreRegistration = (() => {
     byId('preRegistrationForm').addEventListener('submit',submit);
     byId('preRegistrationForm').elements.code.addEventListener('change',loadRegistration);
     byId('refreshRegistration').addEventListener('click',loadRegistration);
+    byId('enterRegisteredGame').addEventListener('click',()=> { if (selectedCode) AirsoftPortal.joinGameSession(selectedCode, 'player'); });
     byId('registrationPrev').addEventListener('click',()=>{if(page>0){page--;loadRoster();}});
     byId('registrationNext').addEventListener('click',()=>{page++;loadRoster();});
     let searchTimer;

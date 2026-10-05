@@ -451,3 +451,20 @@ button:focus-visible { outline:2px solid var(--portal-orange); outline-offset:3p
 .portalInput { width:100%; min-height:48px; padding:12px; margin:8px 0 12px; background:#0d0c08; color:var(--portal-ink); border:1px solid var(--portal-border); font:inherit; font-size:16px; }
 .userBadge button { width:auto; }
 .userBadge .userInfo { flex:1; }
+
+.registrationIntro { color:var(--portal-muted); line-height:1.6; }
+.registrationGroup { min-width:0; margin:0; padding:18px; border:1px solid var(--portal-border); border-radius:8px; display:grid; gap:14px; align-content:start; }
+.registrationGroup legend { color:var(--portal-orange); font-weight:700; padding:0 8px; }
+.registrationGroup label { display:grid; gap:8px; font-size:14px; }
+.registrationGroup p, .registrationGroup small { color:var(--portal-muted); margin:0; line-height:1.5; }
+.registrationGroup input { box-sizing:border-box; width:100%; min-height:48px; padding:12px; border:1px solid var(--portal-border); border-radius:5px; background:#0d0c08; color:var(--portal-paper); font-size:16px; }
+.registrationGroup input:focus { outline:2px solid var(--portal-orange); outline-offset:2px; }
+.registrationWide { grid-column:1 / -1; }
+.registrationCodeRow { display:grid; grid-template-columns:1fr auto; align-items:end; gap:12px; }
+.registrationGrid > .registrationConsent { display:flex; gap:12px; align-items:center; line-height:1.5; }
+.registrationConsent input { flex:0 0 24px; width:24px; height:24px; accent-color:var(--portal-orange); }
+.registrationFeedback { padding:14px; border-left:3px solid var(--portal-orange); background:rgba(239,104,23,.07); line-height:1.6; }
+.registrationNext { display:grid; gap:10px; }
+@media(max-width:480px) { .registrationCodeRow { grid-template-columns:1fr; } .registrationGroup { padding:14px; } }
+
+.registrationFeedback:empty { display:none; }

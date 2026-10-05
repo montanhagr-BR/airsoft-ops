@@ -1,0 +1,24 @@
+const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
+(async()=>{
+ const elements=Object.fromEntries(['code','name','organization','email','phone','emergencyName','emergencyPhone','consent'].map(name=>[name,{value:'',checked:false}]));
+ const submit={disabled:false}; const form={elements,querySelector:()=>submit};
+ const nodes=new Map([['preRegistrationForm',form]]);
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',hidden:false,disabled:false});return nodes.get(id)};
+ let status='pending', entered;
+ const client={rpc:async()=>({data:[{session_id:'room',operation_name:'Operação',registration_open:true}]}),from:()=>({select(){return this},eq(){return this},async maybeSingle(){return {data:{status,name:'Jogador',email:'gabriel@aem.ms.gov.br',organization:'',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}}}})};
+ const context=vm.createContext({window:{},document:{getElementById:node,addEventListener(){}},location:{search:''},URLSearchParams,AirsoftPortal:{getUser:()=>({id:'user',email:'gabriel@aem.ms.gov.br'}),getClient:()=>client,joinGameSession(code,role){entered={code,role}}}});
+ vm.runInContext(fs.readFileSync('outputs/pre-registration.js','utf8'),context);
+ await context.window.PreRegistration.selectGame('ABC123');
+ assert.equal(elements.email.value,'gabriel@aem.ms.gov.br');
+ assert.match(node('preRegistrationStatus').textContent,/Aguarde/);
+ assert.equal(submit.disabled,false);
+ assert.equal(node('registrationNextActions').hidden,false);
+ status='approved'; await context.window.PreRegistration.selectGame('ABC123');
+ assert.match(node('preRegistrationStatus').textContent,/aprovada/);
+ assert.equal(submit.disabled,true,'Approved registrations cannot be resubmitted');
+ assert.equal(node('enterRegisteredGame').disabled,false);
+ status='rejected';await context.window.PreRegistration.selectGame('ABC123');
+ assert.equal(node('enterRegisteredGame').disabled,true);
+ assert.match(node('preRegistrationStatus').textContent,/recusada/);
+ console.log('PASS: ficha oficial, estados pendente/aprovado/recusado e acesso ao terminal.');
+})().catch(e=>{console.error(e);process.exitCode=1});

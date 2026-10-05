@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Jogador</title>
-  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-inscricao-2">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261002-google-1"></script>
   <script src="airsoft-maps.js?v=20261002-field-1"></script>
-  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
+  <script src="airsoft-cloud.js?v=20261005-inscricao-2" defer></script>
   <style>
     * { box-sizing:border-box; }
     body { margin: 0; min-width:0; min-height: 100dvh; overflow-x:hidden; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: start center; padding: 8px; }
@@ -170,7 +170,7 @@
     </div>
     <div class="registrationState"><strong id="registrationStateTitle">Cadastro não enviado</strong><p class="muted" id="registrationStatus">Preencha a ficha e envie para aprovação.</p></div>
     <div class="registrationActions"><button class="primary" id="requestRegistration">Enviar cadastro</button><button id="cancelRegistration" type="button" hidden>Corrigir ficha</button></div>
-    <p class="muted">Os dados ficam disponíveis somente ao Controlador e são removidos ao reiniciar o sistema.</p>
+    <p class="muted">A ficha fica vinculada à inscrição desta operação. Sua equipe será definida pelo Controlador.</p>
     <button class="primary big" id="registerCt" hidden>Cadastro legado CT</button>
     <button class="warn big" id="registerTerrorist" hidden>Cadastro legado Terrorista</button>
   </div>
@@ -256,6 +256,8 @@
   const playerIdKey = 'airsoft-player-id-v1';
   const registrationStateKey = 'airsoft-player-registration-state-v1';
   let playerId = localStorage.getItem(playerIdKey);
+  let editingRegistration = false;
+  let shownRegistrationId = null;
   let googleSquadMap = null;
   if (!playerId) { playerId = 'P-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,7); localStorage.setItem(playerIdKey, playerId); }
   function hidePopup() {
@@ -467,6 +469,10 @@
   }
   function applyRegistration() {
     const state = AirsoftBus.read();
+    const accountPlayerId = localStorage.getItem(playerIdKey);
+    if (accountPlayerId && accountPlayerId !== playerId) {
+      playerId = accountPlayerId; editingRegistration = false; shownRegistrationId = null;
+    }
     if (localStorage.getItem(playerResetKey) !== String(state.resetId)) {
       localStorage.removeItem(playerKey);
       localStorage.setItem(playerResetKey, String(state.resetId));
@@ -495,14 +501,15 @@
       document.querySelector('main').hidden = true;
       roleBadge.textContent = 'Sem time';
       roleBadge.className = 'badge';
-      const pending = Boolean(player);
-      registrationStateTitle.textContent = pending ? 'Aguardando aprovação' : (state.playerRegistrationOpen === false ? 'Cadastro fechado' : 'Cadastro não enviado');
-      registrationStatus.textContent = pending ? 'Ficha recebida. O Controlador precisa revisar e definir o lado da partida.' : (state.playerRegistrationOpen === false ? 'O Controlador ainda não liberou novos cadastros.' : 'Preencha a ficha e envie para aprovação.');
+      const pending = Boolean(player) && !editingRegistration;
+      registrationStateTitle.textContent = editingRegistration ? 'Cadastro em edição' : pending ? 'Aguardando aprovação' : (state.playerRegistrationOpen === false ? 'Cadastro fechado' : 'Cadastro não enviado');
+      registrationStatus.textContent = editingRegistration ? 'Corrija os dados e envie novamente. A ficha anterior permanece salva até o envio.' : pending ? 'Ficha recebida. O Controlador precisa revisar e definir o lado da partida.' : (state.playerRegistrationOpen === false ? 'O Controlador ainda não liberou novos cadastros.' : 'Preencha a ficha e envie para aprovação.');
       requestRegistration.disabled = state.playerRegistrationOpen === false || Boolean(player);
       requestRegistration.textContent = pending ? 'Cadastro enviado' : 'Enviar cadastro';
       cancelRegistration.hidden = !pending;
       [playerName, hasOrganization, organizationName, playerEmail, playerPhone, emergencyName, emergencyPhone].forEach(field => field.disabled = pending);
-      if (pending && previousRegistrationState !== 'pending') {
+      if (pending && shownRegistrationId !== playerId + ':' + state.resetId) {
+        shownRegistrationId = playerId + ':' + state.resetId;
         playerName.value = player.name || '';
         hasOrganization.checked = Boolean(player.organization);
         organizationField.hidden = !hasOrganization.checked;
@@ -1035,7 +1042,7 @@
     const emergencyContact = emergencyName.value.trim();
     const emergencyContactPhone = emergencyPhone.value.trim();
     const organization = hasOrganization.checked ? organizationName.value.trim() : '';
-    if (!s.playerRegistrationOpen) { showPopup('Cadastro fechado', 'O Controlador ainda não abriu o cadastro de jogadores.', 'Times'); return; }
+    if (s.playerRegistrationOpen === false) { showPopup('Cadastro fechado', 'O Controlador ainda não abriu o cadastro de jogadores.', 'Times'); return; }
     if (name.length < 2) { showPopup('Nome necessário', 'Informe um nome ou indicativo com pelo menos dois caracteres.', 'Cadastro'); return; }
     if (!/^\S+@\S+\.\S+$/.test(email)) { showPopup('Email inválido', 'Informe um endereço de email válido.', 'Cadastro'); return; }
     if (phone.replace(/\D/g, '').length < 8) { showPopup('Celular inválido', 'Informe um celular de contato válido.', 'Cadastro'); return; }
@@ -1048,11 +1055,14 @@
       showPopup('Inscrição não enviada', error.message, 'Cadastro');
       return;
     } finally { requestRegistration.disabled = false; }
+    editingRegistration = false;
+    shownRegistrationId = null;
+    applyRegistration();
     localStorage.setItem(playerResetKey, String(s.resetId));
     showPopup('Solicitação enviada', 'Aguarde o Controlador aprovar e definir seu time.', 'Cadastro');
   };
   cancelRegistration.onclick = () => {
-    AirsoftBus.update(st => { st.players = (st.players || []).filter(p => p.id !== playerId || p.status === 'approved'); });
+    editingRegistration = true;
     localStorage.setItem(registrationStateKey, 'none');
     [playerName, hasOrganization, organizationName, playerEmail, playerPhone, emergencyName, emergencyPhone].forEach(field => field.disabled = false);
     requestRegistration.disabled = false;
@@ -1067,6 +1077,11 @@
   registerCt.onclick = () => setPlayerRole('ct');
   registerTerrorist.onclick = () => setPlayerRole('terrorist');
   role.onchange = () => render(AirsoftBus.read());
+  addEventListener('airsoft-room-ready', event => {
+    if (!playerName.value) playerName.value = event.detail?.name || '';
+    if (!playerEmail.value) playerEmail.value = event.detail?.email || '';
+    applyRegistration();
+  });
   applyRegistration();
   AirsoftMaps.create(squadMap).then(instance => {
     googleSquadMap = instance;
