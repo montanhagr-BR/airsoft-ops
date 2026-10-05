@@ -13,6 +13,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0;
   min-height: 100vh;
@@ -391,3 +392,39 @@ footer {
   .roleActionGrid { grid-template-columns: 1fr; }
   .codeEntry { grid-template-columns: 1fr; }
 }
+
+.welcomeScreen { min-height: 82svh; display: flex; justify-content: center; align-items: center; padding: 0; }
+.welcomeArtwork { position: relative; width: fit-content; max-width: 100%; overflow: hidden; box-shadow: 0 16px 60px rgba(0,0,0,.65); }
+.welcomeLogo { display: block; width: auto; max-width: 100%; height: auto; max-height: 82svh; }
+.welcomeScreen h1 { margin: 0; font-family: Impact, 'Arial Narrow', sans-serif; font-size: 32px; color: var(--portal-paper); text-align: center; text-shadow: 0 2px 8px #000; }
+.welcomeActions { position: absolute; bottom: 19%; left: 50%; transform: translateX(-50%); width: 66%; display: grid; padding: 8px; background: rgba(0,0,0,.68); border: 1px solid rgba(239,104,23,.5); border-radius: 4px; }
+.welcomeActions .btnPrimary { min-height: 48px; font-size: 18px; }
+.registrationGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.consentLine { display: flex; gap: 12px; align-items: center; margin: 18px 0; line-height: 1.5; }
+.consentLine input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--portal-orange); }
+.shareRow, .rosterToolbar { display: flex; gap: 10px; align-items: center; }
+.shareRow input, .rosterToolbar input { min-width: 0; flex: 1; padding: 12px; background: #0d0c08; color: var(--portal-ink); border: 1px solid var(--portal-border); }
+.shareRow button, .rosterToolbar button { width: auto; padding: 10px 14px; }
+.registrationRow { display: grid; grid-template-columns: minmax(0,1fr) 160px auto; gap: 12px; align-items: center; border-bottom: 1px solid var(--portal-border); padding: 14px 0; }
+.registrationRow select { padding: 12px; color: var(--portal-ink); background: #0d0c08; border: 1px solid var(--portal-border); }
+.registrationRow small { display: block; color: var(--portal-muted); margin-top: 6px; }
+.registrationRow button { padding: 10px; }
+button:disabled { opacity: .55; cursor: wait; }
+.portalMain > *, .sessionCard > *, .registrationRow > * { min-width: 0; overflow-wrap: anywhere; }
+.dashboardGrid { grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); }
+body { letter-spacing: 0; }
+.portalBox h1 { font-size: 28px; }
+.portalBrand b, .portalBrand small, .portalBox h1, .portalBox h2, .tagOwner, .codeEntry input { letter-spacing: 0; }
+@media(max-width:600px) {
+  .registrationGrid, .registrationRow { grid-template-columns: 1fr; }
+  .shareRow, .rosterToolbar, .sessionCard { flex-wrap: wrap; }
+  .shareRow input, .rosterToolbar input { flex-basis: 100%; }
+  .welcomeScreen { min-height: 70svh; }
+}
+
+#formSignup .formGroup { margin: 16px 0; }
+#formSignup button, #signupConfirmation button { margin-top: 12px; }
+#signupConfirmation strong { overflow-wrap: anywhere; }
+
+.authNav { flex-wrap: wrap; }
+#formConfirmation button, #resetSent button { margin-top: 12px; }

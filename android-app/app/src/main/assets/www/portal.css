@@ -393,9 +393,12 @@ footer {
   .codeEntry { grid-template-columns: 1fr; }
 }
 
-.welcomeScreen { min-height: 72svh; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 24px 0; background: url('assets/airsoft-ops-identity.png') center 38% / contain no-repeat; }
+.welcomeScreen { min-height: 82svh; display: flex; justify-content: center; align-items: center; padding: 0; }
+.welcomeArtwork { position: relative; width: fit-content; max-width: 100%; overflow: hidden; box-shadow: 0 16px 60px rgba(0,0,0,.65); }
+.welcomeLogo { display: block; width: auto; max-width: 100%; height: auto; max-height: 82svh; }
 .welcomeScreen h1 { margin: 0; font-family: Impact, 'Arial Narrow', sans-serif; font-size: 32px; color: var(--portal-paper); text-align: center; text-shadow: 0 2px 8px #000; }
-.welcomeActions { width: min(100%, 440px); display: grid; gap: 12px; background: rgba(0,0,0,.8); padding: 12px; }
+.welcomeActions { position: absolute; bottom: 19%; left: 50%; transform: translateX(-50%); width: 66%; display: grid; padding: 8px; background: rgba(0,0,0,.68); border: 1px solid rgba(239,104,23,.5); border-radius: 4px; }
+.welcomeActions .btnPrimary { min-height: 48px; font-size: 18px; }
 .registrationGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
 .consentLine { display: flex; gap: 12px; align-items: center; margin: 18px 0; line-height: 1.5; }
 .consentLine input { width: 24px; height: 24px; flex-shrink: 0; accent-color: var(--portal-orange); }
@@ -418,3 +421,10 @@ body { letter-spacing: 0; }
   .shareRow input, .rosterToolbar input { flex-basis: 100%; }
   .welcomeScreen { min-height: 70svh; }
 }
+
+#formSignup .formGroup { margin: 16px 0; }
+#formSignup button, #signupConfirmation button { margin-top: 12px; }
+#signupConfirmation strong { overflow-wrap: anywhere; }
+
+.authNav { flex-wrap: wrap; }
+#formConfirmation button, #resetSent button { margin-top: 12px; }

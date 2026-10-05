@@ -1,32 +1,43 @@
-# Autenticação do portal web
+# Contas e autenticação — Airsoft Ops
 
-O portal em `outputs/index.html` permite cadastro e acesso por e-mail/senha ou conta Google. Ele não cria salas. Depois de autenticado, o usuário informa o código de uma sala existente e abre o módulo Artefato ou Controle.
+O portal usa Supabase Auth para contas, verificação de e-mail, senhas e sessões. Senhas são enviadas diretamente ao serviço pelo SDK e não são gravadas no armazenamento local do site.
 
-## Preparar o banco
+## Fluxos
 
-Execute no SQL Editor do Supabase, depois das migrações anteriores:
+- Cadastrar: nome/indicativo e e-mail, depois senha e confirmação. Mostra instruções de confirmação ou abre o painel quando o serviço devolve uma sessão.
+- Entrar: mensagens em português para credenciais incorretas, e-mail não confirmado, limite de tentativas e falha de conexão.
+- Confirmar e-mail: formulário independente para solicitar outro link sem repetir o cadastro.
+- Recuperar: solicita um link e mostra uma resposta neutra, sem revelar se a conta existe.
+- Nova senha: retorno com flow=recovery e sessão válida abre o formulário; links expirados oferecem nova solicitação. Depois de atualizar, remove o contexto de recuperação da URL.
+- Sair: encerra a sessão e remove as conexões locais dos módulos.
 
-`supabase/migrations/004_rejoin_controller.sql`
+Envios simultâneos são bloqueados. Pedidos de e-mail têm intervalo de um minuto na interface; os limites efetivos são impostos pelo Supabase.
 
-Essa função permite reabrir o Controle somente quando o usuário autenticado é o proprietário que criou a sala.
+## Configuração do serviço
 
-## E-mail e senha
+1. Habilite o provedor Email e o cadastro de usuários no Supabase. Para produção, habilite confirmação de e-mail.
+2. Configure SMTP próprio, com remetente e domínio verificados no provedor. O serviço padrão do Supabase restringe destinatários aos membros da equipe do projeto; sem SMTP próprio, o envio para o público pode falhar.
+3. Em URL Configuration, informe https://warm-hummingbird-8988f6.netlify.app/ como Site URL. Permita os caminhos e parâmetros do portal em Redirect URLs, por exemplo https://warm-hummingbird-8988f6.netlify.app/**. Inclua somente os ambientes de teste utilizados.
+4. Nos modelos Confirm signup e Reset password, mantenha o link {{ .ConfirmationURL }} para validar o token antes de retornar ao site. Um link direto à página inicial não verifica o token.
+5. Configure limites e proteção contra abuso no Supabase. Credenciais SMTP e chaves administrativas ficam no serviço, nunca no JavaScript público.
+6. Para Google, habilite o provedor e configure o cliente OAuth com o callback indicado no Supabase. O Client Secret fica somente no serviço.
 
-1. Abra **Authentication > Sign In / Providers** no Supabase.
-2. Mantenha o provedor **Email** habilitado.
-3. Escolha se novos usuários precisarão confirmar o e-mail.
-4. Para produção, configure um SMTP próprio.
+O fallback local Android encaminha links de e-mail ao site público. Uma sessão criada no navegador não é transferida automaticamente para a WebView local.
 
-## Conta Google
+## Publicação e testes
 
-1. No Google Auth Platform, crie um cliente OAuth do tipo aplicação Web.
-2. Adicione como URI de redirecionamento autorizado a URL de callback exibida em **Supabase > Authentication > Sign In / Providers > Google**.
-3. Copie o Client ID e o Client Secret para o provedor Google no Supabase e habilite-o.
-4. Em **Authentication > URL Configuration**, use a URL pública do site como Site URL.
-5. Adicione a URL pública e as URLs de preview permitidas na lista de Redirect URLs.
+Publique a pasta outputs conforme netlify.toml. Ela precisa de supabase-config.js com URL e chave pública do projeto. Os arquivos do portal também estão sincronizados em android-app/app/src/main/assets/www para gerar outro APK.
 
-O Client Secret do Google deve existir apenas no painel do Supabase. Nunca coloque esse segredo nos arquivos HTML ou JavaScript.
+Testes locais:
 
-## Publicação
+- node tests/portal.test.cjs
+- node tests/room-navigation.test.cjs
+- node tests/preparation.test.cjs
 
-Publique o conteúdo da pasta `outputs`. O arquivo `supabase-config.js` precisa conter somente a URL do projeto e a chave pública/publishable do Supabase.
+Os testes simulam o serviço e não confirmam entrega de e-mails. Após publicar e configurar SMTP, valide com uma conta de teste: cadastro, confirmação, login, logout, recuperação, troca de senha, login com a nova senha e rejeição de link expirado ou já utilizado. Consulte Auth Logs quando a solicitação falhar ou o e-mail não chegar.
+
+Documentação oficial:
+
+- https://supabase.com/docs/guides/auth/passwords
+- https://supabase.com/docs/guides/auth/auth-smtp
+- https://supabase.com/docs/guides/auth/debugging/error-codes

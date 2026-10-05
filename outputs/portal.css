@@ -421,3 +421,10 @@ body { letter-spacing: 0; }
   .shareRow input, .rosterToolbar input { flex-basis: 100%; }
   .welcomeScreen { min-height: 70svh; }
 }
+
+#formSignup .formGroup { margin: 16px 0; }
+#formSignup button, #signupConfirmation button { margin-top: 12px; }
+#signupConfirmation strong { overflow-wrap: anywhere; }
+
+.authNav { flex-wrap: wrap; }
+#formConfirmation button, #resetSent button { margin-top: 12px; }

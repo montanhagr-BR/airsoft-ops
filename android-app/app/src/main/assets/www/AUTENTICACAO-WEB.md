@@ -1,68 +1,43 @@
-# Autenticação Web e Portal para Notebooks - Airsoft Ops
+# Contas e autenticação — Airsoft Ops
 
-Este documento descreve o funcionamento e os passos para configurar a autenticação e o portal web do **Airsoft Ops / Montanha Bomb System**, permitindo que usuários acessem via navegador no computador/notebook como **Artefato (Bomba)** ou **Controle**.
+O portal usa Supabase Auth para contas, verificação de e-mail, senhas e sessões. Senhas são enviadas diretamente ao serviço pelo SDK e não são gravadas no armazenamento local do site.
 
----
+## Fluxos
 
-## 🚀 Recursos do Portal Web
+- Cadastrar: nome/indicativo e e-mail, depois senha e confirmação. Mostra instruções de confirmação ou abre o painel quando o serviço devolve uma sessão.
+- Entrar: mensagens em português para credenciais incorretas, e-mail não confirmado, limite de tentativas e falha de conexão.
+- Confirmar e-mail: formulário independente para solicitar outro link sem repetir o cadastro.
+- Recuperar: solicita um link e mostra uma resposta neutra, sem revelar se a conta existe.
+- Nova senha: retorno com flow=recovery e sessão válida abre o formulário; links expirados oferecem nova solicitação. Depois de atualizar, remove o contexto de recuperação da URL.
+- Sair: encerra a sessão e remove as conexões locais dos módulos.
 
-- **Identidade Visual Oficial**: Estilização baseada no tema Montanha Bomb System (`airsoft-brand.css`), com fundo de marca oficial sem distorção.
-- **Autenticação Dupla**:
-  - Cadastro e Login tradicional com **E-mail e Senha**.
-  - Login com um clique utilizando **Conta Google (OAuth)**.
-  - Recuperação de senha por e-mail.
-- **Proteção do Controlador**:
-  - Apenas o proprietário/criador da sala (identificado via `created_by` no Supabase) pode entrar no modo **Controle** daquela sala.
-  - Tentativas não autorizadas de entrar no Controle de salas alheias são bloqueadas.
-- **Sessões Compartilhadas**:
-  - Salva a conexão ativa no `localStorage` sob a chave `airsoft-cloud-session-v1-controller` ou `airsoft-cloud-session-v1-artifact`, sincronizando perfeitamente com `bomba.html` e `controle.html`.
+Envios simultâneos são bloqueados. Pedidos de e-mail têm intervalo de um minuto na interface; os limites efetivos são impostos pelo Supabase.
 
----
+## Configuração do serviço
 
-## 🛠️ Passos de Configuração no Supabase
+1. Habilite o provedor Email e o cadastro de usuários no Supabase. Para produção, habilite confirmação de e-mail.
+2. Configure SMTP próprio, com remetente e domínio verificados no provedor. O serviço padrão do Supabase restringe destinatários aos membros da equipe do projeto; sem SMTP próprio, o envio para o público pode falhar.
+3. Em URL Configuration, informe https://warm-hummingbird-8988f6.netlify.app/ como Site URL. Permita os caminhos e parâmetros do portal em Redirect URLs, por exemplo https://warm-hummingbird-8988f6.netlify.app/**. Inclua somente os ambientes de teste utilizados.
+4. Nos modelos Confirm signup e Reset password, mantenha o link {{ .ConfirmationURL }} para validar o token antes de retornar ao site. Um link direto à página inicial não verifica o token.
+5. Configure limites e proteção contra abuso no Supabase. Credenciais SMTP e chaves administrativas ficam no serviço, nunca no JavaScript público.
+6. Para Google, habilite o provedor e configure o cliente OAuth com o callback indicado no Supabase. O Client Secret fica somente no serviço.
 
-### 1. Executar o Script SQL de Banco de Dados
+O fallback local Android encaminha links de e-mail ao site público. Uma sessão criada no navegador não é transferida automaticamente para a WebView local.
 
-1. Acesse o painel do Supabase no seu projeto (`https://app.supabase.com`).
-2. Vá em **SQL Editor** → **New query**.
-3. Copie todo o conteúdo do arquivo `004_rejoin_controller.sql` (disponível nesta mesma pasta).
-4. Clique em **Run** para executar e criar as funções e tabelas:
-   - Tabela `game_sessions` (com coluna `created_by`).
-   - RPC `create_game_session` (salva o `auth.uid()` do criador).
-   - RPC `join_game` (valida permissão de controle para o proprietário da sala).
+## Publicação e testes
 
-### 2. Habilitar o Provedor Google (OAuth)
+Publique a pasta outputs conforme netlify.toml. Ela precisa de supabase-config.js com URL e chave pública do projeto. Os arquivos do portal também estão sincronizados em android-app/app/src/main/assets/www para gerar outro APK.
 
-1. No Supabase, vá para **Authentication** → **Providers** → **Google**.
-2. Alterne para **Enabled**.
-3. Insira o **Client ID** e o **Client Secret** obtidos do [Google Cloud Console](https://console.cloud.google.com/).
-4. No Google Cloud Console, adicione o **Authorized redirect URI** fornecido pelo Supabase (ex.: `https://<seu-projeto>.supabase.co/auth/v1/callback`).
+Testes locais:
 
-### 3. Configurar URLs de Redirecionamento (Netlify)
+- node tests/portal.test.cjs
+- node tests/room-navigation.test.cjs
+- node tests/preparation.test.cjs
 
-1. No Supabase, vá em **Authentication** → **URL Configuration**.
-2. No campo **Site URL**, insira a URL pública principal do Netlify:
-   ```text
-   https://warm-hummingbird-8988f6.netlify.app/
-   ```
-3. No campo **Redirect URLs**, adicione as seguintes URLs:
-   ```text
-   https://warm-hummingbird-8988f6.netlify.app/
-   https://warm-hummingbird-8988f6.netlify.app/**
-   http://localhost:3000/
-   ```
+Os testes simulam o serviço e não confirmam entrega de e-mails. Após publicar e configurar SMTP, valide com uma conta de teste: cadastro, confirmação, login, logout, recuperação, troca de senha, login com a nova senha e rejeição de link expirado ou já utilizado. Consulte Auth Logs quando a solicitação falhar ou o e-mail não chegar.
 
----
+Documentação oficial:
 
-## 📦 Publicação no Netlify
-
-Após alterar e salvar as configurações, envie os arquivos da pasta `assets/www` para o Netlify:
-- `index.html` (Portal Principal)
-- `portal.css`
-- `portal.js`
-- `supabase-config.js`
-- `airsoft-cloud.js`
-- `bomba.html`, `controle.html`, `jogador.html`
-- Pasta `assets/` (imagens de fundo e marcas)
-
-Acesse **https://warm-hummingbird-8988f6.netlify.app/** no seu navegador para testar a experiência completa no notebook!
+- https://supabase.com/docs/guides/auth/passwords
+- https://supabase.com/docs/guides/auth/auth-smtp
+- https://supabase.com/docs/guides/auth/debugging/error-codes

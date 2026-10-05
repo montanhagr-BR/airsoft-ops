@@ -133,7 +133,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     if (request.isForMainFrame) {
                         val failedUrl = request.url.toString()
                         if (failedUrl.contains("netlify.app")) {
-                            val fallback = "https://airsoft.local/$page${if (role == AppRole.CONTROLLER) "" else "?android=1"}"
+                            val fallback = "https://airsoft.local/$page${if (role == AppRole.PORTAL) "?android=1&flow=dashboard" else "?android=1"}"
                             view.loadUrl(fallback)
                         } else {
                             loadError = "Falha ao abrir ${role.title}: ${error.description}"
@@ -174,7 +174,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 }
             }
             requestFocus()
-            val suffix = if (role == AppRole.CONTROLLER) "" else "?android=1"
+            val suffix = if (role == AppRole.PORTAL) "?android=1&flow=dashboard" else "?android=1"
             val onlineUrl = "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
             loadUrl(onlineUrl)
         }
