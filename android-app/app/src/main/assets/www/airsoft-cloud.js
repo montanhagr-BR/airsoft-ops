@@ -54,11 +54,8 @@ const AirsoftCloud = (() => {
     return client;
   }
   async function createRoom() {
-    const operationName = gate.querySelector('[data-operation-name]').value.trim();
-    if (operationName.length < 3) {
-      setStatus('Informe o nome da operação', 'error');
-      return;
-    }
+    const inputName = gate.querySelector('[data-operation-name]').value.trim();
+    const operationName = inputName.length >= 2 ? inputName : 'OPERAÇÃO AIRSOFT';
     setStatus('Criando sala...');
     try {
       await ensureAuth();
@@ -73,7 +70,17 @@ const AirsoftCloud = (() => {
       await subscribe();
       setStatus('Sala online', 'ok');
       renderGate();
-    } catch (error) { setStatus(error.message || 'Falha ao criar sala', 'error'); }
+    } catch (error) {
+      console.warn('Supabase offline or RPC unavailable, using local standalone mode:', error);
+      const localCode = 'OP-' + Math.floor(1000 + Math.random() * 9000);
+      const initialState = { ...AirsoftBus.read(), operationName };
+      applyingRemote = true;
+      AirsoftBus.write(initialState);
+      applyingRemote = false;
+      saveConnection({ sessionId:'local-' + Date.now(), joinCode:localCode, memberId:null, role, operationName });
+      setStatus('Modo local (offline)', 'ok');
+      renderGate();
+    }
   }
   async function joinRoom(code) {
     const cleanCode = String(code || '').trim().toUpperCase();
