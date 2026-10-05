@@ -52,7 +52,7 @@ window.PreRegistration = (() => {
       profile.consent = form.elements.consent.checked;
       const { error } = await client().rpc('submit_game_registration', { requested_code: profile.code.trim().toUpperCase(), profile });
       if (error) throw error;
-      message('Você entrou na lista de espera! Volte ao painel para participar de uma partida ou se inscrever em outro evento.');
+      message('Inscrição salva! Seu cadastro aparece no Controle, aguardando aprovação e definição de equipe.');
       byId('registrationNextActions').hidden = false;
     } catch (error) { message(error.message); }
     finally { button.disabled = false; }
@@ -129,5 +129,10 @@ window.PreRegistration = (() => {
       catch { byId('registrationLink').select(); }
     });
   });
-  return { openRegistration, openOrganizer, preparePlayer };
+  async function selectGame(code) {
+    await openRegistration();
+    byId('preRegistrationForm').elements.code.value = code;
+    await loadRegistration();
+  }
+  return { openRegistration, openOrganizer, preparePlayer, selectGame };
 })();

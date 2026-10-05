@@ -66,7 +66,7 @@ const AirsoftCloud = (() => {
     connecting = true;
     try {
       await ensureAuth();
-      const initialState = { ...AirsoftBus.read(), operationName };
+      const initialState = { ...AirsoftBus.read(), operationName, players: [], bombDevices: [], log: [], running: false, finished: false };
       const result = await client.rpc('create_game_session', { initial_state:initialState });
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
@@ -196,11 +196,30 @@ const AirsoftCloud = (() => {
       else publishMemberEvent(state);
     }, 180);
   }
+  async function registerPlayer(profile) {
+    if (!connection || role !== 'player') throw new Error('Entre em uma sala primeiro.');
+    const result = await client.rpc('submit_game_registration', { requested_code: connection.code || connection.joinCode, profile });
+    if (result.error) throw result.error;
+    await subscribe();
+  }
+  async function assignPlayer(registrationId, team, decision = 'approved') {
+    if (!connection || role !== 'controller') throw new Error('Somente o Controle pode aprovar.');
+    const result = await client.rpc('assign_game_registration', { registration_id: registrationId, assigned_team: team, decision });
+    if (result.error) throw result.error;
+    await subscribe();
+  }
   async function consumeEvent(payload) {
-    if (role !== 'controller' || !payload.new || payload.new.user_id === user.id) return;
+    if (role !== 'controller' || !payload.new) return;
     const proposed = payload.new.payload && payload.new.payload.state;
     if (!proposed) return;
     applyingRemote = true;
+    // Member telemetry must not replace another account's roster or approvals.
+    const current = AirsoftBus.read();
+    proposed.players = (current.players || []).map(player => {
+      const update = (proposed.players || []).find(p => p.id === player.id);
+      if (player.id !== 'P-' + payload.new.user_id || !update) return player;
+      return { ...player, lat: update.lat, lng: update.lng, accuracy: update.accuracy, lastFix: update.lastFix, lastSeen: update.lastSeen };
+    });
     AirsoftBus.write(proposed);
     applyingRemote = false;
     await publishControllerState(proposed);
@@ -212,7 +231,7 @@ const AirsoftCloud = (() => {
       await leaveRoom();
       return;
     }
-    if ((role === 'controller' && payload.new.status !== 'finished') || !payload.new.state) return;
+    if (!payload.new.state) return;
     if (payload.new.status === 'finished') clearTimeout(syncTimer);
     applyingRemote = true;
     AirsoftBus.write(payload.new.state);
@@ -398,7 +417,7 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom, back: () => {
+  return { createRoom, joinRoom, leaveRoom, registerPlayer, assignPlayer, back: () => {
     if (role === 'controller') leaveControl(); else leaveRoom();
     return true;
   } };

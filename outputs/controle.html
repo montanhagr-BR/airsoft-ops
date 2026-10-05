@@ -1103,10 +1103,21 @@
       return s;
     });
   });
-  playerRoster.addEventListener('click', e => {
+  playerRoster.addEventListener('click', async e => {
     const row = e.target.closest('[data-player-id]');
     if (!row) return;
     const id = row.dataset.playerId;
+    const registered = (AirsoftBus.read().players || []).find(p => p.id === id && p.registrationId);
+    if (registered && (e.target.closest('[data-player-remove]') || e.target.closest('[data-player-approve]'))) {
+      const button = e.target.closest('button'); button.disabled = true;
+      try {
+        await AirsoftCloud.assignPlayer(registered.registrationId, row.querySelector('[data-player-team]').value, e.target.closest('[data-player-remove]') ? 'rejected' : 'approved');
+        pendingPlayerTeams.delete(id);
+      } catch (error) { showPopup('Não foi possível atualizar inscrição', error.message, 'Times'); }
+      finally { button.disabled = false; }
+      return;
+    }
+
     if (e.target.closest('[data-player-remove]')) {
       AirsoftBus.update(s => { s.players = (s.players || []).filter(p => p.id !== id); });
       AirsoftBus.log('Controlador removeu um jogador do cadastro.');

@@ -5,7 +5,7 @@ Aplicar `supabase/migrations/006_event_limits_waitlist.sql` depois das migraçõ
 - Cada organizador mantém até três partidas não arquivadas. Partidas encerradas continuam ocupando uma vaga até serem arquivadas.
 - Apenas uma partida do organizador pode estar em andamento. O banco verifica também o campo `state.running` e serializa as operações por organizador.
 - Partidas novas abrem a lista de espera automaticamente. Iniciar a partida fecha essa lista.
-- Inscrição antecipada registra interesse e contatos; não aprova presença nem escolhe equipe. O jogador entra efetivamente na partida por código, sujeito à aprovação no Controle.
+- Inscrição antecipada registra interesse e contatos; não aprova presença nem escolhe equipe. O jogador escolhe um jogo aberto no painel e preenche a inscrição; o cadastro aparece no Controle como pendente, sujeito à aprovação e à escolha de equipe. Aplicar também a migração 007.
 - Um jogador pode entrar em listas de espera de vários eventos e continuar participando de outras partidas pelo painel.
 - Partidas e inscrições antigas são preservadas. Aprovações anteriores já presentes no estado da partida não são removidas automaticamente.
 - A consulta de inscritos permanece restrita ao próprio jogador e ao organizador pelas políticas existentes. A função `my_waitlist_events` retorna somente eventos da conta autenticada.

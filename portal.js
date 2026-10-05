@@ -360,6 +360,27 @@ const AirsoftPortal = (() => {
     access('registration');
   }
 
+  async function loadOpenGames() {
+    const list = document.getElementById('openRegistrationEvents');
+    if (!list || !currentUser) return;
+    const owner = currentUser.id;
+    list.textContent = 'Consultando jogos...';
+    try {
+      const { data, error } = await getClient().rpc('open_registration_events');
+      if (currentUser?.id !== owner) return;
+      if (error) throw error;
+      list.textContent = '';
+      if (!data?.length) list.textContent = 'Nenhum jogo com inscrição aberta no momento.';
+      for (const game of data || []) {
+        const card = document.createElement('div'); card.className = 'sessionCard';
+        const label = document.createElement('span'); label.textContent = game.operation_name + ' | ' + game.join_code;
+        const button = document.createElement('button'); button.type = 'button'; button.className = 'btnPrimary'; button.textContent = 'Inscrever-se';
+        button.addEventListener('click', () => { newRegistration(); PreRegistration.selectGame(game.join_code); });
+        card.append(label, button); list.append(card);
+      }
+    } catch (error) { if (currentUser?.id === owner) list.textContent = 'Não foi possível consultar jogos: ' + error.message; }
+  }
+
   async function loadWaitlistEvents() {
     const list = document.getElementById('myWaitlistEvents');
     if (!list || !currentUser) return;
@@ -543,6 +564,7 @@ const AirsoftPortal = (() => {
     const listEl = document.getElementById('mySessionsList');
     if (!listEl || !currentUser) return;
     loadWaitlistEvents();
+    loadOpenGames();
     const request = ++sessionsRequest;
     const ownerId = currentUser.id;
     const controllerCard = document.getElementById('controllerCard');

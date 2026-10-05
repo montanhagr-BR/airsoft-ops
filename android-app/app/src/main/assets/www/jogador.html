@@ -1027,7 +1027,7 @@
       return completed;
     });
   }
-  requestRegistration.onclick = () => {
+  requestRegistration.onclick = async () => {
     const s = AirsoftBus.read();
     const name = playerName.value.trim();
     const email = playerEmail.value.trim();
@@ -1041,10 +1041,13 @@
     if (phone.replace(/\D/g, '').length < 8) { showPopup('Celular inválido', 'Informe um celular de contato válido.', 'Cadastro'); return; }
     if (emergencyContact.length < 2 || emergencyContactPhone.replace(/\D/g, '').length < 8) { showPopup('Contato de emergência', 'Informe nome e telefone válidos para o contato de emergência.', 'Cadastro'); return; }
     if (hasOrganization.checked && organization.length < 2) { showPopup('Agremiação necessária', 'Informe o nome da sua agremiação ou desmarque essa opção.', 'Cadastro'); return; }
-    AirsoftBus.update(st => {
-      st.players = (st.players || []).filter(p => p.id !== playerId);
-      st.players.push({ id:playerId, name:name.slice(0,40), email:email.slice(0,80), phone:phone.slice(0,24), emergencyName:emergencyContact.slice(0,50), emergencyPhone:emergencyContactPhone.slice(0,24), organization:organization.slice(0,50), status:'pending', team:null, requestedAt:Date.now(), lastSeen:Date.now(), lat:null, lng:null, accuracy:null, lastFix:null });
-    });
+    requestRegistration.disabled = true;
+    try {
+      await AirsoftCloud.registerPlayer({ name, email, phone, organization, emergencyName: emergencyContact, emergencyPhone: emergencyContactPhone, consent: true });
+    } catch (error) {
+      showPopup('Inscrição não enviada', error.message, 'Cadastro');
+      return;
+    } finally { requestRegistration.disabled = false; }
     localStorage.setItem(playerResetKey, String(s.resetId));
     showPopup('Solicitação enviada', 'Aguarde o Controlador aprovar e definir seu time.', 'Cadastro');
   };
