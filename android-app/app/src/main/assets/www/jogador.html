@@ -534,7 +534,7 @@
     const points = members.filter(p => p.lat != null && p.lng != null);
     const team = me && me.status === 'approved' ? me.team : null;
     if (googleSquadMap) {
-      googleSquadMap.render(s, { team });
+      googleSquadMap.render(s, { team, restrictToField: true });
       return;
     }
     const visibleAreas = team ? (s.tacticalAreas || []).filter(a => a.visibility === 'all' || a.visibility === team) : [];

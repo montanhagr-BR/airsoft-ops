@@ -182,11 +182,6 @@
               zIndex: 6
             });
             overlays.push(circleMarker);
-              label: { text: area.name || 'Área', color: '#fff', fontWeight: '900', fontSize: '12px' },
-              icon: { path: maps.SymbolPath.CIRCLE, scale: 0 },
-              zIndex: 4
-            });
-            overlays.push(circleMarker);
           }
         });
         ['ct','terrorist'].forEach(teamId => {
@@ -212,7 +207,40 @@
           });
           overlays.push(marker); bounds.extend(marker.getPosition());
         }
-        if (!fitted && !bounds.isEmpty() && !userMoved) {
+
+        if (view.restrictToField) {
+          let restrictionPoints = [...fieldPath];
+          if (!restrictionPoints.length) {
+            (state.tacticalAreas || []).forEach(area => {
+              if (area.points) area.points.filter(hasPosition).forEach(p => restrictionPoints.push({ lat:Number(p.lat), lng:Number(p.lng) }));
+            });
+          }
+          if (restrictionPoints.length >= 2) {
+            const lats = restrictionPoints.map(p => p.lat);
+            const lngs = restrictionPoints.map(p => p.lng);
+            const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+            const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+            const latSpan = Math.max(0.002, maxLat - minLat);
+            const lngSpan = Math.max(0.002, maxLng - minLng);
+            const paddedBounds = {
+              south: minLat - latSpan * 0.5,
+              north: maxLat + latSpan * 0.5,
+              west: minLng - lngSpan * 0.5,
+              east: maxLng + lngSpan * 0.5
+            };
+            map.setOptions({
+              restriction: {
+                latLngBounds: paddedBounds,
+                strictBounds: false
+              },
+              minZoom: 14
+            });
+            if (!userMoved) {
+              map.fitBounds(paddedBounds, 24);
+              fitted = true;
+            }
+          }
+        } else if (!fitted && !bounds.isEmpty() && !userMoved) {
           map.fitBounds(bounds, 56);
           fitted = true;
         }
