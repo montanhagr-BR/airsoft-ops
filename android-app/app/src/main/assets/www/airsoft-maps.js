@@ -100,11 +100,16 @@
 
     let layers = [];
     let fitted = false;
+    let lastRenderHash = null;
 
     return {
       map,
       resize() { map.invalidateSize(); },
       render(state, view = {}) {
+        const currentHash = JSON.stringify({ state, view });
+        if (currentHash === lastRenderHash) return;
+        lastRenderHash = currentHash;
+
         layers.forEach(l => map.removeLayer(l));
         layers = [];
         const team = view.team || null;
@@ -169,20 +174,27 @@
           }
         });
 
-        // Players
-        (state.players || []).filter(player => player.status === 'approved' && hasPosition(player) && (!team || player.team === team) && (!filter || player.team === filter)).forEach(player => {
+        // Players (with fallback to start position if GPS not locked yet)
+        (state.players || []).filter(player => player.status === 'approved' && (!team || player.team === team) && (!filter || player.team === filter)).forEach(player => {
+          let pLat = hasPosition(player) ? Number(player.lat) : null;
+          let pLng = hasPosition(player) ? Number(player.lng) : null;
+          if (pLat == null || pLng == null) {
+            const start = (state.teamStartPositions || {})[player.team];
+            if (hasPosition(start)) { pLat = Number(start.lat); pLng = Number(start.lng); }
+            else { const center = map.getCenter(); pLat = center.lat; pLng = center.lng; }
+          }
           const color = organizationColor(player.organization);
           const icon = L.divIcon({
             className: 'leafletPlayerLabel',
-            html: `<div style="background:${color};color:#fff;font-weight:900;font-size:10px;padding:2px 5px;border-radius:12px;border:1.5px solid #fff;white-space:nowrap;box-shadow:0 0 6px #000">${escapeHtml(player.name.slice(0,10))}</div>`,
-            iconSize: [60, 20],
-            iconAnchor: [30, 10]
+            html: `<div style="background:${color};color:#fff;font-weight:900;font-size:10px;padding:2px 5px;border-radius:12px;border:1.5px solid #fff;white-space:nowrap;box-shadow:0 0 6px #000">${escapeHtml(player.name.slice(0,10))}${!hasPosition(player)?' (GPS)':''}</div>`,
+            iconSize: [70, 20],
+            iconAnchor: [35, 10]
           });
-          const m = L.marker([Number(player.lat), Number(player.lng)], { icon }).addTo(map);
+          const m = L.marker([pLat, pLng], { icon }).addTo(map);
           layers.push(m);
         });
 
-        // 50% Field Region Restriction for Player Terminal
+        // 15% Field Region Restriction
         if (view.restrictToField) {
           let rePts = fieldPath;
           if (!rePts.length) {
@@ -198,19 +210,19 @@
             const latSpan = Math.max(0.002, maxLat - minLat);
             const lngSpan = Math.max(0.002, maxLng - minLng);
             const paddedBounds = L.latLngBounds(
-              [minLat - latSpan * 0.5, minLng - lngSpan * 0.5],
-              [maxLat + latSpan * 0.5, maxLng + lngSpan * 0.5]
+              [minLat - latSpan * 0.15, minLng - lngSpan * 0.15],
+              [maxLat + latSpan * 0.15, maxLng + lngSpan * 0.15]
             );
             map.setMaxBounds(paddedBounds);
             if (!fitted) {
-              map.fitBounds(paddedBounds, { padding: [20, 20] });
+              map.fitBounds(paddedBounds, { padding: [15, 15] });
               fitted = true;
             }
           }
         } else if (!fitted && (fieldPath.length >= 2 || layers.length > 0)) {
           const group = L.featureGroup(layers);
           if (group.getBounds().isValid()) {
-            map.fitBounds(group.getBounds(), { padding: [30, 30] });
+            map.fitBounds(group.getBounds(), { padding: [20, 20] });
             fitted = true;
           }
         }
@@ -264,6 +276,8 @@
     let overlays = [];
     let fitted = false;
     let userMoved = false;
+    let lastRenderHash = null;
+
     map.addListener('dragstart', () => { userMoved = true; });
     map.addListener('zoom_changed', () => { if (fitted) userMoved = true; });
     if (options.onClick) map.addListener('click', event => options.onClick({ lat:event.latLng.lat(), lng:event.latLng.lng() }));
@@ -272,6 +286,10 @@
       map,
       resize() { maps.event.trigger(map, 'resize'); },
       render(state, view = {}) {
+        const currentHash = JSON.stringify({ state, view });
+        if (currentHash === lastRenderHash) return;
+        lastRenderHash = currentHash;
+
         overlays.forEach(item => item.setMap(null));
         overlays = [];
         const team = view.team || null;
@@ -376,13 +394,24 @@
           });
           overlays.push(marker); bounds.extend(marker.getPosition());
         });
-        (state.players || []).filter(player => player.status === 'approved' && hasPosition(player) && (!team || player.team === team) && (!filter || player.team === filter)).forEach(player => {
-          const marker = makeMarker(maps, map, { lat:Number(player.lat), lng:Number(player.lng) }, {
-            title:player.name + ' · ' + (player.organization || 'Sem agremiação'), label:String(player.name || '?').slice(0,2).toUpperCase(),
+
+        // Players (with fallback to start position if GPS not locked yet)
+        (state.players || []).filter(player => player.status === 'approved' && (!team || player.team === team) && (!filter || player.team === filter)).forEach(player => {
+          let pLat = hasPosition(player) ? Number(player.lat) : null;
+          let pLng = hasPosition(player) ? Number(player.lng) : null;
+          if (pLat == null || pLng == null) {
+            const start = (state.teamStartPositions || {})[player.team];
+            if (hasPosition(start)) { pLat = Number(start.lat); pLng = Number(start.lng); }
+            else { const center = map.getCenter(); pLat = center.lat(); pLng = center.lng(); }
+          }
+          const marker = makeMarker(maps, map, { lat:pLat, lng:pLng }, {
+            title:player.name + ' · ' + (player.organization || 'Sem agremiação') + (!hasPosition(player) ? ' (Aguardando GPS)' : ''),
+            label:String(player.name || '?').slice(0,2).toUpperCase(),
             color:organizationColor(player.organization), shape:player.team === 'ct' ? 'circle' : 'square'
           });
           overlays.push(marker); bounds.extend(marker.getPosition());
         });
+
         if (!team && hasPosition({ lat:state.locatorArtifactLat, lng:state.locatorArtifactLng })) {
           const marker = makeMarker(maps, map, { lat:Number(state.locatorArtifactLat), lng:Number(state.locatorArtifactLng) }, {
             title:state.locatorArtifactName || 'Artefato', label:'A', color:'#c69b2b', shape:'diamond', zIndex:6
@@ -405,10 +434,10 @@
             const latSpan = Math.max(0.002, maxLat - minLat);
             const lngSpan = Math.max(0.002, maxLng - minLng);
             const paddedBounds = {
-              south: minLat - latSpan * 0.5,
-              north: maxLat + latSpan * 0.5,
-              west: minLng - lngSpan * 0.5,
-              east: maxLng + lngSpan * 0.5
+              south: minLat - latSpan * 0.15,
+              north: maxLat + latSpan * 0.15,
+              west: minLng - lngSpan * 0.15,
+              east: maxLng + lngSpan * 0.15
             };
             map.setOptions({
               restriction: {
