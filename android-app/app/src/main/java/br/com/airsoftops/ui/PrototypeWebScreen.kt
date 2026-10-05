@@ -81,8 +81,10 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     view: WebView,
                     request: WebResourceRequest
                 ): WebResourceResponse? {
-                    return bundledAssetResponse(context.assets, request.url)
-                        ?: super.shouldInterceptRequest(view, request)
+                    if (request.url.host == "airsoft.local") {
+                        return bundledAssetResponse(context.assets, request.url)
+                    }
+                    return super.shouldInterceptRequest(view, request)
                 }
 
                 override fun onPageFinished(view: WebView, url: String) {
@@ -129,7 +131,13 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     error: WebResourceError
                 ) {
                     if (request.isForMainFrame) {
-                        loadError = "Falha ao abrir ${role.title}: ${error.description}"
+                        val failedUrl = request.url.toString()
+                        if (failedUrl.contains("netlify.app")) {
+                            val fallback = "https://airsoft.local/$page${if (role == AppRole.CONTROLLER) "" else "?android=1"}"
+                            view.loadUrl(fallback)
+                        } else {
+                            loadError = "Falha ao abrir ${role.title}: ${error.description}"
+                        }
                     }
                 }
             }
@@ -167,7 +175,8 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             }
             requestFocus()
             val suffix = if (role == AppRole.CONTROLLER) "" else "?android=1"
-            loadUrl("https://airsoft.local/$page$suffix")
+            val onlineUrl = "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
+            loadUrl(onlineUrl)
         }
     }
 
