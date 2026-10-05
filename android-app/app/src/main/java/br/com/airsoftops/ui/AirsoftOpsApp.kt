@@ -90,538 +90,187 @@ fun AirsoftOpsApp(viewModel: GameViewModel = viewModel()) {
 
 @Composable
 private fun RoleSelection(onSelect: (AppRole) -> Unit) {
-    var choosingEntry by remember { mutableStateOf(false) }
+    var step by remember { mutableStateOf(1) } // 1 = Login Screen (Portal), 2 = Role Selection (Jogador vs Controle)
+    var choosingPlayerType by remember { mutableStateOf(false) }
 
     Box(
         Modifier
             .fillMaxSize()
             .background(Color(0xFF080C0B))
     ) {
-        // Full screen logo respecting aspect ratio
-        Image(
-            painter = painterResource(R.drawable.airsoft_ops_identity),
-            contentDescription = "Airsoft Ops Logo",
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.Center)
-        )
-
-        // Gradient overlay for button legibility
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.25f),
-                            Color.Black.copy(alpha = 0.45f),
-                            Color.Black.copy(alpha = 0.88f)
-                        )
-                    )
-                )
-        )
-
-        // Header Title at Top
-        Column(
-            Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 36.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "AIRSOFT OPS",
-                color = Color(0xFFF2B84B),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace,
-                textAlign = TextAlign.Center
+        if (step == 1) {
+            // Screen 1: Login Screen (Portal Web with Google / Email login)
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.weight(1f)) {
+                    PrototypeWebScreen(AppRole.PORTAL) {
+                        step = 2
+                    }
+                }
+            }
+        } else {
+            // Screen 2: Role Selection (Displaying JOGADOR and CONTROLE buttons)
+            Image(
+                painter = painterResource(R.drawable.airsoft_ops_identity),
+                contentDescription = "Airsoft Ops Logo",
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
             )
-            Text(
-                text = "SISTEMA TÁTICO OPERACIONAL",
-                color = Color(0xFFE8E5DA),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace,
-                textAlign = TextAlign.Center
-            )
-        }
 
-        // Action Buttons at Bottom
-        Column(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Button(
-                onClick = { choosingEntry = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF34D399),
-                    contentColor = Color(0xFF03110C)
-                )
-            ) {
-                Text(
-                    "ENTRAR NA OPERAÇÃO",
-                    fontWeight = FontWeight.Black,
-                    fontSize = 16.sp
-                )
-            }
-
-            Button(
-                onClick = { onSelect(AppRole.CONTROLLER) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF2B84B),
-                    contentColor = Color(0xFF171003)
-                )
-            ) {
-                Text(
-                    "CRIAR JOGO / CONTROLADOR",
-                    fontWeight = FontWeight.Black,
-                    fontSize = 16.sp
-                )
-            }
-
-            OutlinedButton(
-                onClick = { onSelect(AppRole.PORTAL) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(1.dp, Color(0xFF4EA7FF)),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color(0xFF0A1118).copy(alpha = 0.75f),
-                    contentColor = Color(0xFF4EA7FF)
-                )
-            ) {
-                Text(
-                    "PORTAL WEB / MINHA CONTA",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-        }
-
-        // Selection Modal
-        if (choosingEntry) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = .82f))
-                    .clickable { choosingEntry = false }
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.3f),
+                                Color.Black.copy(alpha = 0.6f),
+                                Color.Black.copy(alpha = 0.92f)
+                            )
+                        )
+                    )
             )
+
             Column(
                 Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth(.88f)
-                    .background(Color(0xFF10171A), shape = RoundedCornerShape(12.dp))
-                    .border(1.dp, Color(0xFFF2B84B), shape = RoundedCornerShape(12.dp))
-                    .padding(22.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    "ENTRAR NA OPERAÇÃO",
+                    text = "AIRSOFT OPS",
                     color = Color(0xFFF2B84B),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    "Escolha como este dispositivo será utilizado na partida:",
-                    color = Color(0xFFC4D2CE),
-                    fontSize = 13.sp
+                    text = "SELECIONE SEU MODO DE OPERAÇÃO",
+                    color = Color(0xFFE8E5DA),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
                 )
+            }
+
+            Column(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
                 Button(
-                    onClick = { onSelect(AppRole.PLAYER) },
+                    onClick = { choosingPlayerType = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(6.dp),
+                        .height(60.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF34D399),
                         contentColor = Color(0xFF03110C)
                     )
                 ) {
-                    Text("JOGADOR", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        "JOGADOR",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 18.sp
+                    )
                 }
+
                 Button(
-                    onClick = { onSelect(AppRole.ARTIFACT) },
+                    onClick = { onSelect(AppRole.CONTROLLER) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(6.dp),
+                        .height(60.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFB4E4E),
-                        contentColor = Color(0xFF190404)
+                        containerColor = Color(0xFFF2B84B),
+                        contentColor = Color(0xFF171003)
                     )
                 ) {
-                    Text("DISPOSITIVO BOMBA / ARTEFATO", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(
+                        "CONTROLE",
+                        fontWeight = FontWeight.Black,
+                        fontSize = 18.sp
+                    )
                 }
+
                 OutlinedButton(
-                    onClick = { choosingEntry = false },
+                    onClick = { step = 1 },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(6.dp)
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("CANCELAR", color = Color(0xFF8FA09A))
+                    Text("Voltar ao Login", color = Color(0xFF8FA09A))
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun BrandImageButton(
-    bottomHalf: Boolean,
-    description: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier
-            .aspectRatio(4f)
-            .background(Color(0xFF252511))
-            .border(1.dp, Color(0xFFEF6817))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = if (bottomHalf) "CRIAR JOGO" else "ENTRAR",
-            color = Color(0xFFFFE8BE),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Image(
-            painter = painterResource(
-                if (bottomHalf) R.drawable.button_criar_jogo else R.drawable.button_entrar
-            ),
-            contentDescription = description,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-private fun ScreenHeader(title: String, onBack: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(onClick = onBack) { Text("Voltar") }
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Label("MODO BOMBA")
-            Text(title, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ControllerScreen(state: GameState, viewModel: GameViewModel) {
-    var name by remember(state.config.name) { mutableStateOf(state.config.name) }
-    var gameMinutes by remember(state.config.gameDurationSeconds) { mutableStateOf((state.config.gameDurationSeconds / 60).toString()) }
-    var bombMinutes by remember(state.config.bombDurationSeconds) { mutableStateOf((state.config.bombDurationSeconds / 60).toString()) }
-    var actionSeconds by remember(state.config.actionDurationSeconds) { mutableStateOf(state.config.actionDurationSeconds.toString()) }
-    var armCode by remember(state.config.armCode) { mutableStateOf(state.config.armCode) }
-    var defuseCode by remember(state.config.defuseCode) { mutableStateOf(state.config.defuseCode) }
-    var qrRequired by remember(state.config.qrRequired) { mutableStateOf(state.config.qrRequired) }
-
-    Column(Modifier.fillMaxSize().padding(18.dp).verticalScroll(rememberScrollState())) {
-        ScreenHeader("Controlador", viewModel::leaveRole)
-        Spacer(Modifier.height(16.dp))
-        StatusStrip(state)
-        Spacer(Modifier.height(16.dp))
-        Section("IDENTIFICAÇÃO") {
-            OutlinedTextField(name, { name = it }, label = { Text("Nome da bomba") }, modifier = Modifier.fillMaxWidth())
-        }
-        Section("TEMPOS") {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                NumberField("Jogo (min)", gameMinutes) { gameMinutes = it }
-                NumberField("Bomba (min)", bombMinutes) { bombMinutes = it }
-                NumberField("Ação (seg)", actionSeconds) { actionSeconds = it }
-            }
-        }
-        Section("SENHAS E VALIDAÇÃO") {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(armCode, { armCode = it.filter(Char::isDigit).take(8) }, label = { Text("Arme") }, modifier = Modifier.weight(1f))
-                OutlinedTextField(defuseCode, { defuseCode = it.filter(Char::isDigit).take(8) }, label = { Text("Desarme") }, modifier = Modifier.weight(1f))
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(qrRequired, { qrRequired = it })
-                Text("Exigir QR antes da senha")
-            }
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = {
-                viewModel.configure(
-                    BombConfig(
-                        name = name.ifBlank { "Bomba Alfa" },
-                        gameDurationSeconds = (gameMinutes.toIntOrNull() ?: 60).coerceAtLeast(1) * 60,
-                        bombDurationSeconds = (bombMinutes.toIntOrNull() ?: 10).coerceAtLeast(1) * 60,
-                        actionDurationSeconds = (actionSeconds.toIntOrNull() ?: 10).coerceAtLeast(1),
-                        armCode = armCode.ifBlank { "2468" },
-                        defuseCode = defuseCode.ifBlank { "1357" },
-                        qrRequired = qrRequired
-                    )
+            if (choosingPlayerType) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = .85f))
+                        .clickable { choosingPlayerType = false }
                 )
-            }) { Text("Salvar configuração") }
-            Button(onClick = viewModel::startGame, enabled = !state.running, colors = ButtonDefaults.buttonColors(containerColor = OpsGreen)) { Text("Iniciar partida") }
-            OutlinedButton(onClick = viewModel::reset) { Text("Reiniciar") }
-        }
-        MessagePanel(state)
-    }
-}
-
-@Composable
-private fun ArtifactScreen(state: GameState, viewModel: GameViewModel) {
-    val activity = LocalContext.current as? Activity
-    DisposableEffect(activity) {
-        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-        onDispose { activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
-    }
-    var entry by remember { mutableStateOf("") }
-    val pending = state.pendingAction
-    val unlocked = pending != null && pending.qrValidated
-    Box(Modifier.fillMaxSize().background(Color.Black)) {
-        BoxWithConstraints(
-            Modifier.fillMaxWidth().aspectRatio(1.5f).align(Alignment.Center)
-        ) {
-            val compact = maxWidth < 700.dp
-            Image(
-                painter = painterResource(R.drawable.maleta_bomba_interface),
-                contentDescription = "Maleta de operação do artefato",
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            HardwareLabel("TEMPO DA BOMBA", Modifier.absoluteArea(maxWidth, maxHeight, .196f, .143f, .142f, .047f), compact)
-            HardwareDisplay(
-                value = formatTime(state.bombSeconds),
-                color = OpsRed,
-                modifier = Modifier.absoluteArea(maxWidth, maxHeight, .137f, .202f, .335f, .177f),
-                large = true,
-                compact = compact
-            )
-
-            HardwareLabel("TEMPO DE JOGO", Modifier.absoluteArea(maxWidth, maxHeight, .548f, .171f, .148f, .044f), compact)
-            HardwareDisplay(
-                value = formatTime(state.gameSeconds),
-                color = OpsRed,
-                modifier = Modifier.absoluteArea(maxWidth, maxHeight, .535f, .222f, .158f, .073f),
-                large = false,
-                compact = compact
-            )
-
-            HardwareLabel("STATUS", Modifier.absoluteArea(maxWidth, maxHeight, .548f, .317f, .148f, .041f), compact)
-            HardwareDisplay(
-                value = when {
-                    state.winner != null -> state.winner.uppercase()
-                    unlocked && entry.isNotEmpty() -> "*".repeat(entry.length)
-                    else -> state.status.label.uppercase()
-                },
-                color = if (state.status == BombStatus.DEFUSED) OpsGreen else OpsRed,
-                modifier = Modifier.absoluteArea(maxWidth, maxHeight, .535f, .366f, .158f, .073f),
-                large = false,
-                compact = compact
-            )
-
-            HardwareLabel(
-                if (state.config.qrRequired) "ESCANEAR CÓDIGO" else "QR DESATIVADO",
-                Modifier.absoluteArea(maxWidth, maxHeight, .533f, .486f, .207f, .045f),
-                compact
-            )
-            MilitaryQr(
-                enabled = state.running && state.config.qrRequired,
-                modifier = Modifier.absoluteArea(maxWidth, maxHeight, .539f, .542f, .202f, .298f)
-            )
-
-            TransparentKeypad(
-                enabled = unlocked,
-                modifier = Modifier.absoluteArea(maxWidth, maxHeight, .222f, .505f, .211f, .351f),
-                onKey = { key ->
-                    when (key) {
-                        "C" -> entry = ""
-                        "OK" -> { viewModel.submitCode(entry); entry = "" }
-                        else -> if (entry.length < 8) entry += key
-                    }
-                }
-            )
-
-            Box(
-                Modifier.absoluteArea(maxWidth, maxHeight, .008f, .025f, .08f, .055f)
-                    .background(Color.Black.copy(alpha = .72f))
-                    .border(1.dp, OpsPaper.copy(alpha = .5f))
-                    .clickable(onClick = viewModel::leaveRole),
-                contentAlignment = Alignment.Center
-            ) { Text("SAIR", color = OpsPaper, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
-        }
-    }
-}
-
-private fun Modifier.absoluteArea(
-    width: androidx.compose.ui.unit.Dp,
-    height: androidx.compose.ui.unit.Dp,
-    x: Float,
-    y: Float,
-    w: Float,
-    h: Float
-): Modifier = offset(width * x, height * y).size(width * w, height * h)
-
-@Composable
-private fun HardwareLabel(text: String, modifier: Modifier, compact: Boolean) {
-    Box(modifier, contentAlignment = Alignment.Center) {
-        Text(
-            text = text,
-            color = Color(0xFF231D14),
-            fontSize = if (compact) 8.sp else 13.sp,
-            fontFamily = FontFamily.Serif,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-private fun HardwareDisplay(value: String, color: Color, modifier: Modifier, large: Boolean, compact: Boolean) {
-    Box(modifier, contentAlignment = Alignment.Center) {
-        Text(
-            text = value,
-            color = color,
-            fontSize = if (large) { if (compact) 34.sp else 64.sp } else { if (compact) 12.sp else 20.sp },
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
-private fun MilitaryQr(enabled: Boolean, modifier: Modifier = Modifier) {
-    val pattern = listOf(
-        "111010111", "101101101", "111011111", "000110000", "101011101",
-        "011101010", "111010111", "101111101", "111001111"
-    )
-    Column(modifier.background(if (enabled) Color(0xFFE5D3A5) else Color(0xFF8A8068)).padding(8.dp)) {
-        pattern.forEach { row ->
-            Row(Modifier.weight(1f)) {
-                row.forEach { cell ->
-                    Box(Modifier.weight(1f).fillMaxHeight().background(if (enabled && cell == '1') Color.Black else Color.Transparent))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TransparentKeypad(enabled: Boolean, modifier: Modifier, onKey: (String) -> Unit) {
-    val rows = listOf(listOf("1", "2", "3"), listOf("4", "5", "6"), listOf("7", "8", "9"), listOf("C", "0", "OK"))
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        rows.forEach { row ->
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                row.forEach { key ->
-                    Box(
-                        Modifier.weight(1f).fillMaxHeight()
-                            .clickable(enabled = enabled) { onKey(key) },
-                        contentAlignment = Alignment.Center
+                Column(
+                    Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth(.88f)
+                        .background(Color(0xFF10171A), shape = RoundedCornerShape(12.dp))
+                        .border(1.dp, Color(0xFF34D399), shape = RoundedCornerShape(12.dp))
+                        .padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(
+                        "MODO JOGADOR",
+                        color = Color(0xFF34D399),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Black
+                    )
+                    Text(
+                        "Escolha o tipo de terminal para este dispositivo:",
+                        color = Color(0xFFC4D2CE),
+                        fontSize = 13.sp
+                    )
+                    Button(
+                        onClick = { onSelect(AppRole.PLAYER) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF34D399),
+                            contentColor = Color(0xFF03110C)
+                        )
                     ) {
-                        if (!enabled) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .18f)))
+                        Text("JOGADOR / TERMINAL", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                    Button(
+                        onClick = { onSelect(AppRole.ARTIFACT) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFB4E4E),
+                            contentColor = Color(0xFF190404)
+                        )
+                    ) {
+                        Text("ARTEFATO / BOMBA", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    }
+                    OutlinedButton(
+                        onClick = { choosingPlayerType = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text("CANCELAR", color = Color(0xFF8FA09A))
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun PlayerScreen(state: GameState, viewModel: GameViewModel) {
-    Column(Modifier.fillMaxSize().padding(18.dp).verticalScroll(rememberScrollState())) {
-        ScreenHeader("Terminal do jogador", viewModel::leaveRole)
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Team.entries.forEach { team ->
-                OutlinedButton(onClick = { viewModel.selectTeam(team) }, colors = ButtonDefaults.outlinedButtonColors(containerColor = if (state.selectedTeam == team) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)) {
-                    Text(team.title)
-                }
-            }
-        }
-        Spacer(Modifier.height(14.dp))
-        Section("OBJETIVO") {
-            Text(if (state.selectedTeam == Team.CT) "Localize e neutralize o artefato." else "Localize, arme e proteja o artefato.")
-        }
-        Section("TERMINAL") {
-            Text(state.message, color = OpsPaper)
-            Text("Artefato: ${state.config.name}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = { viewModel.requestAction(if (state.selectedTeam == Team.CT) ActionType.DEFUSE else ActionType.ARM) },
-                enabled = state.running
-            ) { Text(if (state.selectedTeam == Team.CT) "Solicitar desarme" else "Solicitar arme") }
-            if (state.pendingAction?.team == state.selectedTeam && state.config.qrRequired && !state.pendingAction.qrValidated) {
-                Button(onClick = viewModel::validateQr, colors = ButtonDefaults.buttonColors(containerColor = OpsAmber)) { Text("Simular leitura do QR") }
-            }
-        }
-        MessagePanel(state)
-    }
-}
-
-@Composable
-private fun StatusStrip(state: GameState) {
-    Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline).padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-        Column { Label("ESTADO"); Text(state.status.label) }
-        Column(horizontalAlignment = Alignment.End) { Label("JOGO"); Text(formatTime(state.gameSeconds), fontFamily = FontFamily.Monospace) }
-    }
-}
-
-@Composable
-private fun TimerPanel(label: String, seconds: Int?, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier.background(Color(0xFF050604)).border(2.dp, MaterialTheme.colorScheme.outline).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = OpsPaper, fontSize = 12.sp)
-        Text(formatTime(seconds), color = color, fontSize = 42.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-private fun FakeQr(enabled: Boolean) {
-    Box(Modifier.size(150.dp).background(if (enabled) Color.White else Color.DarkGray).padding(10.dp), contentAlignment = Alignment.Center) {
-        Text(if (enabled) "QR\nETAPA" else "INATIVO", color = Color.Black, fontSize = 24.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Black)
-    }
-}
-
-@Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(bottom = 12.dp).background(MaterialTheme.colorScheme.surface).border(1.dp, MaterialTheme.colorScheme.outline).padding(14.dp)) {
-        Label(title)
-        Spacer(Modifier.height(8.dp))
-        content()
-    }
-}
-
-@Composable
-private fun NumberField(label: String, value: String, onChange: (String) -> Unit) {
-    OutlinedTextField(value, { onChange(it.filter(Char::isDigit).take(4)) }, label = { Text(label) }, modifier = Modifier.width(150.dp))
-}
-
-@Composable
-private fun MessagePanel(state: GameState) {
-    HorizontalDivider(Modifier.padding(vertical = 14.dp))
-    Text(state.winner ?: state.message, color = if (state.winner != null) OpsGreen else MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
-@Composable
-private fun Label(text: String) {
-    Text(text, color = OpsPaper, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-}
-
-private fun formatTime(seconds: Int?): String {
-    if (seconds == null) return "--:--"
-    return "%02d:%02d".format(seconds / 60, seconds % 60)
 }
