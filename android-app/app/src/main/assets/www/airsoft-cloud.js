@@ -213,13 +213,31 @@ const AirsoftCloud = (() => {
     }, 180);
   }
   async function consumeEvent(payload) {
-    if (role !== 'controller' || !payload.new || payload.new.user_id === user.id) return;
+    if (role !== 'controller' || !payload.new || payload.new.device_id === deviceId()) return;
     const proposed = payload.new.payload && payload.new.payload.state;
     if (!proposed) return;
+
+    const current = AirsoftBus.read();
+    const localPlayers = current.players || [];
+    const remotePlayers = proposed.players || [];
+    const playerMap = new Map();
+    localPlayers.forEach(p => playerMap.set(p.id, p));
+    remotePlayers.forEach(p => {
+      const existing = playerMap.get(p.id);
+      if (!existing || p.status === 'approved' || (p.requestedAt || 0) > (existing.requestedAt || 0)) {
+        playerMap.set(p.id, p);
+      }
+    });
+
+    const mergedState = {
+      ...proposed,
+      players: Array.from(playerMap.values())
+    };
+
     applyingRemote = true;
-    AirsoftBus.write(proposed);
+    AirsoftBus.write(mergedState);
     applyingRemote = false;
-    await publishControllerState(proposed);
+    await publishControllerState(mergedState);
   }
   async function consumeSession(payload) {
     if (!payload.new) return;
