@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Montanha Bomb System | Portal Web</title>
-  <link rel="stylesheet" href="portal.css?v=20261002-3">
+  <title>Airsoft Ops - Portal do Controlador</title>
+  <link rel="stylesheet" href="portal.css?v=20261001-4">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
-  <script src="portal.js?v=20261002-9" defer></script>
-  <script src="pre-registration.js?v=20261002-5" defer></script>
+  <script src="portal.js?v=20261001-4" defer></script>
 </head>
 <body>
 
@@ -16,16 +15,15 @@
   <header class="portalHeader">
     <div class="portalHeaderInner">
       <div class="portalBrand">
-        <b>MONTANHA BOMB SYSTEM</b>
-        <small>Portal Web · Controle e Bomba</small>
+        <b>AIRSOFT OPS</b>
+        <small>Portal do Controlador</small>
       </div>
 
-      <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Retornar ao menu</button>
       <div class="userBadge" id="userBadge" hidden>
         <div class="userAvatar" id="userAvatar">O</div>
         <div class="userInfo">
           <b id="userName">Operador</b>
-          <small id="userEmail">autenticado</small>
+          <small id="userEmail">controlador</small>
         </div>
         <button class="btnDanger" onclick="AirsoftPortal.logout()" type="button">Sair</button>
       </div>
@@ -38,20 +36,18 @@
     <!-- Status Alert Banner -->
     <div class="statusMsg" id="portalStatus" hidden></div>
 
-    <section class="welcomeScreen" id="welcomeSection" aria-label="Bem-vindo ao Montanha Bomb System">
-      <div class="welcomeArtwork">
-      <img class="welcomeLogo" src="assets/airsoft-ops-identity.png" alt="Montanha Bomb System">
+    <section class="welcomeScreen" id="welcomeSection">
+      <h1>AIRSOFT OPS<br>CONTROLADOR</h1>
       <div class="welcomeActions">
-        <button class="btnPrimary" type="button" onclick="AirsoftPortal.switchAuthTab('login'); AirsoftPortal.access()">Login</button>
-      </div>
+        <button class="btnPrimary" type="button" onclick="AirsoftPortal.access()">Acessar painel de jogos</button>
       </div>
     </section>
 
     <!-- TELA 1: AUTENTICAÇÃO (EXIBIDA QUANDO DESLOGADO) -->
     <section class="portalBox authContainer" id="authSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.home()">Voltar ao início</button>
-      <h2>Autenticação de Acesso</h2>
-      <p>Acesse com sua conta para utilizar este computador como Controle ou Bomba.</p>
+      <h2>Autenticação do Controlador</h2>
+      <p>Acesse com sua conta para gerenciar suas partidas e salas.</p>
 
       <!-- Google OAuth Sign In -->
       <button class="btnGoogle" onclick="AirsoftPortal.loginWithGoogle()" type="button">
@@ -69,18 +65,18 @@
       <div class="authNav">
         <button class="active" id="tabLoginBtn" onclick="AirsoftPortal.switchAuthTab('login')" type="button">Entrar</button>
         <button id="tabSignupBtn" onclick="AirsoftPortal.switchAuthTab('signup')" type="button">Cadastrar</button>
-        <button id="tabResetBtn" onclick="AirsoftPortal.switchAuthTab('reset')" type="button">Recuperar senha</button>
+        <button id="tabResetBtn" onclick="AirsoftPortal.switchAuthTab('reset')" type="button">Recuperar</button>
       </div>
 
       <!-- Form: Login -->
       <form id="formLogin" onsubmit="event.preventDefault(); AirsoftPortal.loginWithEmail(document.getElementById('loginEmail').value, document.getElementById('loginPass').value);">
         <div class="formGroup">
           <label for="loginEmail">E-mail</label>
-          <input id="loginEmail" placeholder="operador@airsoftops.com" autocomplete="username" required type="email">
+          <input id="loginEmail" placeholder="operador@airsoftops.com" required type="email">
         </div>
         <div class="formGroup" style="margin-top: 12px;">
           <label for="loginPass">Senha</label>
-          <input id="loginPass" placeholder="••••••••" autocomplete="current-password" required type="password">
+          <input id="loginPass" placeholder="••••••••" required type="password">
         </div>
         <button class="btnPrimary" style="margin-top: 18px;" type="submit">Entrar</button>
       </form>
@@ -89,15 +85,15 @@
       <form id="formSignup" hidden onsubmit="event.preventDefault(); AirsoftPortal.signUpWithEmail(document.getElementById('signupName').value, document.getElementById('signupEmail').value, document.getElementById('signupPass').value);">
         <div class="formGroup">
           <label for="signupName">Nome Completo / Indicativo</label>
-          <input id="signupName" placeholder="Ex.: Operador Alpha" autocomplete="name" minlength="2" required type="text">
+          <input id="signupName" placeholder="Ex.: Operador Alpha" required type="text">
         </div>
         <div class="formGroup" style="margin-top: 12px;">
           <label for="signupEmail">E-mail</label>
-          <input id="signupEmail" placeholder="operador@airsoftops.com" autocomplete="email" required type="email">
+          <input id="signupEmail" placeholder="operador@airsoftops.com" required type="email">
         </div>
         <div class="formGroup" style="margin-top: 12px;">
           <label for="signupPass">Senha (mínimo 6 caracteres)</label>
-          <input id="signupPass" placeholder="••••••••" autocomplete="new-password" minlength="6" required type="password">
+          <input id="signupPass" placeholder="••••••••" required type="password">
         </div>
         <button class="btnPrimary" style="margin-top: 18px;" type="submit">Cadastrar Conta</button>
       </form>
@@ -106,7 +102,7 @@
       <form id="formReset" hidden onsubmit="event.preventDefault(); AirsoftPortal.resetPassword(document.getElementById('resetEmail').value);">
         <div class="formGroup">
           <label for="resetEmail">E-mail de Cadastro</label>
-          <input id="resetEmail" placeholder="operador@airsoftops.com" autocomplete="email" required type="email">
+          <input id="resetEmail" placeholder="operador@airsoftops.com" required type="email">
         </div>
         <button class="btnPrimary" style="margin-top: 18px;" type="submit">Enviar E-mail de Recuperação</button>
       </form>
@@ -127,84 +123,41 @@
       </form>
     </section>
 
-    <!-- TELA 2: DASTBOARD (EXIBIDA APÓS O LOGIN) -->
+    <!-- TELA 2: DASHBOARD (EXIBIDA APÓS O LOGIN) -->
     <section class="portalBox" id="dashboardSection" hidden>
-      <h1>O que você deseja fazer?</h1>
-      <p>Entre em uma partida ou prepare sua próxima operação.</p>
-      <div class="dashboardGrid">
-        <div class="opCard">
-          <h2>Inscrever-se em uma partida</h2>
-          <p>Informe o código recebido do organizador para entrar como jogador. Sua participação depende da aprovação do Controle.</p>
-          <div class="formGroup"><label for="joinRoomCode">Código da partida</label><input id="joinRoomCode" maxlength="6" pattern="[A-Za-z0-9]{6}" placeholder="Ex.: A1B2C3" autocomplete="off"></div>
-          <button class="btnPrimary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'player')">Entrar na partida</button>
-        </div>
-        <div class="opCard">
-          <h2>Inscrição antecipada</h2>
-          <p>Entre na lista de espera para o organizador estimar quantos vão jogar. Você pode se inscrever em vários eventos.</p>
-          <button class="btnPrimary" type="button" onclick="AirsoftPortal.access('registration')">Fazer inscrição antecipada</button>
-        </div>
-        <div class="opCard highlightCard" id="controllerCard" hidden>
-          <h2>Controlador</h2>
-          <p>Gerencie as partidas que você criou, prepare as equipes e abra o Controle.</p>
-          <div class="sessionList" id="mySessionsList" aria-live="polite"></div>
-        </div>
-      </div>
-      <section class="opCard"><h2>Meus eventos</h2><p>Suas inscrições antecipadas não impedem sua participação em outras partidas.</p><div id="myWaitlistEvents" class="sessionList" aria-live="polite"></div></section>
-      <details class="opCard">
-        <summary>Criar uma partida</summary>
-        <p>Até 3 jogos por organizador, com apenas 1 iniciado por vez. Os demais podem receber inscrições antecipadas. Arquive um jogo para liberar uma vaga.</p>
-        <div class="formGroup"><label for="newOpName">Nome da operação</label><input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Montanha"></div>
-        <button class="btnPrimary" type="button" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)">Criar partida</button>
-      </details>
-      <details class="opCard">
-        <summary>Configurar dispositivo como Bomba</summary>
-        <div class="formGroup"><label for="artifactRoomCode">Código da partida</label><input id="artifactRoomCode" maxlength="6" placeholder="Ex.: A1B2C3" autocomplete="off"></div>
-        <button class="btnSecondary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('artifactRoomCode').value, 'artifact')">Entrar como Bomba</button>
-      </details>
-      <p id="sessionsStatus" class="muted" role="status"></p>
-    </section>
-    <section class="portalBox" id="preRegistrationSection" hidden>
-      <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar</button>
-      <h2 id="preRegistrationTitle">Inscrição antecipada</h2>
-      <p>Esta é uma lista de espera para estimar o público. A participação e a equipe serão definidas quando você entrar na partida.</p>
-      <form id="preRegistrationForm">
-        <div class="registrationGrid">
-          <label class="formGroup">Código da operação<input name="code" maxlength="6" pattern="[A-Za-z0-9]{6}" required></label>
-          <label class="formGroup">Nome do jogador<input name="name" maxlength="40" autocomplete="name" minlength="2" required></label>
-          <label class="formGroup">Agremiação de origem<input name="organization" maxlength="50" placeholder="Sem agremiação"></label>
-          <label class="formGroup">E-mail<input name="email" type="email" maxlength="80" autocomplete="email" required></label>
-          <label class="formGroup">Celular<input name="phone" type="tel" maxlength="24" autocomplete="tel" required></label>
-          <label class="formGroup">Contato de emergência<input name="emergencyName" maxlength="50" minlength="2" required></label>
-          <label class="formGroup">Telefone de emergência<input name="emergencyPhone" type="tel" maxlength="24" required></label>
-        </div>
-        <label class="consentLine"><input name="consent" type="checkbox" required> Autorizo o organizador a usar estes dados para inscrição e contato nesta partida.</label>
-        <button class="btnPrimary" type="submit">Enviar inscrição</button>
-      </form>
-      <p id="preRegistrationStatus" role="status"></p>
-      <div id="registrationNextActions" class="roleActionGrid" hidden>
-        <button class="btnPrimary" type="button" onclick="AirsoftPortal.access()">Participar de uma partida</button>
-        <button class="btnSecondary" type="button" onclick="AirsoftPortal.newRegistration()">Inscrever-se em outro evento</button>
-      </div>
-      <button class="btnSecondary" id="refreshRegistration" type="button">Consultar inscrição</button>
-    </section>
+      <h1>Painel do Controlador</h1>
+      <p>Crie um novo jogo ou selecione uma partida existente na sua lista de operações ativas.</p>
 
-    <section class="portalBox" id="organizerSection" hidden>
-      <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar às operações</button>
-      <h2 id="organizerTitle">Lista de espera</h2>
-      <p>Interessados neste evento. A lista não aprova jogadores nem define equipes; faça isso no Controle quando entrarem na partida.</p>
-      <label class="consentLine"><input id="preRegistrationOpen" type="checkbox"> Inscrições antecipadas abertas</label>
-      <div class="shareRow"><input id="registrationLink" readonly aria-label="Link de inscrição"><button class="btnSecondary" id="copyRegistrationLink" type="button">Copiar link</button></div>
-      <div class="rosterToolbar"><input id="preRegistrationSearch" placeholder="Buscar jogador ou agremiação" aria-label="Buscar inscrições"><button id="registrationPrev" type="button" class="btnSecondary">Anterior</button><span id="registrationPage"></span><button id="registrationNext" type="button" class="btnSecondary">Próxima</button></div>
-      <div id="preRegistrationRoster" class="sessionList"></div>
+      <div class="opCard highlightCard" style="max-width: 680px; margin: 16px auto 0;">
+        <div class="opCardHeader">
+          <h2>CRIAR NOVO JOGO</h2>
+          <span class="tagOwner">Exclusivo do Criador</span>
+        </div>
+
+        <div class="formGroup">
+          <label for="newOpName">Nome da Operação</label>
+          <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Tática">
+        </div>
+
+        <button class="btnPrimary" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)" type="button" style="margin-top: 12px; min-height: 52px; font-weight: 900;">
+          Criar Jogo e Abrir Controle
+        </button>
+
+        <div style="margin-top: 24px;">
+          <label style="color:var(--portal-paper); font-size:12px; font-weight:bold; text-transform:uppercase;">Minhas Operações / Lista de Jogos</label>
+          <div class="sessionList" id="mySessionsList" style="margin-top: 8px;">
+            <p class="muted">Carregando salas...</p>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
 
   <!-- FOOTER -->
   <footer>
-    Montanha Bomb System v0.7.0
+    Airsoft Ops v1.4.0
   </footer>
 
 </body>
 </html>
-
