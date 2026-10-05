@@ -176,11 +176,36 @@ private fun RoleSelection(onSelect: (AppRole) -> Unit) {
                 }
             }
             2 -> {
-                // Screen 2: Login & Signup Screen (Portal Web Auth)
+                // Screen 2: Login & Signup Screen (Portal Web Auth) with top navigation bar
                 Column(Modifier.fillMaxSize()) {
-                    Box(Modifier.weight(1f)) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFF10171A))
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(
+                            onClick = { step = 1 },
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text("Voltar", color = Color.White)
+                        }
+                        Button(
+                            onClick = { step = 3 },
+                            shape = RoundedCornerShape(6.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF34D399),
+                                contentColor = Color(0xFF03110C)
+                            )
+                        ) {
+                            Text("Avançar para o Jogo ->", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Box(Modifier.fillMaxSize()) {
                         PrototypeWebScreen(AppRole.PORTAL) {
-                            step = 3
+                            step = 1
                         }
                     }
                 }
