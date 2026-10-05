@@ -218,7 +218,21 @@
     };
   }
 
+  window.gm_authFailure = function () {
+    window.__airsoftMapsAuthFailed = true;
+    if (window.__airsoftCurrentMapElement) {
+      createLeafletMap(window.__airsoftCurrentMapElement, window.__airsoftCurrentMapOptions || {});
+    }
+  };
+
   async function create(element, options = {}) {
+    window.__airsoftCurrentMapElement = element;
+    window.__airsoftCurrentMapOptions = options;
+
+    if (window.__airsoftMapsAuthFailed) {
+      return createLeafletMap(element, options);
+    }
+
     let maps;
     try { maps = await loadGoogleMaps(); } catch (_) { maps = null; }
     if (!maps) {
