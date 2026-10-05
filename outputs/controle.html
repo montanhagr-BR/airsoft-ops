@@ -281,33 +281,18 @@
           <label class="checkOption"><input id="teamTrackingEnabled" type="checkbox" checked><span>Rastreamento dos times ativo</span></label>
           <label class="checkOption"><input id="keepOrganizationsTogether" type="checkbox" checked><span>Manter jogadores da mesma agremiação juntos</span></label>
         </div>
-        <div class="qrPair">
-          <div class="teamQr">
-            <div class="qrMock" aria-label="QR cadastro CT">
-              <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
-              <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
-              <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
-              <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
-              <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
-              <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
-              <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
-            </div>
-            <b id="team1QrName">Time 1 - CT</b>
-            <span class="muted">Referência do Time 1. O Controlador confirma cada jogador na lista abaixo.</span>
+        <div class="teamQr" style="max-width:320px; margin:0 auto">
+          <div class="qrMock" aria-label="QR da Sala de Jogo">
+            <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
+            <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
+            <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
+            <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
+            <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+            <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
+            <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
           </div>
-          <div class="teamQr">
-            <div class="qrMock" aria-label="QR cadastro Terrorista">
-              <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
-              <span></span><span></span><i></i><span></span><i></i><i></i><span></span>
-              <i></i><span></span><span></span><i></i><span></span><i></i><span></span>
-              <span></span><i></i><span></span><i></i><span></span><span></span><i></i>
-              <i></i><span></span><i></i><span></span><span></span><i></i><span></span>
-              <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
-              <span></span><span></span><i></i><span></span><i></i><span></span><span></span>
-            </div>
-            <b id="team2QrName">Time 2 - Terrorista</b>
-            <span class="muted">Referência do Time 2. O Controlador confirma cada jogador na lista abaixo.</span>
-          </div>
+          <b>QR Code da Sala de Jogo</b>
+          <span class="muted">Os jogadores escaneiam este QR ou usam o código da sala para entrar e enviar a ficha de cadastro.</span>
         </div>
         <div class="teamOps">
           <div class="sectionHead"><div><h2>Jogadores</h2><p>Solicitações precisam ser aprovadas e vinculadas a um time pelo Controlador.</p></div><span class="sectionTag" id="playerCount">0 conectados</span></div>
