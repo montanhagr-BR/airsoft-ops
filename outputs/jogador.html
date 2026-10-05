@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Jogador</title>
-  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261002-google-1"></script>
   <script src="airsoft-maps.js?v=20261002-field-1"></script>
-  <script src="airsoft-cloud.js?v=20261002-9" defer></script>
+  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
   <style>
     * { box-sizing:border-box; }
     body { margin: 0; min-width:0; min-height: 100dvh; overflow-x:hidden; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: start center; padding: 8px; }
@@ -72,22 +72,22 @@
     .squadMember { border:1px solid #3e4933; background:#090c09; padding:9px; display:flex; justify-content:space-between; gap:8px; }
     body.locked .phone button:not(#popupClose), body.locked .phone select { pointer-events: none; filter: grayscale(1); opacity: .45; }
   </style>
-  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <script>document.documentElement.classList.toggle('mobileApp', new URLSearchParams(location.search).has('android') || matchMedia('(max-width: 900px), (pointer: coarse)').matches);</script>
   <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
-  <script>if (document.documentElement.classList.contains('androidApp')) document.getElementById('legacyTheme').disabled = true;</script>
+  <script>if (document.documentElement.classList.contains('mobileApp')) document.getElementById('legacyTheme').disabled = true;</script>
   <style id="android-webview-compat">
-    html.androidApp [hidden] { display:none !important; }
-    html.androidApp body.playerPage { padding:6px !important; overflow:auto !important; background:#090b0a !important; color:#f2eee2 !important; }
-    html.androidApp body.playerPage .phone { width:100% !important; max-width:520px; min-height:calc(100vh - 12px) !important; height:auto !important; aspect-ratio:auto !important; background:#111713 !important; border:2px solid #657055 !important; }
-    html.androidApp body.playerPage .tabs { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
-    html.androidApp body.playerPage .tabs button { min-width:0 !important; padding:5px 2px !important; font-size:11px !important; }
-    html.androidApp body.playerPage .registrationBlock,
-    html.androidApp body.playerPage .registrationState,
-    html.androidApp body.playerPage .stat { background:#151c17 !important; border-color:#68735b !important; }
-    html.androidApp body.playerPage .setup input,
-    html.androidApp body.playerPage select { width:100% !important; background:#202923 !important; border-color:#7f8a72 !important; color:#fff !important; opacity:1 !important; }
-    html.androidApp body.playerPage button.primary { background:#71954d !important; color:#071006 !important; }
-    html.androidApp .popupLayer {
+    html.mobileApp [hidden] { display:none !important; }
+    html.mobileApp body.playerPage { padding:6px !important; overflow:auto !important; background:#090b0a !important; color:#f2eee2 !important; }
+    html.mobileApp body.playerPage .phone { width:100% !important; max-width:520px; min-height:calc(100vh - 12px) !important; height:auto !important; aspect-ratio:auto !important; background:#111713 !important; border:2px solid #657055 !important; }
+    html.mobileApp body.playerPage .tabs { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+    html.mobileApp body.playerPage .tabs button { min-width:0 !important; padding:5px 2px !important; font-size:11px !important; }
+    html.mobileApp body.playerPage .registrationBlock,
+    html.mobileApp body.playerPage .registrationState,
+    html.mobileApp body.playerPage .stat { background:#151c17 !important; border-color:#68735b !important; }
+    html.mobileApp body.playerPage .setup input,
+    html.mobileApp body.playerPage select { width:100% !important; background:#202923 !important; border-color:#7f8a72 !important; color:#fff !important; opacity:1 !important; }
+    html.mobileApp body.playerPage button.primary { background:#71954d !important; color:#071006 !important; }
+    html.mobileApp .popupLayer {
       position:fixed !important;
       inset:0 !important;
       z-index:100 !important;
@@ -97,8 +97,8 @@
       box-sizing:border-box !important;
       background:rgba(0,0,0,.78) !important;
     }
-    html.androidApp .popupLayer[hidden] { display:none !important; }
-    html.androidApp .popup {
+    html.mobileApp .popupLayer[hidden] { display:none !important; }
+    html.mobileApp .popup {
       width:min(390px, calc(100vw - 36px)) !important;
       height:auto !important;
       min-height:220px !important;
@@ -110,10 +110,10 @@
       box-sizing:border-box !important;
       transform:none !important;
     }
-    html.androidApp .popup strong { display:block !important; font-size:13px !important; }
-    html.androidApp .popup h2 { display:block !important; font-size:22px !important; }
-    html.androidApp .popup p { display:block !important; margin:0 !important; font-size:16px !important; }
-    html.androidApp .popup button { display:block !important; width:100% !important; min-height:48px !important; }
+    html.mobileApp .popup strong { display:block !important; font-size:13px !important; }
+    html.mobileApp .popup h2 { display:block !important; font-size:22px !important; }
+    html.mobileApp .popup p { display:block !important; margin:0 !important; font-size:16px !important; }
+    html.mobileApp .popup button { display:block !important; width:100% !important; min-height:48px !important; }
     body::after, .phone::before, .phone::after {
       mix-blend-mode:normal !important;
       backdrop-filter:none !important;

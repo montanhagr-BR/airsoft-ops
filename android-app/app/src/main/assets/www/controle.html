@@ -1,1 +1,1644 @@
-<!-- Syncing controle.html from outputs/controle.html -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airsoft Ops - Controle</title>
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
+  <script src="supabase-config.js?v=20260930-1"></script>
+  <script src="supabase.js?v=20260930-1"></script>
+  <script src="airsoft-shared.js?v=20261002-9"></script>
+  <script src="maps-config.js?v=20261002-google-1"></script>
+  <script src="airsoft-maps.js?v=20261002-field-1"></script>
+  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
+  <style>
+    * { box-sizing: border-box; }
+    html { min-width: 0; overflow-x: hidden; }
+    body { margin: 0; min-width: 0; overflow-x: hidden; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
+    main { max-width: 1240px; margin: auto; padding: 18px; display: grid; gap: 14px; }
+    h1, h2 { margin: 0; text-transform: uppercase; }
+    .controlTitle { display: flex; justify-content: space-between; gap: 16px; align-items: end; border: 1px solid #2b3a3d; background: linear-gradient(135deg, rgba(52,211,153,.08), rgba(78,167,255,.06)); padding: 16px; }
+    .controlTitle p { margin: 4px 0 0; color: #8fa09a; font-size: 13px; }
+    .controlTabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; border:1px solid #44574a; background:#070a08; padding:6px; }
+    .controlTabs button { min-height:46px; text-transform:uppercase; }
+    .controlTabs button.active { background:#c0a446; color:#111; border-color:#e0c76c; }
+    .opsStatus { border: 1px solid #44574a; background: #071a13; color: #34d399; padding: 8px 10px; font: 900 12px Consolas, monospace; text-transform: uppercase; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); gap: 14px; align-items: start; }
+    .grid.singleView { grid-template-columns:minmax(0,1fr); }
+    .panel, .stat { border: 1px solid #2b3a3d; background: #10171a; padding: 14px; }
+    .section { display: grid; gap: 12px; border: 1px solid #2b3a3d; background: #081012; padding: 14px; margin-top: 12px; }
+    .sectionHead { display: flex; justify-content: space-between; gap: 12px; align-items: end; border-bottom: 1px solid rgba(143,160,154,.18); padding-bottom: 10px; }
+    .sectionHead p { margin: 4px 0 0; color: #8fa09a; font-size: 12px; line-height: 1.4; }
+    .sectionTag { color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; white-space: nowrap; }
+    .two { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    label { display: grid; gap: 6px; color: #8fa09a; font-size: 12px; text-transform: uppercase; }
+    input, select, textarea, button { min-width: 0; max-width: 100%; min-height: 42px; border: 1px solid #2b3a3d; background: #172024; color: #e8f0ed; padding: 8px; font: inherit; }
+    label > input, label > select, label > textarea { width: 100%; }
+    textarea { resize: vertical; line-height: 1.45; }
+    button { cursor: pointer; font-weight: 800; }
+    .primary { background: #34d399; color: #03110c; } .danger { background: #fb4e4e; color: #190404; } .warn { background: #f2b84b; color: #171003; } .blue { background: #4ea7ff; color: #04111f; }
+    .stat { display: grid; gap: 4px; } .stat span { color: #8fa09a; font-size: 12px; text-transform: uppercase; } .stat b { font-size: 24px; }
+    .statusDeck { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .phaseStrip { margin-top: 10px; border-color: #5f7a52; background: linear-gradient(90deg, rgba(52,211,153,.08), rgba(78,167,255,.06)); }
+    .modeHero { border: 1px solid #44574a; background: linear-gradient(135deg, rgba(217,184,75,.13), rgba(52,211,153,.06)); padding: 14px; display: grid; gap: 10px; }
+    .modeHero label { grid-template-columns: minmax(180px, .65fr) 1fr; align-items: center; }
+    .modeHero select { min-height: 54px; font-size: 18px; font-weight: 900; text-transform: uppercase; }
+    .modeSummaryBox { min-height: 54px; display: grid; align-content: center; border: 1px solid #2b3a3d; background: #050708; padding: 10px 12px; color: #e8f0ed; font-weight: 800; }
+    .folderChooser { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .folderInput { border: 1px solid #2b3a3d; background: rgba(5,7,8,.48); padding: 10px; display: grid; gap: 8px; }
+    .folderInput span { color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; }
+    .quickActions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .commandCenter { position: sticky; top: 10px; z-index: 4; border-color: #6d5b31; background: linear-gradient(135deg, rgba(242,184,75,.14), rgba(52,211,153,.06)); }
+    .commandCenter .sectionHead { align-items: center; }
+    .commandCenter button { min-height: 52px; }
+    .timeGroup { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .timeGroup input { width: 100%; text-align: center; font-family: Consolas, monospace; font-weight: 900; }
+    .timeGroup span { color: #8fa09a; font-size: 11px; text-align: center; text-transform: uppercase; }
+    .checkOption { min-height: 58px; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; border: 1px solid #2b3a3d; background: rgba(5,7,8,.48); padding: 10px 12px; cursor: pointer; box-sizing: border-box; }
+    .checkOption input[type="checkbox"] { appearance: none; width: 26px; height: 26px; min-height: 26px; margin: 0; padding: 0; border: 2px solid #806b35; background: #080a08; display: grid; place-content: center; cursor: pointer; }
+    .checkOption input[type="checkbox"]::before { content: ""; width: 13px; height: 7px; border-left: 3px solid #101607; border-bottom: 3px solid #101607; transform: rotate(-45deg) scale(0); transition: transform .12s ease; }
+    .checkOption input[type="checkbox"]:checked { border-color: #b99b43; background: #c0a446; box-shadow: 0 0 12px rgba(192,164,70,.25); }
+    .checkOption input[type="checkbox"]:checked::before { transform: rotate(-45deg) scale(1); }
+    .checkOption input[type="checkbox"]:focus-visible { outline: 2px solid #f2b84b; outline-offset: 2px; }
+    .checkOption span { color: #d8d5c1; line-height: 1.35; }
+    .sideHead { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid rgba(143,160,154,.18); padding-bottom: 10px; margin-bottom: 10px; }
+    .briefBox { display: grid; gap: 10px; margin-bottom: 16px; }
+    .briefList { display: grid; gap: 8px; }
+    .briefList div { border: 1px solid #2b3a3d; background: rgba(5,7,8,.42); padding: 10px; color: #c4d2ce; font-size: 13px; line-height: 1.35; }
+    .briefList b { display: block; color: #f2b84b; font: 900 11px Consolas, monospace; text-transform: uppercase; margin-bottom: 4px; }
+    aside.panel { position: sticky; top: 18px; }
+    .log { display: grid; gap: 8px; max-height: 720px; overflow: auto; font-size: 13px; }
+    .log div { border-bottom: 1px solid #2b3a3d; padding-bottom: 7px; }
+    .muted { color: #8fa09a; font-size: 12px; }
+    .qrPair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .teamQr { border: 1px solid #2b3a3d; background: #050708; padding: 12px; display: grid; justify-items: center; gap: 8px; text-align: center; }
+    .qrMock { width: 120px; height: 120px; padding: 8px; background: #e8f0ed; display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .qrMock span { background: #050708; }
+    .teamOps { display: grid; gap: 10px; }
+    .rosterTools { display:grid; grid-template-columns:minmax(180px,1fr) auto auto auto; gap:8px; align-items:center; }
+    .rosterTools input { width:100%; box-sizing:border-box; }
+    .roster { display: grid; gap: 8px; }
+    .playerRow { display: grid; grid-template-columns: minmax(120px,1fr) auto auto; gap: 8px; align-items: center; border: 1px solid #2b3a3d; background: #050708; padding: 9px; }
+    .playerRow small { color: #8fa09a; }
+    .playerData { grid-column:1/-1; border-top:1px solid #26302a; padding-top:7px; color:#aaa; font-size:12px; }
+    .playerData summary { cursor:pointer; color:#d5b75b; text-transform:uppercase; font-weight:700; }
+    .playerData p { margin:7px 0 0; line-height:1.6; }
+    .playerRow select, .playerRow button { min-height: 34px; padding: 5px 8px; }
+    .tacticalMap { position: relative; width:100%; max-width:100%; min-width:0; min-height:360px; overflow:hidden; contain:layout paint; border: 1px solid #44574a; background: repeating-linear-gradient(0deg,transparent 0 39px,rgba(93,122,82,.2) 40px), repeating-linear-gradient(90deg,transparent 0 39px,rgba(93,122,82,.2) 40px), #07100c; }
+    .tacticalMap::before { content: "MAPA TÁTICO / POSIÇÕES RELATIVAS"; position: absolute; top: 8px; left: 10px; color: #7d916f; font: 700 10px Consolas,monospace; }
+    .tacticalMap.googleMapActive { height:clamp(380px,62vh,720px); min-height:380px; background:#111; contain:none; }
+    .tacticalMap.googleMapActive::before { display:none; }
+    .mapMarker { position: absolute; width: 24px; height: 24px; transform: translate(-50%,-50%); display: grid; place-items: center; border: 1px solid #fff; border-radius: 50%; color: #fff; font: 900 9px Consolas,monospace; box-shadow: 0 0 8px #000; }
+    .mapMarker.ct { border-radius:50%; }
+    .mapMarker.terrorist { border-radius:2px; }
+    .mapMarker.artifact { border-radius:2px; background:#c69b2b !important; color:#111; transform:translate(-50%,-50%) rotate(45deg); }
+    .mapMarker.artifact span { transform:rotate(-45deg); }
+    .mapPlanner { display:grid; grid-template-columns:repeat(5,minmax(120px,1fr)); gap:8px; margin:12px 0; }
+    .mapPlanner label { min-width:0; }
+    .mapPlanner input,.mapPlanner select { width:100%; }
+    .mapPlannerActions { display:flex; min-width:0; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:10px; }
+    .mapPlannerActions .muted { min-width:0; flex:1 1 220px; overflow-wrap:anywhere; }
+    .mapPlannerActions button.active { border-color:#e0c064; color:#fff; background:#5b542d; }
+    .tacticalArea { position:absolute; transform:translate(-50%,-50%); border:2px dashed #d0b45c; border-radius:50%; background:rgba(208,180,92,.12); display:grid; place-items:center; color:#f4dda0; font:700 10px Consolas,monospace; text-align:center; padding:8px; z-index:1; }
+    .tacticalArea.ct { border-color:#58a6d8; background:rgba(48,128,184,.14); }
+    .tacticalArea.terrorist { border-color:#d9695e; background:rgba(182,75,59,.14); }
+    .startMarker { position:absolute; transform:translate(-50%,-50%); width:34px; height:34px; display:grid; place-items:center; z-index:2; border:2px solid #fff; color:#fff; background:#1b2020; font:900 13px Consolas,monospace; box-shadow:0 0 0 4px rgba(0,0,0,.45); }
+    .startMarker.ct { border-radius:50%; border-color:#63b4e6; }
+    .startMarker.terrorist { border-radius:3px; border-color:#e6786d; }
+    .areaList { display:grid; gap:6px; margin-top:10px; }
+    .areaRow { display:grid; min-width:0; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px; border:1px solid #2b3a3d; background:#050708; padding:8px 10px; }
+    .areaRow input, .areaRow select { min-height:36px; padding:4px 8px; font-size:12px; }
+    .areaRow span, .areaRow small { min-width:0; overflow-wrap:anywhere; }
+    .sequenceSetup { display:grid; grid-template-columns:minmax(260px,1fr) auto; gap:12px; align-items:end; margin-bottom:14px; padding:12px; border:1px solid #3c4538; background:rgba(5,7,8,.42); }
+    .sequenceSetup p { margin:0; max-width:420px; }
+    .sequenceList { display:grid; gap:12px; margin-bottom:12px; }
+    .sequenceRow { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); grid-template-areas:"number name name name name time time" "arm arm arm defuse defuse defuse remove" "gps lat lat lat lng lng lng"; gap:12px; align-items:end; border:1px solid #3c4538; background:linear-gradient(135deg,#090c09,#11150f); padding:14px; }
+    .sequenceOrder { display:grid; place-items:center; min-height:48px; border:1px solid #6d5b31; color:#e0c064; background:#14160f; font:900 20px Consolas,monospace; }
+    .sequenceOrder::before { content:"Número"; color:#8fa09a; font:700 9px Arial,sans-serif; text-transform:uppercase; }
+    .sequenceRow .sequenceOrder { grid-area:number; }
+    .sequenceRow label:has([data-bomb-field="name"]) { grid-area:name; }
+    .sequenceRow label:has([data-bomb-field="resultMinutes"]) { grid-area:time; }
+    .sequenceRow label:has([data-bomb-field="armCode"]) { grid-area:arm; }
+    .sequenceRow label:has([data-bomb-field="defuseCode"]) { grid-area:defuse; }
+    .sequenceRow label:has([data-bomb-field="locatorEnabled"]) { grid-area:gps; }
+    .sequenceRow label:has([data-bomb-field="lat"]) { grid-area:lat; }
+    .sequenceRow label:has([data-bomb-field="lng"]) { grid-area:lng; }
+    .sequenceRow [data-bomb-remove] { grid-area:remove; width:100%; min-height:42px; }
+    .bombOperationList { display:grid; gap:8px; margin-top:12px; }
+    .bombOperationRow { display:grid; grid-template-columns:minmax(140px,1fr) minmax(92px,auto) auto auto; gap:8px; align-items:center; border:1px solid #46503d; background:#080b08; padding:9px; }
+    .bombOperationRow small { color:#8fa09a; }
+    .bombOperationRow button { min-height:38px; }
+    .bombOperationTimer { min-width:92px; border:1px solid #69342f; background:#160706; padding:8px 10px; color:#ff443b; text-align:center; font:900 20px Consolas,monospace; text-shadow:0 0 8px rgba(255,45,35,.7); }
+    .deviceRoster { display:grid; gap:8px; }
+    .deviceRow { display:grid; grid-template-columns:minmax(180px,1fr) minmax(150px,220px) auto; gap:8px; align-items:center; border:1px solid #3c4538; background:#080b08; padding:10px; }
+    @media(max-width:650px){ .bombOperationRow { grid-template-columns:1fr auto; } .bombOperationRow button { width:100%; } }
+    .bombCommonGrid { display:grid; grid-template-columns:repeat(4,minmax(140px,1fr)); gap:10px; }
+    .sequenceRow label { min-width:0; color:#aeb7aa; font-size:11px; text-transform:uppercase; }
+    .sequenceRow input { width:100%; margin-top:5px; font-family:Consolas,monospace; }
+    .sequenceRow [data-bomb-field="name"] { color:#f0e1b2; font-weight:800; }
+    .sequenceRow [data-bomb-field="resultMinutes"] { color:#ff746c; font-size:18px; font-weight:900; text-align:center; }
+    .sequenceRow.active { border-color:#d0b45c; box-shadow:inset 4px 0 #d0b45c; }
+    .sequenceRow.done { opacity:.62; }
+    @media(max-width:850px){ .sequenceSetup { grid-template-columns:1fr; } .sequenceRow { gap:8px; padding:10px; } }
+    .mapLegend { display:flex; flex-wrap:wrap; gap:12px; color:#8fa09a; font-size:11px; text-transform:uppercase; }
+    .organizationLegend { display:flex; width:100%; min-width:0; flex-wrap:wrap; gap:7px; max-height:96px; overflow:auto; }
+    .orgKey { display:flex; min-width:0; max-width:100%; align-items:center; gap:5px; border:1px solid #2b3a3d; padding:5px 7px; color:#bbb; font-size:11px; overflow-wrap:anywhere; }
+    .orgSwatch { width:12px; height:12px; border:1px solid #ddd; }
+    .winner { border-color: #34d399; background: #071a13; }
+    body.locked button:not(#cancelStage):not(#end), body.locked input, body.locked select, body.locked textarea { pointer-events: none; filter: grayscale(1); opacity: .55; }
+    .popupLayer { position: fixed; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.58); z-index: 10; }
+    .popupLayer[hidden] { display: none; }
+    .popup { width: min(100%, 500px); border: 1px solid #f2b84b; background: #10171a; padding: 20px; box-shadow: 0 22px 80px rgba(0,0,0,.72); display: grid; gap: 12px; }
+    .popup strong { color: #f2b84b; text-transform: uppercase; font-size: 12px; }
+    .popup h2 { margin: 0; font-size: 22px; }
+    .popup p { margin: 0; color: #c4d2ce; line-height: 1.45; }
+    [hidden] { display: none !important; }
+    @media (max-width: 980px) {
+      main { width: 100%; padding: 12px; gap: 12px; }
+      .controlTitle { align-items: start; flex-direction: column; }
+      .grid { grid-template-columns: 1fr; }
+      .two, .three, .four, .folderChooser, .statusDeck { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .quickActions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .qrPair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .rosterTools { grid-template-columns: minmax(0, 1fr) auto auto; }
+      .controlTabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .modeHero label { grid-template-columns: minmax(150px, .55fr) 1fr; }
+      .mapPlanner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mapPlanner label:first-child { grid-column: 1 / -1; }
+      .panel, .section { min-width: 0; }
+      aside.panel, .commandCenter { position: static; }
+    }
+    @media (max-width: 640px) {
+      main { padding: 8px; gap: 8px; }
+      .panel, .stat, .section, .modeHero { padding: 10px; }
+      .controlTabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .controlTabs button { min-height: 42px; padding: 6px; font-size: 12px; }
+      .two, .three, .four, .folderChooser, .qrPair, .quickActions, .rosterTools { grid-template-columns: 1fr; }
+      .statusDeck { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .modeHero label { grid-template-columns: 1fr; }
+      .mapPlanner { grid-template-columns: minmax(0, 1fr); }
+      .mapPlanner label:first-child { grid-column: auto; }
+      .mapPlannerActions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .mapPlannerActions .muted { grid-column:1 / -1; }
+      .mapLegend { gap:8px; }
+      .mapLegend span { flex:1 1 90px; }
+      .tacticalMap { min-height:300px; aspect-ratio:1 / 1; }
+      .sectionHead, .sideHead { align-items: start; flex-direction: column; }
+      .sectionTag, .opsStatus { white-space: normal; }
+      .sequenceRow {
+        grid-template-columns: minmax(54px, .3fr) minmax(0, 1fr);
+        grid-template-areas:
+          "number name"
+          "time time"
+          "arm arm"
+          "defuse defuse"
+          "gps gps"
+          "lat lat"
+          "lng lng"
+          "remove remove";
+      }
+      .deviceRow, .playerRow, .bombOperationRow { grid-template-columns: minmax(0, 1fr); }
+      .bombOperationTimer { width: 100%; min-width: 0; }
+    }
+  </style>
+  <link rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
+  <link rel="stylesheet" href="airsoft-brand.css?v=20260930-1">
+</head>
+<body>
+<main>
+  <div class="controlTitle">
+    <div>
+      <h1>Controle do Controlador</h1>
+      <p>Console operacional para configurar, iniciar e acompanhar os modos de jogo.</p>
+    </div>
+    <span class="opsStatus">Controlador online</span>
+  </div>
+  <nav class="controlTabs" aria-label="Áreas do controle">
+    <button class="active" data-control-tab="operation">Operação</button>
+    <button data-control-tab="config">Configuração</button>
+    <button data-control-tab="teams">Pré-cadastro / Equipes</button>
+    <button data-control-tab="map">Mapa</button>
+  </nav>
+  <div class="grid">
+    <section class="panel">
+      <div class="statusDeck">
+        <div class="stat"><span>Tempo de jogo</span><b id="game">18:00</b></div>
+        <div class="stat"><span id="bombStatLabel">Tempo da bomba</span><b id="bomb">--:--</b></div>
+        <div class="stat"><span>Estado</span><b id="state">Preparação</b></div>
+        <div class="stat"><span>Vencedor</span><b id="winner">----</b></div>
+      </div>
+      <div class="stat phaseStrip" id="phaseBox"><span>Fase atual</span><b id="phase">Aguardando</b></div>
+      <div class="section modeHero">
+        <div class="sectionHead">
+          <div>
+            <h2>Modo de jogo</h2>
+            <p>Escolha primeiro o modo para o painel mostrar somente as configurações mais importantes daquele cenário.</p>
+          </div>
+          <span class="sectionTag">Etapa 01</span>
+        </div>
+        <div>
+          <label>Escolher modo
+            <select id="mode"><option>Bomba clássica</option><option>Roubo de dados</option><option>Dominação de terminal</option><option>Localização de artefato</option></select>
+          </label>
+          <div class="modeSummaryBox" id="modeSummary">Bomba clássica</div>
+        </div>
+      </div>
+      <div class="section commandCenter">
+        <div class="sectionHead">
+          <div>
+            <h2>Centro de comando</h2>
+            <p>Use estes comandos durante a partida. Quando uma barra estiver em andamento, o painel trava para evitar conflito.</p>
+          </div>
+          <span class="sectionTag">Ao vivo</span>
+        </div>
+        <div class="quickActions">
+          <button class="primary" id="start">Iniciar jogo</button>
+          <button class="danger" id="end">Encerrar jogo</button>
+          <button class="danger" id="armMaster">Armar pelo Controlador</button>
+          <button class="blue" id="defuseMaster">Desarmar remotamente</button>
+          <button class="warn" id="applyPenalty">Aplicar penalidade</button>
+          <button class="warn" id="cancelStage">Cancelar etapa</button>
+          <button id="reset">Reiniciar tudo</button>
+        </div>
+        <div class="bombOperationList" id="bombOperationList"></div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2>Cadastro de celulares</h2>
+            <p>Defina os nomes dos times e use os QRs cenográficos para travar cada celular no papel correto.</p>
+          </div>
+          <span class="sectionTag">Times</span>
+        </div>
+        <div class="two">
+          <label>Nome do Time 1 / CT <input id="team1Name" maxlength="24" value="Time 1 - CT"></label>
+          <label>Nome do Time 2 / Terrorista <input id="team2Name" maxlength="24" value="Time 2 - Terrorista"></label>
+        </div>
+        <div class="two">
+          <label class="checkOption"><input id="playerRegistrationOpen" type="checkbox" checked><span>Cadastro de jogadores aberto</span></label>
+          <label class="checkOption"><input id="teamTrackingEnabled" type="checkbox" checked><span>Rastreamento dos times ativo</span></label>
+          <label class="checkOption"><input id="keepOrganizationsTogether" type="checkbox" checked><span>Manter jogadores da mesma agremiação juntos</span></label>
+        </div>
+        <div class="teamQr" style="max-width:320px; margin:0 auto">
+          <div class="qrMock" aria-label="QR da Sala de Jogo">
+            <span></span><span></span><span></span><i></i><span></span><i></i><span></span>
+            <span></span><i></i><span></span><i></i><i></i><span></span><i></i>
+            <span></span><span></span><span></span><i></i><span></span><span></span><span></span>
+            <i></i><span></span><i></i><span></span><i></i><span></span><i></i>
+            <span></span><i></i><span></span><i></i><span></span><i></i><span></span>
+            <i></i><span></span><i></i><span></span><i></i><span></span><span></span>
+            <span></span><i></i><span></span><span></span><i></i><span></span><i></i>
+          </div>
+          <b>QR Code da Sala de Jogo</b>
+          <span class="muted">Os jogadores escaneiam este QR ou usam o código da sala para entrar e enviar a ficha de cadastro.</span>
+        </div>
+        <div class="teamOps">
+          <div class="sectionHead"><div><h2>Jogadores</h2><p>Solicitações precisam ser aprovadas e vinculadas a um time pelo Controlador.</p></div><span class="sectionTag" id="playerCount">0 conectados</span></div>
+          <div class="rosterTools"><input id="playerSearch" placeholder="Buscar nome ou agremiação"><button id="rosterPrev" type="button">Anterior</button><span id="rosterPageInfo">Página 1</span><button id="rosterNext" type="button">Próxima</button></div>
+          <div class="roster" id="playerRoster"></div>
+        </div>
+      </div>
+      <div class="section" id="deviceRegistrationSection">
+        <div class="sectionHead"><div><h2>Dispositivos de bomba</h2><p>Aprove tablets e celulares e vincule cada aparelho a uma bomba cadastrada.</p></div><span class="sectionTag" id="deviceCount">0 dispositivos</span></div>
+        <div class="deviceRoster" id="deviceRoster"></div>
+      </div>
+      <div class="section" id="mapControlSection">
+        <div class="sectionHead"><div><h2>Rastreamento da partida</h2><p>Posições relativas recebidas dos celulares aprovados e do artefato.</p></div><span class="sectionTag">Mapa</span></div>
+        <div class="two"><label>Exibir no mapa <select id="mapTeamFilter"><option value="all">Todos</option><option value="ct">Time 1</option><option value="terrorist">Time 2</option></select></label><div class="mapLegend"><span>● Time 1</span><span>■ Time 2</span><span>◆ Artefato</span></div></div>
+        <div class="mapPlanner">
+          <label>Ferramenta<select id="mapPlacementTool"><option value="none">Somente visualizar</option><option value="boundary">1. Desenhar Limite do Campo (Campo)</option><option value="polygon_area">2. Desenhar Área (Safe Zone / Objetivo / Risco)</option><option value="ct">3. Base Time 1 (Início)</option><option value="terrorist">4. Base Time 2 (Início)</option><option value="artifact">5. Posição Inicial da Bomba</option></select></label>
+          <label>Nome da área<input id="tacticalAreaName" maxlength="32" value="Ponto estratégico"></label>
+          <label>Tipo<select id="tacticalAreaType"><option value="objective">Objetivo</option><option value="risk">Risco</option><option value="safe">Área segura</option><option value="restricted">Restrita</option></select></label>
+          <label>Visível para<select id="tacticalAreaVisibility"><option value="all">Todos</option><option value="ct">Somente Time 1</option><option value="terrorist">Somente Time 2</option><option value="controller">Somente Controlador</option></select></label>
+          <label>Raio da área<select id="tacticalAreaRadius" hidden><option value="50" selected>50 metros</option></select></label>
+        </div>
+        <div class="mapPlannerActions"><button id="centerMapOnMe" type="button">Minha localização</button><button id="clearStartPositions" type="button">Limpar bases</button><button id="clearTacticalAreas" class="danger" type="button">Limpar áreas</button><span class="muted">Use a imagem de satélite, escolha uma ferramenta e toque no local desejado.</span></div>
+        <div class="organizationLegend" id="organizationLegend"></div>
+        <p id="fieldDrawingHelp" class="muted" role="status">Escolha uma ferramenta e clique no mapa. Para os limites, marque pelo menos 3 pontos e feche o contorno.</p>
+        <div class="mapPlannerActions"><button id="finishFieldBoundary" type="button">Fechar contorno</button><button id="undoFieldBoundary" type="button">Desfazer último ponto</button><button id="clearFieldBoundary" type="button">Limpar limite</button></div>
+        <div class="tacticalMap" id="controlTeamMap"></div>
+        <div class="areaList" id="tacticalAreaList"></div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2 id="timeTitle">Tempo e penalidade</h2>
+            <p id="timeHelp">Controle o ritmo geral da partida e o impacto de senha incorreta.</p>
+          </div>
+          <span class="sectionTag">Ritmo</span>
+        </div>
+        <div class="four">
+          <label id="gameTimeField">Tempo de jogo
+            <div class="timeGroup">
+              <input id="gameHours" type="number" min="0" max="12" value="0" inputmode="numeric"><input id="gameMinutes" type="number" min="0" max="59" value="18" inputmode="numeric">
+              <span>Horas</span><span>Minutos</span>
+            </div>
+          </label>
+          <label id="actionTimeField">Tempo de ação
+            <div class="timeGroup">
+              <input id="actionMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="actionRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label id="resultTimeField"><span id="resultConfigLabel">Tempo da bomba</span>
+            <div class="timeGroup">
+              <input id="resultHours" type="number" min="0" max="12" value="0" inputmode="numeric"><input id="resultMinutes" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Horas</span><span>Minutos</span>
+            </div>
+          </label>
+          <label id="penaltyTimeField">Penalidade senha errada
+            <div class="timeGroup">
+              <input id="penaltyMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="penaltyRemainSeconds" type="number" min="0" max="59" value="5" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="section">
+        <div class="sectionHead">
+          <div>
+            <h2 id="accessTitle">Senhas e fatores</h2>
+            <p id="accessHelp">Configure as credenciais principais e quantos jogadores precisam validar presença por QR.</p>
+          </div>
+          <span class="sectionTag">Acesso</span>
+        </div>
+        <div class="two" id="accessCodeRow">
+          <label><span id="armCodeLabel">Senha de arme</span> <input id="armCode" maxlength="6" value="4072"></label>
+          <label><span id="defuseCodeLabel">Senha de desarme</span> <input id="defuseCode" maxlength="6" value="7294"></label>
+        </div>
+        <div class="two" id="accessFactorRow">
+          <label><span id="armFactorsLabel">Fatores para armar</span> <select id="armFactors"><option value="1">1 jogador</option><option value="2">2 jogadores</option></select></label>
+          <label><span id="defuseFactorsLabel">Fatores para desarmar</span> <select id="defuseFactors"><option value="1">1 jogador</option><option value="2">2 jogadores</option></select></label>
+          <label class="checkOption"><input id="qrRequired" type="checkbox" checked><span>Exigir QR nas etapas</span></label>
+        </div>
+        <div class="two" id="accessGiveRow">
+          <button class="primary" id="giveCt">Passar senha CT</button>
+          <button class="warn" id="giveT">Passar senha Terrorista</button>
+        </div>
+      </div>
+      <div class="section" id="bombSequenceConfig">
+        <div class="sectionHead"><div><h2>Sequência de bombas</h2><p>Cadastre os artefatos na ordem em que serão liberados durante a partida.</p></div><span class="sectionTag" id="bombSequenceSummary">1 artefato</span></div>
+        <div class="sequenceSetup"><label>Forma de ativação<select id="bombDeploymentMode"><option value="sequential">Liberar uma bomba por vez</option><option value="allArmed">Todas começam armadas · Time 1 desarma / Time 2 protege</option></select></label><p class="muted">O tempo de explosão é configurado em minutos. Cada artefato usa credenciais independentes.</p></div>
+        <div class="sequenceList" id="bombSequenceList"></div>
+        <button class="primary" id="addBombSequence" type="button">Adicionar bomba</button>
+        <div class="section" id="bombCommonConfig">
+          <div class="sectionHead"><div><h2>Regras comuns das bombas</h2><p>Estas opções são aplicadas igualmente a todos os artefatos.</p></div><span class="sectionTag">GPS comum</span></div>
+          <div class="bombCommonGrid">
+            <label class="checkOption"><input id="bombTransmitOnMove" type="checkbox"><span>Transmitir somente se a bomba se mover</span></label>
+            <label>Nível de precisão<select id="bombAccuracyMode"><option value="high">Alta precisão</option><option value="balanced">Equilibrada</option><option value="battery">Economia de bateria</option></select></label>
+            <label>Atualização<select id="bombCommonUpdateMode"><option value="10s">A cada 10 segundos</option><option value="realtime">Tempo real</option></select></label>
+            <label>Raio de encontro em metros<input id="bombCommonRadius" type="number" min="1" max="999" value="12" inputmode="numeric"></label>
+          </div>
+        </div>
+      </div>
+      <div class="section" id="dataConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Alvo do roubo de dados</h2>
+            <p>Monte o notebook cenográfico: pastas falsas, arquivo alvo, senha de descriptografia e destino do envio.</p>
+          </div>
+          <span class="sectionTag">Notebook</span>
+        </div>
+        <div class="two">
+          <label>Nome do notebook <input id="dataNotebookName" maxlength="28" value="NBK-17 Operações"></label>
+          <label>Pasta correta
+            <select id="dataCorrectFolder"><option value="0">Pasta 1</option><option value="1" selected>Pasta 2</option><option value="2">Pasta 3</option><option value="3">Pasta 4</option></select>
+          </label>
+        </div>
+        <div class="folderChooser">
+          <label class="folderInput"><span>Pasta 1</span><input id="dataFolder0" maxlength="24" value="SYSTEM_CACHE"></label>
+          <label class="folderInput"><span>Pasta 2</span><input id="dataFolder1" maxlength="24" value="OP_BLACKBOX"></label>
+          <label class="folderInput"><span>Pasta 3</span><input id="dataFolder2" maxlength="24" value="FIELD_LOGS"></label>
+          <label class="folderInput"><span>Pasta 4</span><input id="dataFolder3" maxlength="24" value="ARCHIVE_09"></label>
+        </div>
+        <div class="two">
+          <label>Arquivo criptografado <input id="dataFileName" maxlength="28" value="rotas-extracao.enc"></label>
+          <label>Destino do envio <input id="dataRecipient" maxlength="32" value="relay@darknet.ops"></label>
+        </div>
+        <div class="two">
+          <label>Tamanho do pacote <input id="dataPayloadSize" maxlength="12" value="48 MB"></label>
+          <label>Senha de descriptografia <input id="dataDecryptCode" maxlength="6" value="9137"></label>
+        </div>
+        <div class="four">
+          <label>Tempo para acessar
+            <div class="timeGroup">
+              <input id="dataAccessMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataAccessRemainSeconds" type="number" min="0" max="59" value="6" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para baixar
+            <div class="timeGroup">
+              <input id="dataDownloadMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataDownloadRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para descriptografar
+            <div class="timeGroup">
+              <input id="dataDecryptMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataDecryptRemainSeconds" type="number" min="0" max="59" value="12" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Tempo para enviar
+            <div class="timeGroup">
+              <input id="dataSendMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="dataSendRemainSeconds" type="number" min="0" max="59" value="8" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="two">
+          <label>Regra visual
+            <select id="dataVisualRule"><option>Notebook travado / pastas / arquivo / envio</option></select>
+          </label>
+        </div>
+        <p class="muted">Validações: acesso pede senha do notebook, download roda no notebook, descriptografia pede senha diferente e barra na bomba, envio pede o email correto no teclado do notebook.</p>
+      </div>
+      <div class="section" id="terminalConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Dominação de terminal</h2>
+            <p>Configure captura, guarda do terminal e a validação periódica que mantém o domínio ativo.</p>
+          </div>
+          <span class="sectionTag">Terminal</span>
+        </div>
+        <div class="two">
+          <label>Nome do terminal <input id="terminalName" maxlength="28" value="TERMINAL AX-07"></label>
+          <label>Tempo de domínio para vencer
+            <div class="timeGroup">
+              <input id="terminalWinMinutes" type="number" min="0" max="59" value="5" inputmode="numeric"><input id="terminalWinRemainSeconds" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="three">
+          <label>Tempo para capturar
+            <div class="timeGroup">
+              <input id="terminalCaptureMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="terminalCaptureRemainSeconds" type="number" min="0" max="59" value="10" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Validar a cada
+            <div class="timeGroup">
+              <input id="terminalValidationIntervalMinutes" type="number" min="0" max="59" value="1" inputmode="numeric"><input id="terminalValidationIntervalRemainSeconds" type="number" min="0" max="59" value="0" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+          <label>Janela para validar
+            <div class="timeGroup">
+              <input id="terminalValidationWindowMinutes" type="number" min="0" max="59" value="0" inputmode="numeric"><input id="terminalValidationWindowRemainSeconds" type="number" min="0" max="59" value="15" inputmode="numeric">
+              <span>Minutos</span><span>Segundos</span>
+            </div>
+          </label>
+        </div>
+        <div class="three">
+          <label>Senha para capturar <input id="terminalCaptureCode" maxlength="8" value="2468" inputmode="numeric"></label>
+          <label class="checkOption"><input id="terminalCaptureNeedsCode" type="checkbox" checked><span>Exigir senha na captura</span></label>
+          <label class="checkOption"><input id="terminalRandomRevalidateCode" type="checkbox" checked><span>Senha randômica na revalidação</span></label>
+        </div>
+        <div class="two">
+          <label>Senha atual de revalidação <input id="terminalValidationCodeView" value="----" readonly></label>
+          <p class="muted">Na opção randômica, a senha muda a cada revalidação e o jogador precisa decodificar no celular antes de validar o domínio.</p>
+        </div>
+        <p class="muted">Toda captura e toda validação exigem dupla conferência: leitura de QR no celular e OK no terminal. Se houver senha ativa, o teclado do terminal abre depois do OK. Se a validação periódica não for concluída dentro da janela, o terminal volta para neutro.</p>
+      </div>
+      <div class="section" id="playerBriefingConfig">
+        <div class="sectionHead">
+          <div>
+            <h2>Objetivos dos jogadores</h2>
+            <p>Este texto aparece imediatamente na aba Objetivos de todos os celulares cadastrados.</p>
+          </div>
+          <span class="sectionTag">Mensagem</span>
+        </div>
+        <label>Ordem da missão
+          <textarea id="gameObjectives" rows="5" maxlength="800" placeholder="Descreva os objetivos, prioridades e regras da missão."></textarea>
+        </label>
+      </div>
+      <div class="section" id="locatorConfig" hidden>
+        <div class="sectionHead">
+          <div>
+            <h2>Localização de artefato</h2>
+            <p>Configure um ponto GPS opcional para os celulares localizarem artefatos em qualquer modo de jogo.</p>
+          </div>
+          <span class="sectionTag">GPS</span>
+        </div>
+        <div class="two" id="singleLocatorIdentity">
+          <label>Nome do artefato <input id="locatorArtifactName" maxlength="28" value="Artefato AX-07"></label>
+          <label class="checkOption"><input id="locatorEnabled" type="checkbox"><span>GPS da bomba transmitindo</span></label>
+        </div>
+        <div class="two">
+          <label>Frequência de atualização
+            <select id="locatorUpdateMode">
+              <option value="10s">A cada 10 segundos</option>
+              <option value="realtime">Tempo real</option>
+            </select>
+          </label>
+          <p class="muted">Tempo real acompanha mudanças com mais rapidez, mas consome mais bateria. O intervalo de 10 segundos é recomendado para partidas longas.</p>
+        </div>
+        <div class="three" id="singleLocatorCoordinates">
+          <label>Latitude <input id="locatorArtifactLat" type="number" step="0.000001" placeholder="-15.000000"></label>
+          <label>Longitude <input id="locatorArtifactLng" type="number" step="0.000001" placeholder="-56.000000"></label>
+          <label>Raio de encontro
+            <div class="timeGroup">
+              <input id="locatorProximityMeters" type="number" min="1" max="999" value="12" inputmode="numeric">
+              <input value="metros" readonly>
+            </div>
+          </label>
+        </div>
+        <div class="two">
+          <label class="checkOption"><input id="locatorMovementAlertEnabled" type="checkbox" checked><span>Alerta no primeiro deslocamento</span></label>
+          <label>Deslocamento mínimo para alertar
+            <div class="timeGroup">
+              <input id="locatorMovementThresholdMeters" type="number" min="5" max="500" value="25" inputmode="numeric">
+              <input value="metros" readonly>
+            </div>
+          </label>
+        </div>
+        <div class="two" id="bombActivationOptions">
+          <label class="checkOption">
+            <input id="bombActivationAlertEnabled" type="checkbox" checked>
+            <span>Alerta de bomba ativada nos celulares</span>
+          </label>
+          <label class="checkOption">
+            <input id="locatorOnBombActivated" type="checkbox">
+            <span>Ativar localizador ao armar a bomba</span>
+          </label>
+        </div>
+        <div class="two">
+          <button class="blue" id="captureMasterGps" type="button">Definir posição manual por GPS</button>
+          <button class="primary" id="toggleLocator" type="button">Ligar GPS da bomba</button>
+        </div>
+        <p class="muted" id="locatorFixInfo">Quando a transmissão estiver ligada, a bomba publica sua posição a cada 10 segundos. A posição manual funciona como alternativa ao GPS do artefato.</p>
+      </div>
+    </section>
+    <aside class="panel">
+      <div class="briefBox">
+        <div class="sideHead">
+          <h2>Briefing</h2>
+          <span class="sectionTag">Modo</span>
+        </div>
+        <div class="briefList" id="briefList"></div>
+      </div>
+      <div class="sideHead">
+        <h2>Eventos</h2>
+        <span class="sectionTag">Log</span>
+      </div>
+      <div class="log" id="log"></div>
+    </aside>
+  </div>
+</main>
+<div class="popupLayer" id="popupLayer" hidden>
+  <section class="popup" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <strong id="popupKind">Controlador</strong>
+    <h2 id="popupTitle">Aviso</h2>
+    <p id="popupBody"></p>
+    <button id="popupClose">Fechar</button>
+  </section>
+</div>
+<script>
+  let ticker = null;
+  let popupTimer = null;
+  let rosterPage = 0;
+  const rosterPageSize = 25;
+  let googleTacticalMap = null;
+  const pendingPlayerTeams = new Map();
+  const pendingDeviceBombs = new Map();
+  function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
+  function isDataMode(s) { return s.mode === 'Roubo de dados'; }
+  function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
+  function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function clampNumber(value, min, max) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return min;
+    return Math.min(max, Math.max(min, Math.floor(n)));
+  }
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function organizationColor(name) {
+    if (!name) return '#6f756f';
+    const palette = ['#2979b8','#b64b3b','#4f8d52','#9a63b5','#cf8b2f','#2f9b91','#b44f7a','#7f9140','#4772c2','#b06f3e','#6f65bd','#3f9271'];
+    let hash = 0;
+    for (const char of name.toLocaleLowerCase('pt-BR')) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+    return palette[Math.abs(hash) % palette.length];
+  }
+  function markerPositions(s, teamOnly) {
+    const players = (s.players || []).filter(p => p.status === 'approved' && p.lat != null && p.lng != null && (!teamOnly || p.team === teamOnly));
+    const points = players.map(p => ({ id:p.id, name:p.name, organization:p.organization || '', team:p.team, lat:Number(p.lat), lng:Number(p.lng), kind:'player' }));
+    if (!teamOnly && s.locatorArtifactLat != null && s.locatorArtifactLng != null) points.push({ id:'artifact', name:s.locatorArtifactName || 'Artefato', lat:Number(s.locatorArtifactLat), lng:Number(s.locatorArtifactLng), kind:'artifact' });
+    if (!points.length) return [];
+    const lats = points.map(p => p.lat), lngs = points.map(p => p.lng);
+    const minLat = Math.min(...lats), maxLat = Math.max(...lats), minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+    return points.map((p, index) => ({ ...p, x: maxLng === minLng ? 50 + (index % 3 - 1) * 9 : 8 + ((p.lng-minLng)/(maxLng-minLng))*84, y: maxLat === minLat ? 50 + (Math.floor(index/3)-.5)*9 : 92 - ((p.lat-minLat)/(maxLat-minLat))*84 }));
+  }
+  function renderTeamControl(s) {
+    const players = s.players || [];
+    const now = Date.now();
+    const search = playerSearch.value.trim().toLocaleLowerCase('pt-BR');
+    const filtered = players.filter(p => !search || p.name.toLocaleLowerCase('pt-BR').includes(search) || (p.organization || '').toLocaleLowerCase('pt-BR').includes(search));
+    const pages = Math.max(1, Math.ceil(filtered.length / rosterPageSize));
+    rosterPage = Math.min(rosterPage, pages - 1);
+    const visiblePlayers = filtered.slice(rosterPage * rosterPageSize, (rosterPage + 1) * rosterPageSize);
+    const approvedCount = players.filter(p => p.status === 'approved').length;
+    const pendingCount = players.length - approvedCount;
+    playerCount.textContent = approvedCount + ' aprovados · ' + pendingCount + ' pendentes';
+    rosterPageInfo.textContent = 'Página ' + (rosterPage + 1) + ' / ' + pages + ' · ' + filtered.length + ' registros';
+    rosterPrev.disabled = rosterPage === 0;
+    rosterNext.disabled = rosterPage >= pages - 1;
+    const playerSelectOpen = document.activeElement && document.activeElement.matches('[data-player-team]');
+    if (!playerSelectOpen) playerRoster.innerHTML = visiblePlayers.length ? visiblePlayers.map(p => {
+      const pending = p.status !== 'approved';
+      const online = p.lastSeen && now - p.lastSeen < 30000;
+      const selectedTeam = pendingPlayerTeams.get(p.id) || p.team;
+      return '<div class="playerRow" data-player-id="' + escapeHtml(p.id) + '"><div><b>' + escapeHtml(p.name) + '</b><br><small>' + escapeHtml(p.organization || 'Sem agremiação') + ' · ' + (pending ? 'Aguardando aprovação' : (online ? 'Online' : 'Sem sinal')) + (p.lastFix ? ' · GPS ' + escapeHtml(p.lastFix) : '') + '</small></div><select data-player-team><option value="ct"' + (selectedTeam === 'ct' ? ' selected' : '') + '>' + escapeHtml(s.team1Name) + '</option><option value="terrorist"' + (selectedTeam === 'terrorist' ? ' selected' : '') + '>' + escapeHtml(s.team2Name) + '</option></select><div><button class="primary" data-player-approve>' + (pending ? 'Aprovar' : 'Atualizar') + '</button> <button class="danger" data-player-remove>×</button></div><details class="playerData"><summary>Ver ficha básica</summary><p>Email: ' + escapeHtml(p.email || '----') + '<br>Celular: ' + escapeHtml(p.phone || '----') + '<br>Contato de emergência: ' + escapeHtml(p.emergencyName || '----') + '<br>Telefone de emergência: ' + escapeHtml(p.emergencyPhone || '----') + '</p></details></div>';
+    }).join('') : '<p class="muted">Nenhum jogador encontrado.</p>';
+    const mapFilter = mapTeamFilter.value === 'all' ? null : mapTeamFilter.value;
+    const field = s.fieldBoundary || { points: [], closed: false };
+    const activeTool = mapPlacementTool.value;
+    const activePts = s.activeDrawingPoints || [];
+    if (activeTool === 'polygon_area') {
+      finishFieldBoundary.disabled = activePts.length < 3;
+      undoFieldBoundary.disabled = !activePts.length;
+      clearFieldBoundary.disabled = !activePts.length;
+      fieldDrawingHelp.textContent = `Desenho da Área de Interesse: ${activePts.length} pontos marcados. Marque pelo menos 3 pontos e clique em Fechar Área de Interesse.`;
+    } else {
+      finishFieldBoundary.disabled = field.closed || (activePts.length < 3 && field.points.length < 3);
+      undoFieldBoundary.disabled = !activePts.length && !field.points.length;
+      clearFieldBoundary.disabled = !activePts.length && !field.points.length;
+      fieldDrawingHelp.textContent = (googleTacticalMap ? 'Mapa de satélite. ' : 'Mapa esquemático: posições relativas, sem coordenadas GPS. ') +
+        (field.closed ? 'Limite do campo definido. Escolha uma ferramenta para posicionar bases, áreas e artefato.' : (activePts.length || field.points.length) + ' pontos marcados. Marque pelo menos 3 pontos e clique em Fechar contorno.');
+    }
+    if (googleTacticalMap) {
+      googleTacticalMap.render(s, { filter:mapFilter });
+    } else {
+    const markers = markerPositions(s, mapFilter);
+    const areas = (s.tacticalAreas || []).map(a => '<div class="tacticalArea ' + escapeHtml(a.visibility) + '" style="left:' + a.x + '%;top:' + a.y + '%;width:' + (a.radius*2) + '%;aspect-ratio:1" title="' + escapeHtml(a.name + ' · ' + a.type) + '">' + escapeHtml(a.name) + '</div>').join('');
+    const starts = ['ct','terrorist'].map(team => {
+      const p = (s.teamStartPositions || {})[team];
+      if (!p) return '';
+      return '<div class="startMarker ' + team + '" style="left:' + p.x + '%;top:' + p.y + '%" title="Base inicial ' + escapeHtml(team === 'ct' ? s.team1Name : s.team2Name) + '">' + (team === 'ct' ? '1' : '2') + '</div>';
+    }).join('');
+    const liveMarkers = markers.map(p => '<div class="mapMarker ' + (p.kind === 'artifact' ? 'artifact' : p.team) + '" style="left:' + p.x.toFixed(1) + '%;top:' + p.y.toFixed(1) + '%;background:' + (p.kind === 'artifact' ? '#c69b2b' : organizationColor(p.organization)) + '" title="' + escapeHtml(p.name + (p.organization ? ' · ' + p.organization : ' · Sem agremiação')) + '"><span>' + escapeHtml(p.kind === 'artifact' ? 'A' : p.name.slice(0,2).toUpperCase()) + '</span></div>').join('');
+    const fieldPoints = field.points.filter(p => Number.isFinite(p.x) && Number.isFinite(p.y));
+    const coordinates = fieldPoints.map(p => p.x + ',' + p.y).join(' ');
+    const outline = fieldPoints.length ? '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Limite do campo" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><' + (field.closed ? 'polygon' : 'polyline') + ' points="' + coordinates + '" fill="' + (field.closed ? 'rgba(239,104,23,.12)' : 'none') + '" stroke="#ef6817" stroke-width=".5"/>' + fieldPoints.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="1" fill="#ef6817"/>').join('') + '</svg>' : '';
+    const artifact = s.fieldArtifact && Number.isFinite(s.fieldArtifact.x) ? '<div class="startMarker" style="left:' + s.fieldArtifact.x + '%;top:' + s.fieldArtifact.y + '%;background:#c69b2b" title="Posição planejada do artefato">A</div>' : '';
+    controlTeamMap.innerHTML = outline + areas + starts + liveMarkers + artifact + (!outline && !areas && !starts && !liveMarkers && !artifact ? '<p class="muted" style="padding:42px 12px">Escolha uma ferramenta e clique para preparar o campo.</p>' : '');
+    }
+    const activeAreaEdit = document.activeElement && document.activeElement.closest('#tacticalAreaList');
+    if (!activeAreaEdit) {
+      tacticalAreaList.innerHTML = (s.tacticalAreas || []).map(a =>
+        '<div class="areaRow" data-area-id="' + escapeHtml(a.id) + '">' +
+        '<div style="display:grid;grid-template-columns:1fr minmax(110px,auto) minmax(120px,auto);gap:6px;align-items:center;min-width:0;flex:1">' +
+        '<input data-area-field="name" value="' + escapeHtml(a.name) + '" placeholder="Nome da área" maxlength="32">' +
+        '<select data-area-field="type">' +
+          '<option value="objective"' + (a.type === 'objective' ? ' selected' : '') + '>Objetivo</option>' +
+          '<option value="risk"' + (a.type === 'risk' ? ' selected' : '') + '>Risco</option>' +
+          '<option value="safe"' + (a.type === 'safe' ? ' selected' : '') + '>Área segura</option>' +
+          '<option value="restricted"' + (a.type === 'restricted' ? ' selected' : '') + '>Restrita</option>' +
+        '</select>' +
+        '<select data-area-field="visibility">' +
+          '<option value="all"' + (a.visibility === 'all' ? ' selected' : '') + '>Todos</option>' +
+          '<option value="ct"' + (a.visibility === 'ct' ? ' selected' : '') + '>' + escapeHtml(s.team1Name) + '</option>' +
+          '<option value="terrorist"' + (a.visibility === 'terrorist' ? ' selected' : '') + '>' + escapeHtml(s.team2Name) + '</option>' +
+          '<option value="controller"' + (a.visibility === 'controller' ? ' selected' : '') + '>Somente Controlador</option>' +
+        '</select>' +
+        '</div>' +
+        '<button class="danger" data-area-remove="' + escapeHtml(a.id) + '" type="button" title="Excluir área">×</button>' +
+        '</div>'
+      ).join('');
+    }
+    const organizations = [...new Set((s.players || []).filter(p => p.status === 'approved' && (!mapFilter || p.team === mapFilter)).map(p => p.organization || 'Sem agremiação'))].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+    organizationLegend.innerHTML = organizations.map(name => '<span class="orgKey"><i class="orgSwatch" style="background:' + organizationColor(name === 'Sem agremiação' ? '' : name) + '"></i>' + escapeHtml(name) + '</span>').join('');
+  }
+  function showControlTab(name) {
+    document.querySelectorAll('[data-control-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.controlTab === name));
+    const primary = document.querySelector('.grid > section.panel');
+    document.querySelector('.grid').classList.toggle('singleView', name !== 'operation');
+    const registration = playerRoster.closest('.section');
+    const devices = deviceRegistrationSection;
+    const command = document.querySelector('.commandCenter');
+    const operationNodes = [document.querySelector('.statusDeck'), phaseBox, command];
+    operationNodes.forEach(el => el.style.display = name === 'operation' ? '' : 'none');
+    registration.style.display = name === 'teams' ? '' : 'none';
+    devices.style.display = name === 'teams' ? '' : 'none';
+    mapControlSection.style.display = name === 'map' ? '' : 'none';
+    primary.querySelectorAll(':scope > .section').forEach(section => {
+      if (section === registration || section === devices || section === mapControlSection || section === command) return;
+      section.style.display = name === 'config' ? '' : 'none';
+    });
+    document.querySelector('.grid > aside').style.display = name === 'operation' ? '' : 'none';
+    primary.style.display = name === 'operation' || name === 'config' || name === 'teams' || name === 'map' ? '' : 'none';
+    if (name === 'map' && googleTacticalMap) setTimeout(() => googleTacticalMap.resize(), 60);
+  }
+
+  function renderDeviceRoster(s) {
+    const devices = s.bombDevices || [];
+    const bombs = normalizedBombSequence(s);
+    deviceCount.textContent = devices.length + (devices.length === 1 ? ' dispositivo' : ' dispositivos');
+    const deviceSelectOpen = document.activeElement && document.activeElement.matches('[data-device-bomb]');
+    if (!deviceSelectOpen) deviceRoster.innerHTML = devices.length ? devices.map(device => {
+      const status = device.status === 'approved' ? 'Aprovado' : 'Aguardando aprovação';
+      const lastSeen = device.lastSeen ? new Date(device.lastSeen).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : 'sem sinal';
+      const selectedBombId = pendingDeviceBombs.get(device.id) || device.bombId;
+      const options = '<option value="">Escolha uma bomba</option>' + bombs.map(bomb => '<option value="' + escapeHtml(bomb.id) + '"' + (selectedBombId === bomb.id ? ' selected' : '') + '>' + escapeHtml(bomb.number + ' · ' + bomb.name) + '</option>').join('');
+      return '<div class="deviceRow" data-device-id="' + escapeHtml(device.id) + '"><div><b>' + escapeHtml(device.name || 'Dispositivo sem nome') + '</b><br><small>' + (device.type === 'phone' ? 'Celular' : 'Tablet') + ' · ' + status + ' · visto ' + lastSeen + '</small></div><select data-device-bomb>' + options + '</select><div><button class="primary" data-device-approve>' + (device.status === 'approved' ? 'Atualizar' : 'Aprovar') + '</button> <button class="danger" data-device-remove title="Remover dispositivo">×</button></div></div>';
+    }).join('') : '<p class="muted">Nenhum tablet ou celular solicitou cadastro como bomba.</p>';
+  }
+  function setHoursMinutes(prefix, totalSeconds) {
+    const totalMinutes = Math.max(0, Math.ceil(Number(totalSeconds || 0) / 60));
+    window[prefix + 'Hours'].value = String(Math.floor(totalMinutes / 60));
+    window[prefix + 'Minutes'].value = String(totalMinutes % 60);
+  }
+  function readHoursMinutes(prefix, fallbackSeconds) {
+    const hours = clampNumber(window[prefix + 'Hours'].value, 0, 12);
+    const minutes = clampNumber(window[prefix + 'Minutes'].value, 0, 59);
+    const seconds = (hours * 60 + minutes) * 60;
+    return seconds > 0 ? seconds : fallbackSeconds;
+  }
+  function setMinutesSeconds(prefix, totalSeconds) {
+    const total = Math.max(0, Number(totalSeconds || 0));
+    window[prefix + 'Minutes'].value = String(Math.floor(total / 60));
+    window[prefix + 'RemainSeconds'].value = String(total % 60);
+  }
+  function readMinutesSeconds(prefix, fallbackSeconds, allowZero = false) {
+    const minutes = clampNumber(window[prefix + 'Minutes'].value, 0, 59);
+    const secondsPart = clampNumber(window[prefix + 'RemainSeconds'].value, 0, 59);
+    const seconds = minutes * 60 + secondsPart;
+    if (allowZero) return seconds;
+    return seconds > 0 ? seconds : fallbackSeconds;
+  }
+  function hidePopup() { popupLayer.hidden = true; clearTimeout(popupTimer); }
+  function showPopup(title, body, kind = 'Controlador') {
+    clearTimeout(popupTimer);
+    popupKind.textContent = kind;
+    popupTitle.textContent = title;
+    popupBody.textContent = body;
+    popupLayer.hidden = false;
+    popupTimer = setTimeout(hidePopup, 15000);
+  }
+  popupClose.onclick = hidePopup;
+  popupLayer.addEventListener('click', e => { if (e.target === popupLayer) hidePopup(); });
+  function briefItems(s) {
+    if (isDataMode(s)) return [
+      ['Objetivo', 'Time 2 acessa o notebook, escolhe a pasta correta, baixa, descriptografa e envia os dados.'],
+      ['Defesa', 'Time 1 pode mudar senha, apagar download ou deletar arquivo descriptografado conforme a etapa.'],
+      ['Atenção', 'Configure quatro pastas, escolha a correta, defina senha de notebook, senha de descriptografia e email de destino.']
+    ];
+    if (isTerminalMode(s)) return [
+      ['Objetivo', 'Os times disputam o domínio do terminal e acumulam tempo até vencer.'],
+      ['Validação', 'Captura e revalidação pedem QR no celular e confirmação no terminal.'],
+      ['Atenção', 'Senha de captura e senha randômica de revalidação podem ser ligadas no bloco Terminal.']
+    ];
+    if (isLocatorMode(s)) return [
+      ['Objetivo', 'Os celulares recebem direção e distância aproximada até o artefato configurado pelo Controlador.'],
+      ['GPS', 'O Controlador define latitude/longitude manualmente ou captura a posição deste aparelho.'],
+      ['Atenção', 'Em navegador local, a permissão de localização pode depender do Chrome/Live Server; no app real virá do GPS dos aparelhos.']
+    ];
+    return [
+      ['Objetivo', 'Time 2 arma a bomba; Time 1 vence por desarme ou por fim do tempo de jogo.'],
+      ['Validação', 'Jogador escaneia QR, aguarda ação no celular e digita a senha na bomba.'],
+      ['Atenção', 'Configure senha de arme, senha de desarme, fatores de QR e penalidade.']
+    ];
+  }
+  function renderBrief(s) {
+    briefList.innerHTML = briefItems(s).map(item => '<div><b>' + item[0] + '</b>' + item[1] + '</div>').join('');
+  }
+  function normalizedBombSequence(s) {
+    const list = s.bombSequence && s.bombSequence.length ? s.bombSequence : [{ id:'bomb-1', name:'Bomba Alpha', armCode:s.armCode || '4072', defuseCode:s.defuseCode || '7294', resultSeconds:s.resultSeconds || 600, status:'waiting' }];
+    list.forEach(b => {
+      const legacyValue = Number(b.resultSeconds || 0);
+      if (legacyValue > 0 && legacyValue < 60) b.resultSeconds = legacyValue * 60;
+      if (!Number(b.resultSeconds)) b.resultSeconds = 600;
+      if (typeof b.locatorEnabled !== 'boolean') b.locatorEnabled = true;
+      if (!Object.prototype.hasOwnProperty.call(b, 'lat')) b.lat = null;
+      if (!Object.prototype.hasOwnProperty.call(b, 'lng')) b.lng = null;
+      if (typeof b.remoteArmEnabled !== 'boolean') b.remoteArmEnabled = true;
+      if (typeof b.remoteDefuseEnabled !== 'boolean') b.remoteDefuseEnabled = true;
+    });
+    return list;
+  }
+  function applyActiveBomb(s) {
+    const list = normalizedBombSequence(s);
+    const index = Math.max(0, Math.min(Number(s.bombSequenceIndex || 0), list.length - 1));
+    const active = list[index];
+    s.bombSequence = list;
+    s.bombSequenceIndex = index;
+    s.armCode = active.armCode;
+    s.defuseCode = active.defuseCode;
+    s.resultSeconds = Number(active.resultSeconds) || 600;
+    s.locatorArtifactName = active.name;
+    s.locatorArtifactLat = active.lat == null ? null : Number(active.lat);
+    s.locatorArtifactLng = active.lng == null ? null : Number(active.lng);
+    s.locatorEnabled = active.locatorEnabled !== false;
+    return active;
+  }
+  function renderBombSequence(s) {
+    const list = normalizedBombSequence(s);
+    bombSequenceSummary.textContent = list.length + (list.length === 1 ? ' artefato' : ' artefatos') + ' · ' + (s.bombDeploymentMode === 'allArmed' ? 'todas armadas' : 'etapa ' + (Number(s.bombSequenceIndex || 0) + 1));
+    addBombSequence.disabled = list.length >= 10;
+    addBombSequence.textContent = list.length >= 10 ? 'Limite de 10 bombas atingido' : 'Adicionar bomba';
+    if (document.activeElement && document.activeElement.closest('#bombSequenceList')) return;
+    bombSequenceList.innerHTML = list.map((b,i) => '<div class="sequenceRow ' + (i === Number(s.bombSequenceIndex || 0) ? 'active' : '') + (b.status === 'defused' ? ' done' : '') + '" data-bomb-id="' + escapeHtml(b.id) + '"><span class="sequenceOrder">' + (i+1) + '</span><label>Identificação da bomba<input data-bomb-field="name" maxlength="28" value="' + escapeHtml(b.name) + '"></label><label>Senha de arme<input data-bomb-field="armCode" maxlength="6" value="' + escapeHtml(b.armCode) + '"></label><label>Senha de desarme<input data-bomb-field="defuseCode" maxlength="6" value="' + escapeHtml(b.defuseCode) + '"></label><label>Explosão em minutos<input data-bomb-field="resultMinutes" type="number" min="1" max="120" value="' + Math.max(1, Math.round(Number(b.resultSeconds || 600) / 60)) + '"></label><button class="danger" data-bomb-remove type="button" title="Remover bomba"' + (list.length === 1 ? ' disabled' : '') + '>×</button><label class="checkOption"><input data-bomb-field="locatorEnabled" type="checkbox"' + (b.locatorEnabled !== false ? ' checked' : '') + '><span>Transmitir GPS</span></label><label>Latitude<input data-bomb-field="lat" type="number" step="0.000001" placeholder="-15.000000" value="' + (b.lat == null ? '' : b.lat) + '"></label><label>Longitude<input data-bomb-field="lng" type="number" step="0.000001" placeholder="-56.000000" value="' + (b.lng == null ? '' : b.lng) + '"></label></div>').join('');
+  }
+  function renderBombOperations(s) {
+    const list = normalizedBombSequence(s);
+    if (s.mode !== 'Bomba clássica') { bombOperationList.hidden = true; return; }
+    bombOperationList.hidden = false;
+    bombOperationList.innerHTML = list.map((b,i) => {
+      const active = i === Number(s.bombSequenceIndex || 0);
+      const armed = b.status === 'armed' || (active && s.bombSeconds != null);
+      const defused = b.status === 'defused';
+      const canArm = s.running && !s.finished && active && !armed && !defused && s.bombDeploymentMode !== 'allArmed';
+      const canDefuse = s.running && !s.finished && armed && !defused && (s.bombDeploymentMode === 'allArmed' || active);
+      const timer = b.remainingSeconds != null && s.bombDeploymentMode === 'allArmed' ? fmt(b.remainingSeconds) : active ? fmt(s.bombSeconds) : '--:--';
+      return '<div class="bombOperationRow" data-operation-bomb-id="' + escapeHtml(b.id) + '"><div><b>' + (i+1) + ' · ' + escapeHtml(b.name) + '</b><br><small>' + (defused ? 'Neutralizada' : armed ? 'Armada' : active ? 'Ativa · aguardando arme' : 'Aguardando sequência') + '</small></div><span class="bombOperationTimer">' + timer + '</span><button class="danger" data-remote-arm type="button"' + (canArm ? '' : ' disabled') + '>Armar</button><button class="blue" data-remote-defuse type="button"' + (canDefuse ? '' : ' disabled') + '>Desarmar</button></div>';
+    }).join('');
+  }
+  function pullForm(s) {
+    setHoursMinutes('game', s.gameSeconds);
+    setMinutesSeconds('action', s.actionSeconds);
+    setHoursMinutes('result', s.resultSeconds);
+    mode.value = s.mode; armCode.value = s.armCode; defuseCode.value = s.defuseCode; armFactors.value = String(s.armFactors); defuseFactors.value = String(s.defuseFactors); qrRequired.checked = s.qrRequired !== false; bombDeploymentMode.value = s.bombDeploymentMode === 'allArmed' ? 'allArmed' : 'sequential';
+    setMinutesSeconds('penalty', s.penaltyEnabled ? s.penaltySeconds : 0);
+    team1Name.value = s.team1Name;
+    team2Name.value = s.team2Name;
+    dataNotebookName.value = s.dataNotebookName;
+    const folders = s.dataFolderOptions || ['SYSTEM_CACHE', 'OP_BLACKBOX', 'FIELD_LOGS', 'ARCHIVE_09'];
+    dataFolder0.value = folders[0] || 'SYSTEM_CACHE';
+    dataFolder1.value = folders[1] || 'OP_BLACKBOX';
+    dataFolder2.value = folders[2] || 'FIELD_LOGS';
+    dataFolder3.value = folders[3] || 'ARCHIVE_09';
+    dataCorrectFolder.value = String(Number.isInteger(s.dataCorrectFolder) ? s.dataCorrectFolder : 1);
+    dataFileName.value = s.dataFileName;
+    dataRecipient.value = s.dataRecipient;
+    dataPayloadSize.value = s.dataPayloadSize;
+    dataDecryptCode.value = s.dataDecryptCode;
+    setMinutesSeconds('dataAccess', s.dataAccessSeconds);
+    setMinutesSeconds('dataDownload', s.dataDownloadSeconds);
+    setMinutesSeconds('dataDecrypt', s.dataDecryptSeconds);
+    setMinutesSeconds('dataSend', s.dataSendSeconds);
+    terminalName.value = s.terminalName;
+    setMinutesSeconds('terminalCapture', s.terminalCaptureSeconds);
+    setMinutesSeconds('terminalValidationInterval', s.terminalValidationIntervalSeconds);
+    setMinutesSeconds('terminalValidationWindow', s.terminalValidationWindowSeconds);
+    setMinutesSeconds('terminalWin', s.terminalWinSeconds);
+    terminalCaptureCode.value = s.terminalCaptureCode || '2468';
+    terminalCaptureNeedsCode.checked = Boolean(s.terminalCaptureNeedsCode);
+    terminalRandomRevalidateCode.checked = Boolean(s.terminalRandomRevalidateCode);
+    terminalValidationCodeView.value = s.terminalValidationCode || '----';
+    locatorArtifactName.value = s.locatorArtifactName || 'Artefato AX-07';
+    gameObjectives.value = s.gameObjectives || '';
+    locatorEnabled.checked = Boolean(s.locatorEnabled);
+    playerRegistrationOpen.checked = s.playerRegistrationOpen !== false;
+    teamTrackingEnabled.checked = s.teamTrackingEnabled !== false;
+    keepOrganizationsTogether.checked = s.keepOrganizationsTogether !== false;
+    locatorUpdateMode.value = s.locatorUpdateMode === 'realtime' ? 'realtime' : '10s';
+    bombCommonUpdateMode.value = s.locatorUpdateMode === 'realtime' ? 'realtime' : '10s';
+    bombTransmitOnMove.checked = Boolean(s.locatorTransmitOnMove);
+    bombAccuracyMode.value = s.locatorAccuracyMode || 'high';
+    bombCommonRadius.value = s.locatorProximityMeters || 12;
+    bombActivationAlertEnabled.checked = s.bombActivationAlertEnabled !== false;
+    locatorOnBombActivated.checked = Boolean(s.locatorOnBombActivated);
+    locatorArtifactLat.value = s.locatorArtifactLat == null ? '' : s.locatorArtifactLat;
+    locatorArtifactLng.value = s.locatorArtifactLng == null ? '' : s.locatorArtifactLng;
+    locatorProximityMeters.value = s.locatorProximityMeters || 12;
+    locatorMovementAlertEnabled.checked = Boolean(s.locatorMovementAlertEnabled);
+    locatorMovementThresholdMeters.value = s.locatorMovementThresholdMeters || 25;
+  }
+  function render(s) {
+    document.body.classList.toggle('dataMode', isDataMode(s));
+    document.body.classList.toggle('terminalMode', isTerminalMode(s));
+    document.body.classList.toggle('locatorMode', isLocatorMode(s));
+    document.body.classList.toggle('bombMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
+    renderBrief(s);
+    renderTeamControl(s);
+    renderDeviceRoster(s);
+    renderBombSequence(s);
+    renderBombOperations(s);
+    const bombMode = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s);
+    bombSequenceConfig.hidden = !bombMode;
+    const preparation = !s.running && !s.finished;
+    game.textContent = preparation ? 'Aguardando início' : fmt(s.gameSeconds);
+    bomb.textContent = preparation ? '--:--' : fmt(s.bombSeconds);
+    state.textContent = s.bombState; phase.textContent = s.phase;
+    start.disabled = s.running;
+    end.disabled = !s.running;
+    winner.textContent = s.winner || '----';
+    modeSummary.textContent = isDataMode(s) ? 'Roubo de dados: notebook, pastas, download, descriptografia e envio' : isTerminalMode(s) ? 'Dominação: capturar, guardar e revalidar por QR antes de voltar a neutro' : isLocatorMode(s) ? 'Localização: celulares recebem distância e direção aproximada do artefato' : s.mode + ': ' + normalizedBombSequence(s).length + ' bomba(s) em sequência';
+    bombStatLabel.textContent = isDataMode(s) ? 'Progresso local' : isTerminalMode(s) ? 'Validação terminal' : isLocatorMode(s) ? 'Localizador' : 'Tempo da bomba';
+    resultConfigLabel.textContent = isDataMode(s) ? 'Tempo de resultado' : isTerminalMode(s) ? 'Tempo do terminal' : 'Tempo da bomba';
+    actionTimeField.hidden = isLocatorMode(s);
+    resultTimeField.hidden = true;
+    penaltyTimeField.hidden = isTerminalMode(s) || isLocatorMode(s);
+    timeTitle.textContent = isTerminalMode(s) || isLocatorMode(s) ? 'Tempos do jogo' : 'Tempos e penalidade';
+    timeHelp.textContent = isLocatorMode(s) ? 'Controle a duração geral da busca. O GPS e o raio de encontro ficam no bloco Localização.' : isTerminalMode(s) ? 'Controle a duração geral da partida. Os tempos específicos de captura e revalidação ficam no bloco Terminal.' : isDataMode(s) ? 'Controle o tempo total, a ação base para QR/decodificação e a penalidade de senha incorreta.' : 'Controle o tempo geral e o tempo de ação. O tempo de explosão em minutos e as senhas ficam no cartão de cada bomba.';
+    accessCodeRow.hidden = bombMode || isTerminalMode(s) || isLocatorMode(s);
+    accessFactorRow.hidden = isLocatorMode(s);
+    accessGiveRow.hidden = isLocatorMode(s);
+    accessTitle.textContent = isLocatorMode(s) ? 'Sem senhas neste modo' : isTerminalMode(s) ? 'Fatores de QR e apoio' : isDataMode(s) ? 'Credenciais e fatores' : 'Senhas e fatores';
+    accessHelp.textContent = isLocatorMode(s) ? 'A busca por GPS usa apenas cadastro dos celulares e ativação do Controlador.' : isTerminalMode(s) ? 'Configure quantos celulares validam presença por time. A senha de captura fica no bloco Terminal.' : isDataMode(s) ? 'Configure senha do notebook, senha administrativa CT e fatores de presença.' : 'Configure senhas de arme/desarme e quantos jogadores precisam validar presença por QR.';
+    armCodeLabel.textContent = isDataMode(s) ? 'Senha do notebook' : isTerminalMode(s) ? 'Código reserva Time 2' : 'Senha de arme';
+    defuseCodeLabel.textContent = isDataMode(s) ? 'Senha administrativa CT' : isTerminalMode(s) ? 'Código reserva Time 1' : 'Senha de desarme';
+    armFactorsLabel.textContent = isDataMode(s) ? 'Fatores para invasão' : isTerminalMode(s) ? 'Fatores QR Time 2' : 'Fatores para armar';
+    defuseFactorsLabel.textContent = isDataMode(s) ? 'Fatores para defesa' : isTerminalMode(s) ? 'Fatores QR Time 1' : 'Fatores para desarmar';
+    dataConfig.hidden = !isDataMode(s);
+    terminalConfig.hidden = !isTerminalMode(s);
+    locatorConfig.hidden = false;
+    singleLocatorIdentity.hidden = bombMode;
+    singleLocatorCoordinates.hidden = bombMode;
+    bombActivationOptions.hidden = !bombMode;
+    locatorEnabled.checked = Boolean(s.locatorEnabled);
+    toggleLocator.textContent = s.locatorEnabled ? 'Desligar GPS da bomba' : 'Ligar GPS da bomba';
+    const gpsFrequencyText = s.locatorUpdateMode === 'realtime' ? 'em tempo real' : 'a cada 10 segundos';
+    locatorFixInfo.textContent = s.locatorArtifactLat == null || s.locatorArtifactLng == null ? 'Ligue a transmissão para a bomba publicar o próprio GPS ' + gpsFrequencyText + ', ou informe uma posição inicial manual.' : 'Última posição: ' + Number(s.locatorArtifactLat).toFixed(6) + ', ' + Number(s.locatorArtifactLng).toFixed(6) + (s.locatorLastArtifactFix ? ' · bomba atualizada às ' + s.locatorLastArtifactFix + ' (' + gpsFrequencyText + ')' : '.');
+    if (typeof terminalValidationCodeView !== 'undefined') terminalValidationCodeView.value = s.terminalValidationCode || '----';
+    giveCt.textContent = isDataMode(s) ? 'Passar senha administrativa' : isTerminalMode(s) ? 'Passar senha captura T1' : 'Passar senha CT';
+    giveT.textContent = isDataMode(s) ? 'Passar senha do notebook' : isTerminalMode(s) ? 'Passar senha captura T2' : 'Passar senha Terrorista';
+    armMaster.textContent = isDataMode(s) ? 'Forçar envio pelo Controlador' : isTerminalMode(s) ? 'Neutralizar terminal' : isLocatorMode(s) ? 'Marcar encontrado' : 'Armar pelo Controlador';
+    armMaster.hidden = bombMode;
+    defuseMaster.hidden = true;
+    phaseBox.classList.toggle('winner', Boolean(s.winner));
+    document.body.classList.toggle('locked', Boolean(s.operation));
+    log.innerHTML = (s.log || []).map(item => '<div><b>' + item.time + '</b> ' + item.text + '</div>').join('');
+  }
+  function saveConfig() {
+    AirsoftBus.update(s => {
+      const nextQrRequired = qrRequired.checked;
+      if (s.qrRequired !== nextQrRequired) {
+        s.qrArm = 0;
+        s.qrDefuse = 0;
+        s.qrArmAt = null;
+        s.qrDefuseAt = null;
+        s.qrStageNonce = Number(s.qrStageNonce || 0) + 1;
+        s.qrStageName = nextQrRequired ? 'validacao-ativada' : 'validacao-dispensada';
+      }
+      if (!s.running) s.gameSeconds = readHoursMinutes('game', 60);
+      s.actionSeconds = readMinutesSeconds('action', 1);
+      s.resultSeconds = readHoursMinutes('result', 60);
+      s.mode = mode.value;
+      s.bombDeploymentMode = bombDeploymentMode.value === 'allArmed' ? 'allArmed' : 'sequential';
+      s.team1Name = team1Name.value.trim() || 'Time 1 - CT';
+      s.team2Name = team2Name.value.trim() || 'Time 2 - Terrorista';
+      s.playerRegistrationOpen = playerRegistrationOpen.checked;
+      s.teamTrackingEnabled = teamTrackingEnabled.checked;
+      s.keepOrganizationsTogether = keepOrganizationsTogether.checked;
+      s.penaltySeconds = readMinutesSeconds('penalty', 0, true);
+      s.penaltyEnabled = s.penaltySeconds > 0;
+      s.dataNotebookName = dataNotebookName.value.trim() || 'NBK-17 Operações';
+      s.dataFolderOptions = [
+        dataFolder0.value.trim() || 'SYSTEM_CACHE',
+        dataFolder1.value.trim() || 'OP_BLACKBOX',
+        dataFolder2.value.trim() || 'FIELD_LOGS',
+        dataFolder3.value.trim() || 'ARCHIVE_09'
+      ];
+      s.dataCorrectFolder = Number(dataCorrectFolder.value);
+      s.dataFolderName = s.dataFolderOptions[s.dataCorrectFolder] || s.dataFolderOptions[1] || 'OP_BLACKBOX';
+      s.dataFileName = dataFileName.value.trim() || 'rotas-extracao.enc';
+      s.dataRecipient = dataRecipient.value.trim() || 'relay@darknet.ops';
+      s.dataPayloadSize = dataPayloadSize.value.trim() || '48 MB';
+      s.dataDecryptCode = dataDecryptCode.value.trim() || '9137';
+      s.dataAccessSeconds = readMinutesSeconds('dataAccess', 1);
+      s.dataDownloadSeconds = readMinutesSeconds('dataDownload', 1);
+      s.dataDecryptSeconds = readMinutesSeconds('dataDecrypt', 1);
+      s.dataSendSeconds = readMinutesSeconds('dataSend', 1);
+      s.terminalName = terminalName.value.trim() || 'TERMINAL AX-07';
+      s.terminalCaptureSeconds = readMinutesSeconds('terminalCapture', 1);
+      s.terminalValidationIntervalSeconds = readMinutesSeconds('terminalValidationInterval', 1);
+      s.terminalValidationWindowSeconds = readMinutesSeconds('terminalValidationWindow', 1);
+      s.terminalWinSeconds = readMinutesSeconds('terminalWin', 60);
+      s.terminalCaptureCode = terminalCaptureCode.value.trim() || '2468';
+      s.terminalCaptureNeedsCode = terminalCaptureNeedsCode.checked;
+      s.terminalRandomRevalidateCode = terminalRandomRevalidateCode.checked;
+      s.locatorArtifactName = locatorArtifactName.value.trim() || 'Artefato AX-07';
+      s.gameObjectives = gameObjectives.value.trim() || 'Aguarde os objetivos enviados pelo Controlador.';
+      s.locatorEnabled = locatorEnabled.checked;
+      s.locatorUpdateMode = locatorUpdateMode.value === 'realtime' ? 'realtime' : '10s';
+      if (s.mode === 'Bomba clássica') {
+        s.locatorUpdateMode = bombCommonUpdateMode.value === 'realtime' ? 'realtime' : '10s';
+        s.locatorTransmitOnMove = bombTransmitOnMove.checked;
+        s.locatorAccuracyMode = bombAccuracyMode.value;
+        s.locatorProximityMeters = clampNumber(bombCommonRadius.value, 1, 999);
+      }
+      s.bombActivationAlertEnabled = bombActivationAlertEnabled.checked;
+      s.locatorOnBombActivated = locatorOnBombActivated.checked;
+      s.locatorArtifactLat = locatorArtifactLat.value === '' ? null : Number(locatorArtifactLat.value);
+      s.locatorArtifactLng = locatorArtifactLng.value === '' ? null : Number(locatorArtifactLng.value);
+      s.locatorProximityMeters = clampNumber(locatorProximityMeters.value, 1, 999);
+      s.locatorMovementAlertEnabled = locatorMovementAlertEnabled.checked;
+      s.locatorMovementThresholdMeters = clampNumber(locatorMovementThresholdMeters.value, 5, 500);
+      if (s.armCode !== armCode.value) {
+        s.armCode = armCode.value;
+        s.terroristHasCode = false;
+        s.terroristKnownCode = '----';
+        s.terroristBombValidated = false;
+      }
+      if (s.defuseCode !== defuseCode.value) {
+        s.defuseCode = defuseCode.value;
+        s.ctHasCode = false;
+        s.ctKnownCode = '----';
+        s.ctBombValidated = false;
+      }
+      s.armFactors = Number(armFactors.value); s.defuseFactors = Number(defuseFactors.value); s.qrRequired = nextQrRequired;
+    });
+  }
+  document.querySelectorAll('input,select,textarea').forEach(el => {
+    el.addEventListener('change', saveConfig);
+    el.addEventListener('input', saveConfig);
+  });
+  addBombSequence.onclick = () => {
+    if (normalizedBombSequence(AirsoftBus.read()).length >= 10) { showPopup('Limite atingido', 'O sistema permite no máximo 10 bombas por partida.', 'Configuração'); return; }
+    AirsoftBus.update(s => {
+      const list = normalizedBombSequence(s);
+      const number = list.length + 1;
+      s.bombSequence = [...list, { id:'bomb-' + Date.now(), name:'Bomba ' + number, armCode:String(4000 + number), defuseCode:String(7000 + number), resultSeconds:600, status:'waiting', locatorEnabled:true, lat:null, lng:null, remoteArmEnabled:true, remoteDefuseEnabled:true }];
+      return s;
+    });
+  };
+  bombOperationList.addEventListener('click', e => {
+    const row = e.target.closest('[data-operation-bomb-id]');
+    if (!row) return;
+    const snapshot = AirsoftBus.read();
+    const index = normalizedBombSequence(snapshot).findIndex(b => b.id === row.dataset.operationBombId);
+    if (index < 0) return;
+    if (e.target.closest('[data-remote-arm]')) {
+      AirsoftBus.update(s => { s.bombSequenceIndex = index; applyActiveBomb(s); return s; });
+      armMaster.click();
+    }
+    if (e.target.closest('[data-remote-defuse]')) {
+      AirsoftBus.update(s => {
+        s.bombSequenceIndex = index;
+        const bomb = applyActiveBomb(s);
+        s.bombSeconds = s.bombDeploymentMode === 'allArmed' ? Number(bomb.remainingSeconds || bomb.resultSeconds) : s.bombSeconds;
+        return s;
+      });
+      defuseMaster.click();
+    }
+  });
+  bombSequenceList.addEventListener('change', e => {
+    const row = e.target.closest('[data-bomb-id]');
+    const field = e.target.dataset.bombField;
+    if (!row || !field) return;
+    AirsoftBus.update(s => {
+      const bomb = normalizedBombSequence(s).find(b => b.id === row.dataset.bombId);
+      if (!bomb) return s;
+      if (field === 'resultMinutes') bomb.resultSeconds = clampNumber(e.target.value, 1, 120) * 60;
+      else if (field === 'locatorEnabled' || field === 'remoteArmEnabled' || field === 'remoteDefuseEnabled') bomb[field] = e.target.checked;
+      else if (field === 'lat' || field === 'lng') bomb[field] = e.target.value === '' ? null : Number(e.target.value);
+      else bomb[field] = e.target.value.trim() || (field === 'name' ? 'Bomba' : '0000');
+      if (normalizedBombSequence(s)[s.bombSequenceIndex] === bomb) applyActiveBomb(s);
+      return s;
+    });
+  });
+  bombSequenceList.addEventListener('click', e => {
+    const button = e.target.closest('[data-bomb-remove]');
+    if (!button) return;
+    const row = button.closest('[data-bomb-id]');
+    AirsoftBus.update(s => {
+      const list = normalizedBombSequence(s);
+      if (list.length <= 1) return s;
+      s.bombSequence = list.filter(b => b.id !== row.dataset.bombId);
+      s.bombSequenceIndex = Math.min(s.bombSequenceIndex || 0, s.bombSequence.length - 1);
+      applyActiveBomb(s);
+      return s;
+    });
+  });
+  playerRoster.addEventListener('click', e => {
+    const row = e.target.closest('[data-player-id]');
+    if (!row) return;
+    const id = row.dataset.playerId;
+    if (e.target.closest('[data-player-remove]')) {
+      AirsoftBus.update(s => { s.players = (s.players || []).filter(p => p.id !== id); });
+      AirsoftBus.log('Controlador removeu um jogador do cadastro.');
+      return;
+    }
+    if (e.target.closest('[data-player-approve]')) {
+      let team = row.querySelector('[data-player-team]').value;
+      AirsoftBus.update(s => {
+        const player = (s.players || []).find(p => p.id === id);
+        if (player && s.keepOrganizationsTogether && player.organization) {
+          const companion = (s.players || []).find(p => p.id !== id && p.status === 'approved' && p.organization && p.organization.toLocaleLowerCase('pt-BR') === player.organization.toLocaleLowerCase('pt-BR'));
+          if (companion) team = companion.team;
+        }
+        if (player) { player.team = team; player.status = 'approved'; player.approvedAt = Date.now(); }
+      });
+      pendingPlayerTeams.delete(id);
+      AirsoftBus.log('Controlador aprovou jogador no ' + (team === 'ct' ? 'Time 1' : 'Time 2') + '.');
+      showPopup('Jogador aprovado', 'O celular foi liberado e vinculado ao time escolhido.', 'Times');
+    }
+  });
+  playerRoster.addEventListener('change', e => {
+    if (!e.target.matches('[data-player-team]')) return;
+    const row = e.target.closest('[data-player-id]');
+    if (row) pendingPlayerTeams.set(row.dataset.playerId, e.target.value);
+  });
+  deviceRoster.addEventListener('click', e => {
+    const row = e.target.closest('[data-device-id]');
+    if (!row) return;
+    const id = row.dataset.deviceId;
+    if (e.target.closest('[data-device-remove]')) {
+      AirsoftBus.update(s => { s.bombDevices = (s.bombDevices || []).filter(device => device.id !== id); return s; });
+      AirsoftBus.log('Controlador removeu um dispositivo de bomba.');
+      return;
+    }
+    if (e.target.closest('[data-device-approve]')) {
+      const bombId = row.querySelector('[data-device-bomb]').value;
+      if (!bombId) { showPopup('Escolha uma bomba', 'Selecione qual bomba será exibida neste aparelho antes de aprová-lo.', 'Pareamento'); return; }
+      const state = AirsoftBus.read();
+      const occupied = (state.bombDevices || []).find(device => device.id !== id && device.status === 'approved' && device.bombId === bombId);
+      if (occupied) { showPopup('Bomba já vinculada', 'Esta bomba já está usando o dispositivo ' + occupied.name + '. Remova ou altere o vínculo atual.', 'Pareamento'); return; }
+      AirsoftBus.update(s => {
+        const device = (s.bombDevices || []).find(item => item.id === id);
+        if (device) { device.bombId = bombId; device.status = 'approved'; device.approvedAt = Date.now(); }
+        return s;
+      });
+      pendingDeviceBombs.delete(id);
+      AirsoftBus.log('Controlador aprovou e vinculou um dispositivo de bomba.');
+      showPopup('Dispositivo aprovado', 'O aparelho foi vinculado à bomba escolhida e já pode abrir a interface operacional.', 'Pareamento');
+    }
+  });
+  deviceRoster.addEventListener('change', e => {
+    if (!e.target.matches('[data-device-bomb]')) return;
+    const row = e.target.closest('[data-device-id]');
+    if (row) pendingDeviceBombs.set(row.dataset.deviceId, e.target.value);
+  });
+  document.querySelectorAll('[data-control-tab]').forEach(btn => btn.onclick = () => showControlTab(btn.dataset.controlTab));
+  playerSearch.addEventListener('input', () => { rosterPage = 0; renderTeamControl(AirsoftBus.read()); });
+  rosterPrev.onclick = () => { rosterPage = Math.max(0, rosterPage - 1); renderTeamControl(AirsoftBus.read()); };
+  rosterNext.onclick = () => { rosterPage += 1; renderTeamControl(AirsoftBus.read()); };
+  mapTeamFilter.onchange = () => renderTeamControl(AirsoftBus.read());
+  mapPlacementTool.onchange = () => {
+    const tool = mapPlacementTool.value;
+    AirsoftBus.update(s => {
+      s.activeDrawingTool = tool;
+      s.activeDrawingPoints = [];
+    });
+    if (tool === 'polygon_area') {
+      finishFieldBoundary.textContent = 'Fechar Área de Interesse';
+      undoFieldBoundary.textContent = 'Desfazer ponto';
+      clearFieldBoundary.textContent = 'Limpar área';
+    } else {
+      finishFieldBoundary.textContent = 'Fechar contorno';
+      undoFieldBoundary.textContent = 'Desfazer último ponto';
+      clearFieldBoundary.textContent = 'Limpar limite';
+    }
+  };
+  function placeMapItem(point) {
+    const tool = mapPlacementTool.value;
+    if (tool === 'none') return;
+    if (AirsoftBus.read().running) { showPopup('Campo bloqueado', 'Encerre a partida antes de alterar o campo.', 'Mapa'); return; }
+    AirsoftBus.update(s => {
+      s.activeDrawingTool = tool;
+      s.activeDrawingPoints = [...(s.activeDrawingPoints || []), point];
+      if (tool === 'artifact') {
+        s.fieldArtifact = point;
+        if (point.lat != null && point.lng != null) { s.locatorArtifactLat = point.lat; s.locatorArtifactLng = point.lng; }
+      } else if (tool === 'ct' || tool === 'terrorist') {
+        s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: point };
+      }
+    });
+    AirsoftBus.log('Ponto adicionado ao mapa.');
+  }
+
+  finishFieldBoundary.onclick = () => {
+    const tool = mapPlacementTool.value;
+    const current = AirsoftBus.read();
+    const pts = current.activeDrawingPoints || [];
+    if (tool === 'polygon_area' || current.activeDrawingTool === 'polygon_area') {
+      if (pts.length < 3) { showPopup('Área incompleta', 'Marque pelo menos 3 pontos no mapa para fechar a área de interesse.', 'Mapa'); return; }
+      const areaName = tacticalAreaName.value.trim() || ('Área ' + ((current.tacticalAreas || []).length + 1));
+      AirsoftBus.update(s => {
+        s.tacticalAreas = [...(s.tacticalAreas || []), {
+          id: 'area-' + Date.now(),
+          name: areaName,
+          type: tacticalAreaType.value,
+          visibility: tacticalAreaVisibility.value,
+          points: [...pts],
+          closed: true
+        }];
+        s.activeDrawingPoints = [];
+        s.activeDrawingTool = 'polygon_area';
+      });
+      const nextNum = (AirsoftBus.read().tacticalAreas || []).length + 1;
+      tacticalAreaName.value = 'Área ' + nextNum;
+      AirsoftBus.log('Controlador adicionou a área "' + areaName + '".');
+      showPopup('Área salva!', '"' + areaName + '" foi criada no mapa. A Ferramenta 2 continua ativa para desenhar a próxima área.', 'Mapa');
+    } else {
+      if (current.running) return;
+      if (pts.length < 3) { showPopup('Limite incompleto', 'Marque pelo menos 3 pontos no mapa para fechar o limite do campo.', 'Mapa'); return; }
+      AirsoftBus.update(s => {
+        s.fieldBoundary = { points: [...pts], closed: true };
+        s.activeDrawingPoints = [];
+        s.activeDrawingTool = null;
+      });
+      mapPlacementTool.value = 'none';
+    }
+  };
+
+  undoFieldBoundary.onclick = () => {
+    if (AirsoftBus.read().running) return;
+    AirsoftBus.update(s => {
+      if (s.activeDrawingPoints && s.activeDrawingPoints.length > 0) {
+        s.activeDrawingPoints.pop();
+      }
+    });
+  };
+
+  clearFieldBoundary.onclick = () => {
+    if (AirsoftBus.read().running) return;
+    const tool = mapPlacementTool.value;
+    AirsoftBus.update(s => {
+      s.activeDrawingPoints = [];
+      s.activeDrawingTool = null;
+      if (tool === 'boundary') {
+        s.fieldBoundary = { points: [], closed: false };
+      }
+    });
+  };
+  controlTeamMap.addEventListener('click', e => {
+    if (googleTacticalMap) return;
+    if (e.target.closest('.mapMarker,.startMarker,.tacticalArea')) return;
+    const tool = mapPlacementTool.value;
+    if (tool === 'none') return;
+    const rect = controlTeamMap.getBoundingClientRect();
+    const x = Math.max(2, Math.min(98, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(2, Math.min(98, ((e.clientY - rect.top) / rect.height) * 100));
+    placeMapItem({ x:Number(x.toFixed(2)), y:Number(y.toFixed(2)) });
+    /* Compatibilidade mantida por placeMapItem.
+    AirsoftBus.update(s => {
+      if (tool === 'ct' || tool === 'terrorist') {
+        s.teamStartPositions = { ...(s.teamStartPositions || {}), [tool]: { x:Number(x.toFixed(2)), y:Number(y.toFixed(2)) } };
+      } else {
+        s.tacticalAreas = [...(s.tacticalAreas || []), {
+          id:'area-' + Date.now(),
+          name:tacticalAreaName.value.trim() || 'Área estratégica',
+          type:tacticalAreaType.value,
+          visibility:tacticalAreaVisibility.value,
+          radius:Number(tacticalAreaRadius.value),
+          x:Number(x.toFixed(2)), y:Number(y.toFixed(2))
+        }];
+      }
+      return s;
+    });
+    AirsoftBus.log(tool === 'area' ? 'Controlador adicionou uma área estratégica ao mapa.' : 'Controlador definiu uma base inicial no mapa.');
+    if (tool !== 'area') mapPlacementTool.value = 'none'; */
+  });
+  tacticalAreaList.addEventListener('click', e => {
+    const button = e.target.closest('[data-area-remove]');
+    if (!button) return;
+    AirsoftBus.update(s => { s.tacticalAreas = (s.tacticalAreas || []).filter(a => a.id !== button.dataset.areaRemove); return s; });
+  });
+  tacticalAreaList.addEventListener('change', e => {
+    const row = e.target.closest('[data-area-id]');
+    const field = e.target.dataset.areaField;
+    if (!row || !field) return;
+    const id = row.dataset.areaId;
+    AirsoftBus.update(s => {
+      const area = (s.tacticalAreas || []).find(a => a.id === id);
+      if (area) {
+        if (field === 'name') area.name = e.target.value.trim() || 'Área';
+        else if (field === 'type') area.type = e.target.value;
+        else if (field === 'visibility') area.visibility = e.target.value;
+      }
+    });
+  });
+  clearStartPositions.onclick = () => AirsoftBus.update(s => { s.teamStartPositions = { ct:null, terrorist:null }; return s; });
+  clearTacticalAreas.onclick = () => AirsoftBus.update(s => { s.tacticalAreas = []; return s; });
+  centerMapOnMe.onclick = () => {
+    if (!googleTacticalMap || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(position => {
+      googleTacticalMap.map.setCenter({ lat:position.coords.latitude, lng:position.coords.longitude });
+      googleTacticalMap.map.setZoom(18);
+    });
+  };
+  AirsoftMaps.create(controlTeamMap, { onClick:placeMapItem }).then(instance => {
+    googleTacticalMap = instance;
+    if (instance) renderTeamControl(AirsoftBus.read());
+  });
+  showControlTab('teams');
+  window.addEventListener('airsoft-room-ready', () => {
+    const state = AirsoftBus.read();
+    showControlTab(state.running || state.finished ? 'operation' : 'teams');
+  });
+  start.onclick = () => {
+    const beforeStart = AirsoftBus.read();
+    if (beforeStart.running) return;
+    saveConfig();
+    AirsoftBus.update(s => {
+      if (!isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s)) {
+        s.bombSequence = normalizedBombSequence(s).map((b,i) => ({ ...b, status:s.bombDeploymentMode === 'allArmed' ? 'armed' : (i === 0 ? 'active' : 'waiting'), remainingSeconds:Number(b.resultSeconds) || 600 }));
+        s.bombSequenceIndex = 0;
+        applyActiveBomb(s);
+      }
+      s.running = true;
+      s.playerRegistrationOpen = false;
+      s.startedAt = Date.now();
+      s.log = [];
+      s.finished = false;
+      s.bombState = s.mode === 'Roubo de dados' ? 'Notebook travado' : s.mode === 'Dominação de terminal' ? 'Terminal neutro' : s.mode === 'Localização de artefato' ? 'Localizador pronto' : 'Jogo ativo';
+      s.phase = s.mode === 'Roubo de dados' ? 'Aguardando invasão' : s.mode === 'Dominação de terminal' ? 'Aguardando captura' : s.mode === 'Localização de artefato' ? 'Aguardando sinal GPS' : 'Partida em andamento';
+      s.winner = null;
+      s.bombSeconds = null;
+      if (!isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && s.bombDeploymentMode === 'allArmed') {
+        s.bombSeconds = s.bombSequence[0].remainingSeconds;
+        s.bombState = 'Todas as bombas armadas';
+        s.phase = s.team1Name + ' desarma · ' + s.team2Name + ' protege';
+      }
+      s.dataStage = 'locked';
+      s.dataDownloaded = false;
+      s.dataDecrypted = false;
+      s.dataSent = false;
+      s.terminalOwner = null;
+      s.terminalValidationRequired = false;
+      s.terminalValidationTeam = null;
+      s.terminalTeam1Seconds = 0;
+      s.terminalTeam2Seconds = 0;
+      s.terminalValidationCode = '----';
+      s.pending = null;
+      s.operation = null;
+      s.qrArm = 0;
+      s.qrDefuse = 0;
+      s.qrArmAt = null;
+      s.qrDefuseAt = null;
+      s.qrStageNonce = 0;
+      s.qrStageName = 'inicio';
+      s.ctHasCode = false;
+      s.terroristHasCode = false;
+      s.ctBombValidated = false;
+      s.terroristBombValidated = false;
+      s.ctKnownCode = '----';
+      s.terroristKnownCode = '----';
+      s.notice = null;
+      s.locatorOriginLat = null;
+      s.locatorOriginLng = null;
+      s.locatorMovementDetected = false;
+      s.locatorMovementMeters = 0;
+    });
+    AirsoftBus.log('Controlador iniciou o jogo.');
+    showControlTab('operation');
+    const current = AirsoftBus.read();
+    showPopup('Jogo iniciado', isDataMode(current) ? 'O notebook travado está no ar. Jogadores já podem validar QR e iniciar invasão ou defesa.' : isTerminalMode(current) ? 'O terminal está neutro. Os times podem capturar com QR no celular e OK no terminal.' : isLocatorMode(current) ? 'O localizador está pronto. Ative o sinal e confirme as coordenadas do artefato.' : 'A bomba e os celulares já podem receber ações dos jogadores.');
+  };
+  end.onclick = () => { AirsoftBus.update(s => { s.running = false; s.finished = true; s.bombState = 'Fim de jogo'; s.phase = 'Encerrado pelo Controlador'; s.winner = 'Sem vencedor'; s.pending = null; s.operation = null; }); AirsoftBus.log('Controlador encerrou o jogo.'); showPopup('Jogo encerrado', 'A partida foi finalizada manualmente pelo controlador.'); };
+  reset.onclick = () => {
+    const keepTeam1Name = team1Name.value.trim() || 'Time 1 - CT';
+    const keepTeam2Name = team2Name.value.trim() || 'Time 2 - Terrorista';
+    AirsoftBus.reset();
+    AirsoftBus.update(s => {
+      s.team1Name = keepTeam1Name;
+      s.team2Name = keepTeam2Name;
+    });
+    pullForm(AirsoftBus.read());
+    showPopup('Sistema reiniciado', 'As telas voltaram para o estado inicial e os celulares precisam ser cadastrados novamente.');
+  };
+  cancelStage.onclick = () => {
+    AirsoftBus.update(s => {
+      s.pending = null;
+      s.operation = null;
+      if (isTerminalMode(s)) {
+        if (s.terminalOwner) {
+          s.phase = s.terminalValidationRequired ? 'Confirme no celular e no terminal' : 'Domínio ativo';
+          s.bombState = s.terminalValidationRequired ? 'Validação necessária' : (s.terminalOwner === 'ct' ? s.team1Name + ' dominando' : s.team2Name + ' dominando');
+        } else {
+          s.phase = 'Aguardando captura';
+          s.bombState = 'Terminal neutro';
+          s.bombSeconds = null;
+        }
+      } else if (isDataMode(s)) {
+        if (s.dataStage === 'sent') {
+          s.phase = 'Fim de jogo';
+          s.bombState = 'Dados enviados';
+        } else if (s.dataStage === 'decrypted') {
+          s.phase = 'Arquivo descriptografado';
+          s.bombState = 'Arquivo aberto';
+        } else if (s.dataStage === 'decryptQr') {
+          s.phase = 'Validar descriptografia pelo celular';
+          s.bombState = 'Validação pendente';
+        } else if (s.dataStage === 'downloaded') {
+          s.phase = 'Dados salvos no notebook';
+          s.bombState = 'Dados baixados';
+        } else if (s.dataStage === 'folderPick') {
+          s.phase = 'Selecione a pasta correta no notebook';
+          s.bombState = 'Escolha a pasta';
+        } else if (s.dataStage === 'accessed') {
+          s.phase = 'Pronto para download';
+          s.bombState = 'Pasta alvo aberta';
+        } else {
+          s.phase = 'Aguardando invasão';
+          s.bombState = 'Notebook travado';
+        }
+      } else {
+        s.phase = s.bombSeconds == null ? 'Partida em andamento' : 'Contagem da bomba';
+        s.bombState = s.bombSeconds == null ? 'Jogo ativo' : 'Armada';
+      }
+    });
+    AirsoftBus.log('Controlador cancelou a etapa pendente.');
+    showPopup('Etapa cancelada', 'A operação em andamento e a solicitação de senha foram limpas.');
+  };
+  applyPenalty.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    if (!current.running || current.finished) { showPopup('Penalidade bloqueada', 'A penalidade só pode ser aplicada com jogo ativo.', 'Bloqueado'); return; }
+    if (!current.penaltyEnabled || current.penaltySeconds <= 0) { showPopup('Penalidade desligada', 'Ative um tempo de penalidade na configuração.', 'Bloqueado'); return; }
+    AirsoftBus.update(s => {
+      if (s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - s.penaltySeconds);
+      else s.gameSeconds = Math.max(0, s.gameSeconds - s.penaltySeconds);
+    });
+    AirsoftBus.log('Controlador aplicou penalidade de ' + current.penaltySeconds + ' segundos.');
+    showPopup('Penalidade aplicada', current.bombSeconds != null ? 'A contagem da bomba foi acelerada.' : 'O tempo de jogo foi reduzido.');
+  };
+  captureMasterGps.onclick = () => {
+    if (!navigator.geolocation) { showPopup('GPS indisponível', 'Este navegador não disponibilizou leitura de localização.', 'GPS'); return; }
+    showPopup('Buscando GPS', 'Autorize o navegador para usar a posição atual como localização do artefato.', 'GPS');
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = Number(pos.coords.latitude.toFixed(6));
+      const lng = Number(pos.coords.longitude.toFixed(6));
+      AirsoftBus.update(s => {
+        s.locatorArtifactLat = lat;
+        s.locatorArtifactLng = lng;
+        s.locatorLastMasterFix = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      });
+      pullForm(AirsoftBus.read());
+      AirsoftBus.log('Controlador definiu posição GPS do artefato.');
+      showPopup('GPS capturado', 'Coordenadas do artefato atualizadas para ' + lat + ', ' + lng + '.', 'GPS');
+    }, () => {
+      showPopup('GPS bloqueado', 'Não foi possível obter a posição. Preencha latitude e longitude manualmente.', 'GPS');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 });
+  };
+  toggleLocator.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    AirsoftBus.update(s => {
+      s.locatorEnabled = !s.locatorEnabled;
+      if (isLocatorMode(s)) {
+        s.bombState = s.locatorEnabled ? 'Localizador ativo' : 'Localizador desligado';
+        s.phase = s.locatorEnabled ? 'Sinal GPS liberado aos celulares' : 'Sinal oculto pelo Controlador';
+      }
+    });
+    const next = AirsoftBus.read();
+    pullForm(next);
+    AirsoftBus.log('Controlador ' + (next.locatorEnabled ? 'ligou' : 'desligou') + ' a transmissão GPS da bomba.');
+    showPopup(next.locatorEnabled ? 'GPS da bomba ligado' : 'GPS da bomba desligado', next.locatorEnabled ? 'A bomba publicará sua posição ' + (next.locatorUpdateMode === 'realtime' ? 'em tempo real' : 'a cada 10 segundos') + ' para os celulares cadastrados.' : 'A bomba parou de transmitir e os celulares deixam de receber novas coordenadas.', 'GPS');
+  };
+  giveCt.onclick = () => {
+    saveConfig();
+    AirsoftBus.update(s => {
+      s.ctHasCode = true;
+      s.ctKnownCode = isTerminalMode(s) ? s.terminalCaptureCode : s.defuseCode;
+    });
+    const current = AirsoftBus.read();
+    AirsoftBus.log(isDataMode(current) ? 'Controlador passou a senha administrativa ao Time 1.' : isTerminalMode(current) ? 'Controlador passou a senha de captura ao Time 1.' : 'Controlador passou a senha de desarme ao CT.');
+    showPopup(isDataMode(current) ? 'Senha administrativa entregue' : isTerminalMode(current) ? 'Senha de captura entregue' : 'Senha entregue ao CT', isDataMode(current) ? 'O Time 1 pode usar essa senha para mudar o acesso do notebook e bloquear o avanço hostil.' : isTerminalMode(current) ? 'O celular do Time 1 agora mostra a senha para capturar o terminal.' : 'O celular CT agora possui a senha de desarme configurada.');
+  };
+  giveT.onclick = () => {
+    saveConfig();
+    AirsoftBus.update(s => {
+      s.terroristHasCode = true;
+      s.terroristKnownCode = isTerminalMode(s) ? s.terminalCaptureCode : s.armCode;
+    });
+    const current = AirsoftBus.read();
+    AirsoftBus.log(isDataMode(current) ? 'Controlador passou a senha do notebook ao Time 2.' : isTerminalMode(current) ? 'Controlador passou a senha de captura ao Time 2.' : 'Controlador passou a senha de arme ao Terrorista.');
+    showPopup(isDataMode(current) ? 'Senha do notebook entregue' : isTerminalMode(current) ? 'Senha de captura entregue' : 'Senha entregue ao Terrorista', isDataMode(current) ? 'O Time 2 pode acessar o notebook e iniciar download, descriptografia e envio.' : isTerminalMode(current) ? 'O celular do Time 2 agora mostra a senha para capturar o terminal.' : 'O celular Terrorista agora possui a senha de arme configurada.');
+  };
+  armMaster.onclick = () => {
+    saveConfig();
+    const current = AirsoftBus.read();
+    if (!current.running || current.finished) { showPopup('Comando bloqueado', isDataMode(current) ? 'Inicie a partida antes de vazar dados pelo Controlador.' : isTerminalMode(current) ? 'Inicie a partida antes de neutralizar o terminal.' : isLocatorMode(current) ? 'Inicie a partida antes de marcar o artefato como encontrado.' : 'Inicie a partida antes de armar a bomba pelo Controlador.', 'Bloqueado'); return; }
+    if (!isDataMode(current) && !isTerminalMode(current) && !isLocatorMode(current) && current.bombSeconds != null) { showPopup('Bomba já armada', 'A contagem da bomba já está ativa.', 'Bloqueado'); return; }
+    if (current.pending || current.operation) { showPopup('Operação pendente', 'Existe uma etapa de jogador em andamento. Finalize ou reinicie antes deste comando.', 'Bloqueado'); return; }
+    AirsoftBus.update(s => {
+      if (isDataMode(s)) {
+        s.dataStage = 'sent';
+        s.dataDownloaded = true;
+        s.dataDecrypted = true;
+        s.dataSent = true;
+        s.bombState = 'Dados enviados';
+        s.phase = 'Fim de jogo';
+        s.winner = s.team2Name + ' venceu';
+        s.running = false;
+        s.finished = true;
+      } else if (isTerminalMode(s)) {
+        s.terminalOwner = null;
+        s.terminalValidationRequired = false;
+        s.terminalValidationTeam = null;
+        s.bombSeconds = null;
+        s.bombState = 'Terminal neutro';
+        s.phase = 'Neutralizado pelo Controlador';
+      } else if (isLocatorMode(s)) {
+        s.bombState = 'Artefato encontrado';
+        s.phase = 'Busca finalizada pelo Controlador';
+        s.winner = s.team1Name + ' venceu';
+        s.running = false;
+        s.finished = true;
+        s.pending = null;
+        s.operation = null;
+      } else {
+        s.bombState = 'Armada';
+        s.phase = 'Contagem da bomba';
+        s.bombSeconds = s.resultSeconds;
+        s.bombActivationId = Number(s.bombActivationId || 0) + 1;
+        s.bombActivatedAt = Date.now();
+        if (s.locatorOnBombActivated) s.locatorEnabled = true;
+      }
+    });
+    AirsoftBus.log(isDataMode(current) ? 'Controlador forçou envio dos dados.' : isTerminalMode(current) ? 'Controlador neutralizou o terminal.' : isLocatorMode(current) ? 'Controlador marcou o artefato como encontrado.' : 'Controlador armou a bomba cenográfica.');
+    showPopup(isDataMode(current) ? 'Envio forçado pelo Controlador' : isTerminalMode(current) ? 'Terminal neutralizado' : isLocatorMode(current) ? 'Artefato encontrado' : 'Bomba armada pelo Controlador', isDataMode(current) ? 'O jogo foi encerrado com os dados enviados pelo Time 2.' : isTerminalMode(current) ? 'O terminal voltou ao estado neutro.' : isLocatorMode(current) ? 'A busca foi encerrada pelo Controlador.' : 'A contagem da bomba começou usando o tempo de resultado configurado.');
+  };
+  defuseMaster.onclick = () => {
+    const current = AirsoftBus.read();
+    if (current.mode !== 'Bomba clássica' || !current.running || current.finished || current.bombSeconds == null) { showPopup('Desarme indisponível', 'É necessário haver uma bomba ativa e armada.', 'Bloqueado'); return; }
+    const active = normalizedBombSequence(current)[Number(current.bombSequenceIndex || 0)];
+    if (!active) { showPopup('Desarme remoto bloqueado', 'Nenhuma bomba foi selecionada.', 'Bloqueado'); return; }
+    AirsoftBus.update(s => {
+      const list = normalizedBombSequence(s);
+      const index = Number(s.bombSequenceIndex || 0);
+      list[index].status = 'defused';
+      if (index + 1 < list.length) {
+        s.bombSequenceIndex = index + 1;
+        list[index + 1].status = s.bombDeploymentMode === 'allArmed' ? 'armed' : 'active';
+        applyActiveBomb(s);
+        s.bombSeconds = s.bombDeploymentMode === 'allArmed' ? Number(list[index + 1].remainingSeconds || list[index + 1].resultSeconds) : null;
+        s.bombState = 'Próxima bomba';
+        s.phase = list[index + 1].name + (s.bombDeploymentMode === 'allArmed' ? ' continua armada' : ' aguardando arme');
+      } else {
+        s.running = false; s.finished = true; s.bombSeconds = null;
+        s.bombState = 'Sequência neutralizada'; s.phase = 'Todas as bombas foram neutralizadas'; s.winner = s.team1Name + ' venceu';
+      }
+      s.pending = null; s.operation = null;
+      return s;
+    });
+    AirsoftBus.log('Controlador executou desarme remoto de ' + active.name + '.');
+    showPopup('Desarme remoto concluído', active.name + ' foi neutralizada pelo Centro de comando.', 'Controle');
+  };
+  ticker = setInterval(() => {
+    const currentState = AirsoftBus.read();
+    if (!currentState.running || currentState.finished) return;
+    AirsoftBus.update(s => {
+      if (!s.running || s.finished) return;
+      s.gameSeconds = Math.max(0, s.gameSeconds - 1);
+      if (isTerminalMode(s)) {
+        if (s.terminalOwner === 'ct') s.terminalTeam1Seconds += 1;
+        if (s.terminalOwner === 'terrorist') s.terminalTeam2Seconds += 1;
+        if (s.terminalOwner && s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - 1);
+        if (s.terminalOwner && !s.terminalValidationRequired && s.bombSeconds === 0) {
+          const validationCode = String(Math.floor(1000 + Math.random() * 9000));
+          s.terminalValidationRequired = true;
+          s.terminalValidationTeam = s.terminalOwner;
+          s.terminalValidationCode = s.terminalRandomRevalidateCode ? validationCode : '----';
+          if (s.terminalRandomRevalidateCode && s.terminalOwner === 'ct') s.ctKnownCode = '----';
+          if (s.terminalRandomRevalidateCode && s.terminalOwner === 'terrorist') s.terroristKnownCode = '----';
+          s.bombSeconds = s.terminalValidationWindowSeconds;
+          s.bombState = 'Validação necessária';
+          s.phase = s.terminalRandomRevalidateCode ? 'Decodifique a senha de revalidação' : 'Confirme no celular e no terminal';
+        } else if (s.terminalOwner && s.terminalValidationRequired && s.bombSeconds === 0) {
+          const oldOwner = s.terminalOwner;
+          s.terminalOwner = null;
+          s.terminalValidationRequired = false;
+          s.terminalValidationTeam = null;
+          s.terminalValidationCode = '----';
+          s.pending = null;
+          s.operation = null;
+          s.bombSeconds = null;
+          s.bombState = 'Terminal neutro';
+          s.phase = 'Validação falhou';
+          s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: 'Validação não concluída. Terminal voltou a neutro.' }, ...(s.log || [])].slice(0, 80);
+        }
+        if (s.terminalTeam1Seconds >= s.terminalWinSeconds || s.terminalTeam2Seconds >= s.terminalWinSeconds) {
+          s.running = false;
+          s.finished = true;
+          s.winner = (s.terminalTeam1Seconds >= s.terminalWinSeconds ? s.team1Name : s.team2Name) + ' venceu';
+          s.bombState = 'Domínio completo';
+          s.phase = 'Fim de jogo';
+          s.pending = null;
+          s.operation = null;
+        }
+      } else if (!isDataMode(s) && !isLocatorMode(s) && s.bombDeploymentMode === 'allArmed') {
+        let exploded = false;
+        (s.bombSequence || []).forEach(b => {
+          if (b.status === 'armed') {
+            b.remainingSeconds = Math.max(0, Number(b.remainingSeconds || 0) - 1);
+            if (b.remainingSeconds === 0) exploded = true;
+          }
+        });
+        const currentBomb = (s.bombSequence || [])[Number(s.bombSequenceIndex || 0)];
+        s.bombSeconds = exploded ? 0 : (currentBomb ? currentBomb.remainingSeconds : null);
+      } else if (s.bombSeconds != null) s.bombSeconds = Math.max(0, s.bombSeconds - 1);
+      if (s.bombSeconds === 0) {
+        if (isTerminalMode(s)) return;
+        s.running = false; s.finished = true; s.bombState = isDataMode(s) ? 'Dados vazados' : 'Explosão cenográfica'; s.phase = 'Fim de jogo';
+        s.winner = s.team2Name + ' venceu';
+        s.pending = null; s.operation = null;
+        s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: (isDataMode(s) ? 'Dados vazados. ' : 'Explosão cenográfica registrada. ') + s.team2Name + ' venceu.' }, ...(s.log || [])].slice(0, 80);
+      } else if (s.gameSeconds === 0) {
+        s.running = false; s.finished = true; s.bombState = 'Fim de jogo'; s.phase = 'Tempo encerrado';
+        s.winner = s.team1Name + ' venceu';
+        s.pending = null; s.operation = null;
+        s.log = [{ time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), text: 'Tempo de jogo encerrado. ' + s.team1Name + ' venceu.' }, ...(s.log || [])].slice(0, 80);
+      }
+    });
+  }, 1000);
+  AirsoftBus.subscribe(s => { render(s); });
+  pullForm(AirsoftBus.read());
+</script>
+</body>
+</html>

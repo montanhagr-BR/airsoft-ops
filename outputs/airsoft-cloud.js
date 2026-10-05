@@ -15,6 +15,7 @@ const AirsoftCloud = (() => {
   let header = null;
   let scannerStream = null;
   let leaving = false;
+  let connecting = false;
 
   function readConnection() {
     try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch { return null; }
@@ -47,26 +48,29 @@ const AirsoftCloud = (() => {
     });
     const current = await client.auth.getSession();
     if (current.error) throw current.error;
-    if (!current.data.session) {
-      const signed = await client.auth.signInAnonymously();
-      if (signed.error) throw signed.error;
-      user = signed.data.user;
-    } else user = current.data.session.user;
+    if (!current.data.session || current.data.session.user.is_anonymous) {
+      throw new Error('Entre com sua conta no painel para acessar este módulo.');
+    }
+    user = current.data.session.user;
+    if (role === 'player') localStorage.setItem('airsoft-player-id-v1', 'P-' + user.id);
     return client;
   }
   async function createRoom() {
+    if (connecting) return;
     const operationName = gate.querySelector('[data-operation-name]').value.trim();
     if (operationName.length < 3) {
       setStatus('Informe o nome da operação', 'error');
       return;
     }
     setStatus('Criando sala...');
+    connecting = true;
     try {
       await ensureAuth();
       const initialState = { ...AirsoftBus.read(), operationName };
       const result = await client.rpc('create_game_session', { initial_state:initialState });
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (!row?.session_id || !row.join_code) throw new Error('A sala não retornou uma conexão válida.');
       applyingRemote = true;
       AirsoftBus.write(initialState);
       applyingRemote = false;
@@ -75,23 +79,29 @@ const AirsoftCloud = (() => {
       setStatus('Sala online', 'ok');
       renderGate();
     } catch (error) { setStatus(error.message || 'Falha ao criar sala', 'error'); }
+    finally { connecting = false; }
   }
   async function joinRoom(code) {
+    if (connecting) return;
     const cleanCode = String(code || '').trim().toUpperCase();
     if (cleanCode.length !== 6) { setStatus('Digite o código de 6 caracteres', 'error'); return; }
     setStatus('Entrando na sala...');
+    connecting = true;
     try {
       await ensureAuth();
-      const name = role === 'artifact' ? 'Artefato Android' : 'Jogador Android';
-      const result = await client.rpc('join_game', {
+      const name = role === 'artifact' ? 'Artefato' : 'Jogador';
+      const result = role === 'controller'
+        ? await client.rpc('rejoin_game_as_controller', { requested_code: cleanCode })
+        : await client.rpc('join_game', {
         requested_code:cleanCode,
         requested_device_id:deviceId(),
         requested_role:role,
         requested_name:name,
-        requested_metadata:{ platform:'android-webview', appVersion:'0.5.4' }
+        requested_metadata:{ platform:new URLSearchParams(location.search).has('android') ? 'android-webview' : 'web', appVersion:'0.7.2' }
       });
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (!row?.session_id || (role !== 'controller' && !row.member_id)) throw new Error('A sala não retornou uma conexão válida.');
       applyingRemote = true;
       AirsoftBus.write(row.session_state || AirsoftBus.read());
       applyingRemote = false;
@@ -101,6 +111,7 @@ const AirsoftCloud = (() => {
       setStatus('Conectado · aguardando aprovação', 'ok');
       openApp();
     } catch (error) { setStatus(error.message || 'Falha ao entrar', 'error'); }
+    finally { connecting = false; }
   }
   async function leaveRoom() {
     if (leaving) return;
@@ -214,8 +225,12 @@ const AirsoftCloud = (() => {
   async function subscribe() {
     if (!connection) return;
     await ensureAuth();
-    const snapshot = await client.from('game_sessions').select('state,status').eq('id', connection.sessionId).single();
+    const snapshot = await client.from('game_sessions').select('state,status,controller_id').eq('id', connection.sessionId).single();
     if (snapshot.error) throw snapshot.error;
+    if (role === 'controller' && snapshot.data.controller_id !== user.id) {
+      saveConnection(null);
+      throw new Error('Somente o proprietário desta sala pode abrir o Controle.');
+    }
     if (snapshot.data.status === 'archived') { await leaveRoom(); return; }
     if (snapshot.data.state) {
       applyingRemote = true;
@@ -238,12 +253,13 @@ const AirsoftCloud = (() => {
     header.hidden = !connection;
     if (!connection) return;
     header.querySelector('[data-operation-title]').textContent = connection.operationName || 'OPERAÇÃO';
-    header.querySelector('[data-leave-control]').hidden = role !== 'controller';
+    header.querySelector('[data-leave-control]').hidden = true;
     header.querySelector('[data-close-room]').hidden = role !== 'controller';
     header.querySelector('[data-leave-room]').hidden = role === 'controller';
   }
   function qrPayload(code) {
-    return 'https://airsoft.local/join?code=' + encodeURIComponent(code);
+    const base = location.hostname === 'airsoft.local' ? 'https://warm-hummingbird-8988f6.netlify.app/' : new URL('index.html', location.href).href;
+    return base + '?flow=dashboard&room=' + encodeURIComponent(code);
   }
   function parseCode(value) {
     const text = String(value || '').trim();
@@ -251,7 +267,7 @@ const AirsoftCloud = (() => {
     if (direct) return direct[0].toUpperCase();
     try {
       const parsed = new URL(text);
-      const code = parsed.searchParams.get('code') || '';
+      const code = parsed.searchParams.get('room') || parsed.searchParams.get('code') || '';
       return /^[A-Za-z0-9]{6}$/.test(code) ? code.toUpperCase() : '';
     } catch { return ''; }
   }
@@ -315,10 +331,11 @@ const AirsoftCloud = (() => {
   }
   function renderGate() {
     if (!gate) return;
-    const connected = Boolean(connection);
+    const connected = Boolean(connection && user);
     gate.hidden = false;
-    gate.querySelectorAll('[data-controller-start]').forEach(element => { element.hidden = role !== 'controller' || connected; });
-    gate.querySelectorAll('[data-member-start]').forEach(element => { element.hidden = role === 'controller' || connected; });
+    gate.querySelector('[data-account-start]').hidden = Boolean(user);
+    gate.querySelectorAll('[data-controller-start]').forEach(element => { element.hidden = !user || role !== 'controller' || connected; });
+    gate.querySelectorAll('[data-member-start]').forEach(element => { element.hidden = !user || role === 'controller' || connected; });
     gate.querySelector('[data-connected-start]').hidden = !connected;
     if (!connected) return;
     gate.querySelector('[data-gate-room]').textContent = connection.joinCode;
@@ -335,6 +352,7 @@ const AirsoftCloud = (() => {
     gate = document.createElement('section');
     gate.className = 'cloudGate';
     gate.innerHTML = '<div class="cloudGateBox"><div class="cloudGateBrand">AIRSOFT OPS</div>' +
+      '<div data-account-start><h1>Acesse sua conta</h1><p>Entre pelo painel para acessar Controle, Artefato ou Jogador com a mesma conta.</p></div>' +
       '<h1 data-controller-start>Criar sala</h1><div data-controller-start><p>Cadastre a operação antes de abrir o controle.</p><label class="cloudField">Nome da operação<input data-operation-name maxlength="60" placeholder="Ex.: Operação Montanha"></label><button data-gate-create type="button">Criar nova sala</button></div>' +
       '<h1 data-member-start>Entrar na sala</h1><div data-member-start><p>Digite o código fornecido pelo Controlador ou leia o QR Code.</p><div class="cloudCodeEntry"><input data-gate-code maxlength="6" inputmode="text" placeholder="CÓDIGO"><button data-gate-join type="button">Entrar</button></div><button class="secondary" data-gate-scan type="button">Ler QR Code</button></div>' +
       '<div data-connected-start hidden><p class="cloudReady">SALA PRONTA</p><h2 data-gate-operation>OPERAÇÃO</h2><strong data-gate-room>------</strong><img data-gate-qr alt="QR Code para entrar na sala"><button data-gate-enter type="button">Abrir</button><button class="secondary" data-gate-change type="button">Sair da sala</button></div>' +
@@ -357,7 +375,7 @@ const AirsoftCloud = (() => {
     header.className = 'cloudHeader';
     header.hidden = true;
     header.innerHTML = '<div><small>OPERAÇÃO</small><b data-operation-title>OPERAÇÃO</b></div>' +
-      '<nav><button data-menu type="button">Retornar ao menu</button><button data-leave-control type="button">Sair do controle</button><button class="danger" data-close-room type="button">Fechar sala</button><button data-leave-room type="button">Sair da sala</button></nav>';
+      '<nav><button data-menu type="button">Painel</button><button data-leave-control hidden type="button">Sair do controle</button><button class="danger" data-close-room type="button">Fechar sala</button><button data-leave-room type="button">Sair da sala</button></nav>';
     document.body.appendChild(header);
     header.querySelector('[data-leave-control]').onclick = leaveControl;
     header.querySelector('[data-menu]').onclick = leaveControl;
@@ -369,8 +387,10 @@ const AirsoftCloud = (() => {
     mountGate();
     mountHeader();
     window.addEventListener('airsoft-state', event => scheduleSync(event.detail));
-    if (!connection) return;
     try {
+      await ensureAuth();
+      renderGate();
+      if (!connection) return;
       await subscribe();
       if (leaving || !connection) return;
       if (role === 'controller') renderGate();
@@ -378,5 +398,8 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom };
+  return { createRoom, joinRoom, leaveRoom, back: () => {
+    if (role === 'controller') leaveControl(); else leaveRoom();
+    return true;
+  } };
 })();

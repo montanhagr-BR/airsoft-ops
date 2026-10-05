@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import br.com.airsoftops.model.AppRole
+import br.com.airsoftops.BuildConfig
 import java.io.ByteArrayInputStream
 
 @Composable
@@ -63,6 +64,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
     var pageLoaded by remember { mutableStateOf(false) }
     val webView = remember {
         WebView(context).apply {
+            WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
             isFocusable = true
             isFocusableInTouchMode = true
             settings.javaScriptEnabled = true
@@ -77,6 +79,10 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             cookieManager.setAcceptThirdPartyCookies(this, true)
             addJavascriptInterface(AppSoundBridge(context), "AirsoftSound")
             webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                    pageLoaded = false
+                    loadError = null
+                }
                 override fun shouldInterceptRequest(
                     view: WebView,
                     request: WebResourceRequest
@@ -90,6 +96,22 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 override fun onPageFinished(view: WebView, url: String) {
                     pageLoaded = true
                     loadError = null
+                    val currentPage = Uri.parse(url).lastPathSegment
+                    activity?.requestedOrientation = if (currentPage == "bomba.html") {
+                        ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                    } else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    if (currentPage in listOf("controle.html", "bomba.html", "jogador.html")) {
+                        val missing = buildList {
+                            if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                add(Manifest.permission.ACCESS_FINE_LOCATION)
+                                add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                            }
+                            if (currentPage != "controle.html" && context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                                add(Manifest.permission.CAMERA)
+                            }
+                        }
+                        if (missing.isNotEmpty()) permissionLauncher.launch(missing.toTypedArray())
+                    }
                     view.evaluateJavascript(
                         """
                         (() => {
@@ -133,7 +155,9 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     if (request.isForMainFrame) {
                         val failedUrl = request.url.toString()
                         if (failedUrl.contains("netlify.app")) {
-                            val fallback = "https://airsoft.local/$page${if (role == AppRole.PORTAL) "?android=1&flow=dashboard" else "?android=1"}"
+                            val path = request.url.path.orEmpty().ifEmpty { "/index.html" }
+                            val query = request.url.encodedQuery?.let { "?$it" } ?: "?android=1"
+                            val fallback = "https://airsoft.local$path$query"
                             view.loadUrl(fallback)
                         } else {
                             loadError = "Falha ao abrir ${role.title}: ${error.description}"
@@ -174,13 +198,14 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 }
             }
             requestFocus()
-            val suffix = if (role == AppRole.PORTAL) "?android=1&flow=dashboard" else "?android=1"
+            val suffix = "?android=1"
             val onlineUrl = "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
             loadUrl(onlineUrl)
         }
     }
 
     LaunchedEffect(Unit) {
+        if (role == AppRole.PORTAL) return@LaunchedEffect
         val requiredPermissions = buildList {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 add(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -207,7 +232,15 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
     }
 
     BackHandler {
-        if (webView.canGoBack()) webView.goBack() else onBack()
+        webView.evaluateJavascript(
+            "(() => { if (typeof AirsoftPortal !== 'undefined') return AirsoftPortal.back(); if (typeof AirsoftCloud !== 'undefined') return AirsoftCloud.back(); return false; })()"
+        ) { handled ->
+            if (handled != "true") {
+                if (webView.canGoBack()) webView.goBack()
+                else if (role == AppRole.PORTAL) activity?.finish()
+                else onBack()
+            }
+        }
     }
 
     Box(Modifier.fillMaxSize()) {

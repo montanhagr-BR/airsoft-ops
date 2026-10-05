@@ -4,3 +4,14 @@
 .cloudGate small[data-tone=ok]{color:#8ed36f}.cloudGate small[data-tone=error]{color:#ff786c}
 .cloudField{display:grid;gap:7px;margin:14px 0;color:#d5cba9;font-size:12px;text-transform:uppercase}.cloudField input[data-operation-name]{text-transform:none;font-family:Segoe UI,Arial,sans-serif;font-size:17px;letter-spacing:0}.cloudGate h2{margin:0;color:#f1e3b6;font-size:20px;text-transform:uppercase}
 @media(max-width:560px){.cloudHeader{height:64px;padding:6px}.cloudActive body{padding-top:64px!important}.cloudHeader b{font-size:12px}.cloudHeader button{min-height:40px;padding:5px 7px;font-size:9px}}
+
+:root { --cloud-header-height: 58px; }
+@media(max-width:560px) { :root { --cloud-header-height: 64px; } }
+.cloudHeader { box-sizing:border-box; }
+.cloudHeader > div { flex:1; }
+.cloudHeader nav { flex-shrink:0; }
+.cloudGate small[data-gate-status] { overflow-wrap:anywhere; }
+html.mobileApp .phone { box-sizing:border-box; }
+html.mobileApp .tabs button { min-height:44px!important; }
+html.mobileApp .deviceSetupLayer, html.mobileApp .popupLayer { overflow:auto; }
+html.mobileApp .deviceSetup { overflow:auto; }

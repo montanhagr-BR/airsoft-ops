@@ -33,10 +33,11 @@ window.PreRegistration = (() => {
       const own = await client().from('game_registrations').select('*').eq('session_id', info.session_id).eq('user_id', AirsoftPortal.getUser().id).maybeSingle();
       if (own.error) throw own.error;
       const row = own.data;
+      byId('registrationNextActions').hidden = !row;
       const mapping = { name:'name', organization:'organization', email:'email', phone:'phone', emergencyName:'emergency_name', emergencyPhone:'emergency_phone' };
       if (row) for (const [field,column] of Object.entries(mapping)) form.elements[field].value = row[column];
-      form.querySelector('button[type="submit"]').disabled = !info.registration_open || row?.status === 'approved';
-      message(row ? `Inscricao ${row.status === 'approved' ? 'aprovada' : row.status === 'rejected' ? 'recusada' : 'aguardando aprovacao'}${row.team ? ' | ' + (row.team === 'ct' ? info.team1_name : info.team2_name) : ''}.` : info.registration_open ? 'Inscricoes abertas.' : 'Inscricoes fechadas.');
+      form.querySelector('button[type="submit"]').disabled = !info.registration_open;
+      message(row ? 'Você está na lista de espera deste evento. Pode participar ou se inscrever em outros eventos pelo painel.' : info.registration_open ? 'Lista de espera aberta. A inscrição não confirma sua participação na partida.' : 'Inscrições fechadas.');
     } catch (error) { message(error.message); }
   }
 
@@ -51,7 +52,8 @@ window.PreRegistration = (() => {
       profile.consent = form.elements.consent.checked;
       const { error } = await client().rpc('submit_game_registration', { requested_code: profile.code.trim().toUpperCase(), profile });
       if (error) throw error;
-      message('Inscricao recebida. Aguarde a definicao da equipe pelo organizador.');
+      message('Você entrou na lista de espera! Volte ao painel para participar de uma partida ou se inscrever em outro evento.');
+      byId('registrationNextActions').hidden = false;
     } catch (error) { message(error.message); }
     finally { button.disabled = false; }
   }
@@ -60,7 +62,7 @@ window.PreRegistration = (() => {
     operation = session;
     page = 0;
     byId('preRegistrationSearch').value = '';
-    byId('organizerTitle').textContent = session.state?.operationName || 'Preparacao de equipes';
+    byId('organizerTitle').textContent = 'Lista de espera — ' + (session.state?.operationName || 'Operação');
     const localHost = ['airsoft.local', 'localhost', '127.0.0.1'].includes(location.hostname);
     const publicBase = localHost ? 'https://warm-hummingbird-8988f6.netlify.app/' : location.origin + location.pathname;
     byId('registrationLink').value = publicBase + '?registration=' + encodeURIComponent(session.join_code);
@@ -83,7 +85,7 @@ window.PreRegistration = (() => {
     if (error) { report(error); return; }
     const total = Math.max(1,Math.ceil((count || 0)/pageSize));
     if (page >= total) { page = total-1; return loadRoster(); }
-    byId('registrationPage').textContent = `${page+1}/${total} | ${count || 0} jogadores`;
+    byId('registrationPage').textContent = `${page+1}/${total} | ${count || 0} interessados`;
     byId('registrationPrev').disabled = page === 0;
     byId('registrationNext').disabled = page+1 >= total;
     const list = byId('preRegistrationRoster');
@@ -94,26 +96,12 @@ window.PreRegistration = (() => {
       item.className = 'registrationRow';
       const details = document.createElement('div');
       const name = document.createElement('b'); name.textContent = row.name;
-      const info = document.createElement('small'); info.textContent = `${row.organization || 'Sem agremiacao'} | ${row.status}`;
+      const info = document.createElement('small'); info.textContent = `${row.organization || 'Sem agremiacao'} | Lista de espera`;
       const contacts = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = 'Contatos';
       const text = document.createElement('p'); text.textContent = `${row.email} | ${row.phone} | Emergencia: ${row.emergency_name} (${row.emergency_phone})`;
       contacts.append(summary,text); details.append(name,info,contacts);
-      const select = document.createElement('select'); select.setAttribute('aria-label','Equipe de '+row.name);
-      for (const [value,label] of [['ct',operation.state?.team1Name || 'Time 1'],['terrorist',operation.state?.team2Name || 'Time 2']]) {
-        const option = document.createElement('option'); option.value=value; option.textContent=label; select.append(option);
-      }
-      select.value = row.team || 'ct';
-      const actions = document.createElement('div');
-      for (const [decision,label] of [['approved','Aprovar / salvar'],['rejected','Recusar']]) {
-        const button = document.createElement('button'); button.type='button'; button.className=decision==='approved'?'btnPrimary':'btnDanger'; button.textContent=label;
-        button.addEventListener('click', async () => {
-          button.disabled=true;
-          try { const result = await client().rpc('assign_game_registration',{ registration_id:row.id, assigned_team:select.value, decision }); if(result.error)throw result.error; await loadRoster(); }
-          catch(error){report(error);} finally{button.disabled=false;}
-        }); actions.append(button);
-      }
-      item.append(details,select,actions); list.append(item);
+      item.append(details); list.append(item);
     }
   }
 

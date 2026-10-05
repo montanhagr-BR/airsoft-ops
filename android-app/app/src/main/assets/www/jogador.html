@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Jogador</title>
-  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
-  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
-  <script src="maps-config.js?v=20261001-1"></script>
-  <script src="airsoft-maps.js?v=20261001-1"></script>
-  <script src="airsoft-cloud.js?v=20260930-1" defer></script>
+  <script src="airsoft-shared.js?v=20261002-9"></script>
+  <script src="maps-config.js?v=20261002-google-1"></script>
+  <script src="airsoft-maps.js?v=20261002-field-1"></script>
+  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
   <style>
     * { box-sizing:border-box; }
     body { margin: 0; min-width:0; min-height: 100dvh; overflow-x:hidden; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; display: grid; place-items: start center; padding: 8px; }
@@ -72,22 +72,22 @@
     .squadMember { border:1px solid #3e4933; background:#090c09; padding:9px; display:flex; justify-content:space-between; gap:8px; }
     body.locked .phone button:not(#popupClose), body.locked .phone select { pointer-events: none; filter: grayscale(1); opacity: .45; }
   </style>
-  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <script>document.documentElement.classList.toggle('mobileApp', new URLSearchParams(location.search).has('android') || matchMedia('(max-width: 900px), (pointer: coarse)').matches);</script>
   <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
-  <script>if (document.documentElement.classList.contains('androidApp')) document.getElementById('legacyTheme').disabled = true;</script>
+  <script>if (document.documentElement.classList.contains('mobileApp')) document.getElementById('legacyTheme').disabled = true;</script>
   <style id="android-webview-compat">
-    html.androidApp [hidden] { display:none !important; }
-    html.androidApp body.playerPage { padding:6px !important; overflow:auto !important; background:#090b0a !important; color:#f2eee2 !important; }
-    html.androidApp body.playerPage .phone { width:100% !important; max-width:520px; min-height:calc(100vh - 12px) !important; height:auto !important; aspect-ratio:auto !important; background:#111713 !important; border:2px solid #657055 !important; }
-    html.androidApp body.playerPage .tabs { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
-    html.androidApp body.playerPage .tabs button { min-width:0 !important; padding:5px 2px !important; font-size:11px !important; }
-    html.androidApp body.playerPage .registrationBlock,
-    html.androidApp body.playerPage .registrationState,
-    html.androidApp body.playerPage .stat { background:#151c17 !important; border-color:#68735b !important; }
-    html.androidApp body.playerPage .setup input,
-    html.androidApp body.playerPage select { width:100% !important; background:#202923 !important; border-color:#7f8a72 !important; color:#fff !important; opacity:1 !important; }
-    html.androidApp body.playerPage button.primary { background:#71954d !important; color:#071006 !important; }
-    html.androidApp .popupLayer {
+    html.mobileApp [hidden] { display:none !important; }
+    html.mobileApp body.playerPage { padding:6px !important; overflow:auto !important; background:#090b0a !important; color:#f2eee2 !important; }
+    html.mobileApp body.playerPage .phone { width:100% !important; max-width:520px; min-height:calc(100vh - 12px) !important; height:auto !important; aspect-ratio:auto !important; background:#111713 !important; border:2px solid #657055 !important; }
+    html.mobileApp body.playerPage .tabs { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+    html.mobileApp body.playerPage .tabs button { min-width:0 !important; padding:5px 2px !important; font-size:11px !important; }
+    html.mobileApp body.playerPage .registrationBlock,
+    html.mobileApp body.playerPage .registrationState,
+    html.mobileApp body.playerPage .stat { background:#151c17 !important; border-color:#68735b !important; }
+    html.mobileApp body.playerPage .setup input,
+    html.mobileApp body.playerPage select { width:100% !important; background:#202923 !important; border-color:#7f8a72 !important; color:#fff !important; opacity:1 !important; }
+    html.mobileApp body.playerPage button.primary { background:#71954d !important; color:#071006 !important; }
+    html.mobileApp .popupLayer {
       position:fixed !important;
       inset:0 !important;
       z-index:100 !important;
@@ -97,8 +97,8 @@
       box-sizing:border-box !important;
       background:rgba(0,0,0,.78) !important;
     }
-    html.androidApp .popupLayer[hidden] { display:none !important; }
-    html.androidApp .popup {
+    html.mobileApp .popupLayer[hidden] { display:none !important; }
+    html.mobileApp .popup {
       width:min(390px, calc(100vw - 36px)) !important;
       height:auto !important;
       min-height:220px !important;
@@ -110,10 +110,10 @@
       box-sizing:border-box !important;
       transform:none !important;
     }
-    html.androidApp .popup strong { display:block !important; font-size:13px !important; }
-    html.androidApp .popup h2 { display:block !important; font-size:22px !important; }
-    html.androidApp .popup p { display:block !important; margin:0 !important; font-size:16px !important; }
-    html.androidApp .popup button { display:block !important; width:100% !important; min-height:48px !important; }
+    html.mobileApp .popup strong { display:block !important; font-size:13px !important; }
+    html.mobileApp .popup h2 { display:block !important; font-size:22px !important; }
+    html.mobileApp .popup p { display:block !important; margin:0 !important; font-size:16px !important; }
+    html.mobileApp .popup button { display:block !important; width:100% !important; min-height:48px !important; }
     body::after, .phone::before, .phone::after {
       mix-blend-mode:normal !important;
       backdrop-filter:none !important;
@@ -317,15 +317,8 @@
     document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
     btn.classList.add('active');
-    const module = document.getElementById(btn.dataset.tab);
-    if (module) module.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
     document.querySelector('.phone > main').scrollTop = 0;
-    if (btn.dataset.tab === 'squad') {
-      setTimeout(() => {
-        if (googleSquadMap) googleSquadMap.resize();
-        renderSquad(AirsoftBus.read());
-      }, 60);
-    }
   });
   function currentType() { return role.value === 'ct' ? 'defuse' : 'arm'; }
   function isDataMode(s) { return s.mode === 'Roubo de dados'; }
@@ -370,20 +363,16 @@
       render(AirsoftBus.read());
     }, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
   }
-  function currentPlayer(s = AirsoftBus.read()) {
-    const savedEmail = (typeof playerEmail !== 'undefined' && playerEmail ? playerEmail.value : '').trim().toLowerCase();
-    const savedPhone = (typeof playerPhone !== 'undefined' && playerPhone ? playerPhone.value : '').replace(/\D/g, '');
-    return (s.players || []).find(p => p.id === playerId || (savedEmail && p.email && p.email.toLowerCase() === savedEmail) || (savedPhone && p.phone && p.phone.replace(/\D/g, '') === savedPhone));
-  }
+  function currentPlayer(s = AirsoftBus.read()) { return (s.players || []).find(p => p.id === playerId); }
   function publishPlayerPosition(pos) {
     const s = AirsoftBus.read();
     const player = currentPlayer(s);
-    if (!s.teamTrackingEnabled || !player || player.status !== 'approved') return;
+    if (!s.running || !s.teamTrackingEnabled || !player || player.status !== 'approved') return;
     const now = Date.now();
     if (s.locatorUpdateMode !== 'realtime' && now - lastPlayerPositionAt < 10000) return;
     lastPlayerPositionAt = now;
     AirsoftBus.update(st => {
-      const target = (st.players || []).find(p => p.id === player.id || p.id === playerId);
+      const target = (st.players || []).find(p => p.id === playerId);
       if (!target || target.status !== 'approved') return;
       target.lat = Number(pos.coords.latitude.toFixed(6));
       target.lng = Number(pos.coords.longitude.toFixed(6));
@@ -482,18 +471,7 @@
       localStorage.removeItem(playerKey);
       localStorage.setItem(playerResetKey, String(state.resetId));
     }
-    let player = currentPlayer(state);
-    const localSub = JSON.parse(localStorage.getItem('airsoft-player-submission-v1') || 'null');
-    if (!player && localSub && localSub.id === playerId) {
-      if (!(state.players || []).some(p => p.id === playerId)) {
-        AirsoftBus.update(st => {
-          st.players = [...(st.players || []), localSub];
-        });
-      }
-      player = localSub;
-    } else if (player && player.status === 'approved' && localSub) {
-      localStorage.removeItem('airsoft-player-submission-v1');
-    }
+    const player = currentPlayer(state);
     const previousRegistrationState = localStorage.getItem(registrationStateKey) || 'none';
     if (player && player.status === 'approved') localStorage.setItem(playerKey, player.team);
     if (!player || player.status !== 'approved') localStorage.removeItem(playerKey);
@@ -545,7 +523,7 @@
     const points = members.filter(p => p.lat != null && p.lng != null);
     const team = me && me.status === 'approved' ? me.team : null;
     if (googleSquadMap) {
-      googleSquadMap.render(s, { team, restrictToField: true });
+      googleSquadMap.render(s, { team });
       return;
     }
     const visibleAreas = team ? (s.tacticalAreas || []).filter(a => a.visibility === 'all' || a.visibility === team) : [];
@@ -582,7 +560,7 @@
     document.body.classList.toggle('classicMode', !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s));
     document.body.classList.toggle('locked', Boolean(s.operation));
     const approvedPlayer = currentPlayer(s);
-    if (s.locatorEnabled || (s.teamTrackingEnabled && approvedPlayer && approvedPlayer.status === 'approved')) startLocatorWatch(); else stopLocatorWatch();
+    if (s.running && (s.locatorEnabled || (s.teamTrackingEnabled && approvedPlayer && approvedPlayer.status === 'approved'))) startLocatorWatch(); else stopLocatorWatch();
     registerCt.textContent = 'Cadastrar ' + s.team1Name;
     registerTerrorist.textContent = 'Cadastrar ' + s.team2Name;
     if (localStorage.getItem(playerKey)) roleBadge.textContent = currentTeamName(s);
@@ -1063,11 +1041,9 @@
     if (phone.replace(/\D/g, '').length < 8) { showPopup('Celular inválido', 'Informe um celular de contato válido.', 'Cadastro'); return; }
     if (emergencyContact.length < 2 || emergencyContactPhone.replace(/\D/g, '').length < 8) { showPopup('Contato de emergência', 'Informe nome e telefone válidos para o contato de emergência.', 'Cadastro'); return; }
     if (hasOrganization.checked && organization.length < 2) { showPopup('Agremiação necessária', 'Informe o nome da sua agremiação ou desmarque essa opção.', 'Cadastro'); return; }
-    const playerObj = { id:playerId, name:name.slice(0,40), email:email.slice(0,80), phone:phone.slice(0,24), emergencyName:emergencyContact.slice(0,50), emergencyPhone:emergencyContactPhone.slice(0,24), organization:organization.slice(0,50), status:'pending', team:null, requestedAt:Date.now(), lastSeen:Date.now(), lat:null, lng:null, accuracy:null, lastFix:null };
-    localStorage.setItem('airsoft-player-submission-v1', JSON.stringify(playerObj));
     AirsoftBus.update(st => {
       st.players = (st.players || []).filter(p => p.id !== playerId);
-      st.players.push(playerObj);
+      st.players.push({ id:playerId, name:name.slice(0,40), email:email.slice(0,80), phone:phone.slice(0,24), emergencyName:emergencyContact.slice(0,50), emergencyPhone:emergencyContactPhone.slice(0,24), organization:organization.slice(0,50), status:'pending', team:null, requestedAt:Date.now(), lastSeen:Date.now(), lat:null, lng:null, accuracy:null, lastFix:null });
     });
     localStorage.setItem(playerResetKey, String(s.resetId));
     showPopup('Solicitação enviada', 'Aguarde o Controlador aprovar e definir seu time.', 'Cadastro');

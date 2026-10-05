@@ -117,6 +117,8 @@ const AirsoftPortal = (() => {
 
   async function initAuth() {
     const params = new URLSearchParams(window.location.search);
+    const room = params.get('room');
+    if (room && /^[A-Za-z0-9]{6}$/.test(room)) document.getElementById('joinRoomCode').value = room.toUpperCase();
     const hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
     const callbackError = params.get('error_code') || hash.get('error_code') || params.get('error') || hash.get('error');
     if (params.has('registration') || params.get('flow') === 'registration') { accessRequested = true; destination = 'registration'; }
@@ -722,6 +724,14 @@ const AirsoftPortal = (() => {
   }
 
   return {
+    back: () => {
+      if (recoveringPassword) return true;
+      if (!accessRequested) return false;
+      if (currentUser && destination !== 'dashboard') menu();
+      else if (!currentUser && currentTab !== 'login') switchAuthTab('login');
+      else home();
+      return true;
+    },
     signupStep,
     resendConfirmation,
     access,

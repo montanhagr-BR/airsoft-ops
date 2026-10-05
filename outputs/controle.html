@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Controle</title>
-  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261002-google-1"></script>
   <script src="airsoft-maps.js?v=20261002-field-1"></script>
-  <script src="airsoft-cloud.js?v=20261002-11" defer></script>
+  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
   <style>
     * { box-sizing: border-box; }
     html { min-width: 0; overflow-x: hidden; }
@@ -926,8 +926,6 @@
     end.disabled = !s.running;
     winner.textContent = s.winner || '----';
     modeSummary.textContent = isDataMode(s) ? 'Roubo de dados: notebook, pastas, download, descriptografia e envio' : isTerminalMode(s) ? 'Dominação: capturar, guardar e revalidar por QR antes de voltar a neutro' : isLocatorMode(s) ? 'Localização: celulares recebem distância e direção aproximada do artefato' : s.mode + ': ' + normalizedBombSequence(s).length + ' bomba(s) em sequência';
-    team1QrName.textContent = s.team1Name;
-    team2QrName.textContent = s.team2Name;
     bombStatLabel.textContent = isDataMode(s) ? 'Progresso local' : isTerminalMode(s) ? 'Validação terminal' : isLocatorMode(s) ? 'Localizador' : 'Tempo da bomba';
     resultConfigLabel.textContent = isDataMode(s) ? 'Tempo de resultado' : isTerminalMode(s) ? 'Tempo do terminal' : 'Tempo da bomba';
     actionTimeField.hidden = isLocatorMode(s);

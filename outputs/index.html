@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Portal de operações</title>
-  <link rel="stylesheet" href="portal.css?v=20261005-auth">
+  <link rel="stylesheet" href="portal.css?v=20261005-paridade">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="portal.js?v=20261005-cadastro" defer></script>
@@ -157,7 +157,7 @@
       <p id="sessionsStatus" role="status"></p>
       <div class="opCard">
         <label for="joinRoomCode">Código da sala</label>
-        <input id="joinRoomCode" maxlength="6" placeholder="A1B2C3">
+        <input id="joinRoomCode" class="portalInput" aria-label="Código da sala" maxlength="6" placeholder="A1B2C3">
         <div class="roleActionGrid">
           <button class="btnPrimary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'player')">Jogador</button>
           <button class="btnSecondary" type="button" onclick="AirsoftPortal.joinGameSession(document.getElementById('joinRoomCode').value, 'artifact')">Bomba</button>
@@ -167,26 +167,12 @@
         <h2>Meus eventos</h2><div id="myWaitlistEvents"></div>
       </div>
       <div class="opCard">
-        <label for="newGameName">Nova operação</label><input id="newGameName" maxlength="60" placeholder="Nome da operação">
+        <label for="newGameName">Nova operação</label><input id="newGameName" class="portalInput" maxlength="60" placeholder="Nome da operação">
         <button class="btnPrimary" type="button" onclick="AirsoftPortal.createGameSession(document.getElementById('newGameName').value)">Criar jogo</button>
       </div>
       <p>Crie um novo jogo ou selecione uma partida existente na sua lista de operações ativas.</p>
 
       <div id="controllerCard" hidden class="opCard highlightCard" style="max-width: 680px; margin: 16px auto 0;">
-        <div class="opCardHeader">
-          <h2>CRIAR NOVO JOGO</h2>
-          <span class="tagOwner">Exclusivo do Criador</span>
-        </div>
-
-        <div class="formGroup">
-          <label for="newOpName">Nome da Operação</label>
-          <input id="newOpName" maxlength="60" placeholder="Ex.: Operação Montanha" value="Operação Tática">
-        </div>
-
-        <button class="btnPrimary" onclick="AirsoftPortal.createGameSession(document.getElementById('newOpName').value)" type="button" style="margin-top: 12px; min-height: 52px; font-weight: 900;">
-          Criar Jogo e Abrir Controle
-        </button>
-
         <div style="margin-top: 24px;">
           <label style="color:var(--portal-paper); font-size:12px; font-weight:bold; text-transform:uppercase;">Minhas Operações / Lista de Jogos</label>
           <div class="sessionList" id="mySessionsList" style="margin-top: 8px;">
@@ -229,7 +215,7 @@
 
   <!-- FOOTER -->
   <footer>
-    Airsoft Ops v1.4.0
+    Airsoft Ops v0.7.2
   </footer>
 
 </body>

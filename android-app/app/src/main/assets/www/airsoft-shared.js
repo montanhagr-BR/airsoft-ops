@@ -138,13 +138,15 @@ const AirsoftBus = (() => {
   }
 
   function log(text) {
+    const current = read();
+    if (!current.running && !current.startedAt) return;
     update(state => {
       state.log = [{ time: stamp(), text }, ...(state.log || [])].slice(0, 80);
     });
   }
 
   function reset() {
-    write({ ...defaults, resetId: Date.now(), log: [{ time: stamp(), text: 'Sistema reiniciado.' }] });
+    write({ ...defaults, startedAt: null, resetId: Date.now(), log: [] });
   }
 
   function subscribe(fn) {

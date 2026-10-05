@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Airsoft Ops - Bomba</title>
-  <link rel="stylesheet" href="airsoft-cloud.css?v=20260930-1">
+  <link rel="stylesheet" href="airsoft-cloud.css?v=20261005-paridade">
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
-  <script src="airsoft-shared.js?v=20260928-map-symbols-1"></script>
-  <script src="airsoft-cloud.js?v=20260930-1" defer></script>
+  <script src="airsoft-shared.js?v=20261002-9"></script>
+  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
   <style>
     body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
     main { min-height: 100vh; display: grid; place-items: center; padding: 18px; box-sizing: border-box; background: radial-gradient(circle at 20% 0%, #12382a, transparent 28rem), linear-gradient(135deg, #050708, #111719); }
@@ -66,37 +66,37 @@
       .popup { padding:14px; gap:8px; }
     }
   </style>
-  <script>document.documentElement.classList.toggle('androidApp', new URLSearchParams(location.search).has('android'));</script>
+  <script>document.documentElement.classList.toggle('mobileApp', new URLSearchParams(location.search).has('android') || matchMedia('(max-width: 900px), (pointer: coarse)').matches);</script>
   <link id="legacyTheme" rel="stylesheet" href="airsoft-theme.css?v=20260928-map-symbols-1">
   <style id="android-webview-compat">
-    html.androidApp [hidden] { display:none !important; }
-    html.androidApp body { overflow:hidden !important; }
-    html.androidApp .device { opacity:1 !important; visibility:visible !important; }
-    html.androidApp body::after,
-    html.androidApp .device::before,
-    html.androidApp .device::after {
+    html.mobileApp [hidden] { display:none !important; }
+    html.mobileApp body { overflow:hidden !important; }
+    html.mobileApp .device { opacity:1 !important; visibility:visible !important; }
+    html.mobileApp body::after,
+    html.mobileApp .device::before,
+    html.mobileApp .device::after {
       mix-blend-mode:normal !important;
       backdrop-filter:none !important;
       filter:none !important;
     }
     html, body { width:100%; min-width:0; height:100%; min-height:100%; }
-    html.androidApp body.bombMode,
-    html.androidApp body.bombMode main {
+    html.mobileApp body.bombMode,
+    html.mobileApp body.bombMode main {
       width:100vw !important;
       height:100vh !important;
       min-height:100vh !important;
       overflow:hidden !important;
     }
-    html.androidApp body.bombMode main {
+    html.mobileApp body.bombMode main {
       position:fixed !important;
       inset:0 !important;
       display:grid !important;
       place-items:center !important;
       padding:0 !important;
     }
-    html.androidApp body.bombMode .device {
+    html.mobileApp body.bombMode .device {
       position:fixed !important;
-      top:0 !important;
+      top:var(--cloud-header-height, 64px) !important;
       left:50% !important;
       width:var(--android-bomb-width, 540px) !important;
       height:auto !important;
@@ -105,13 +105,13 @@
       aspect-ratio:3 / 2 !important;
       transform:translateX(-50%) !important;
     }
-    html.androidApp .popupLayer,
-    html.androidApp .deviceSetupLayer {
+    html.mobileApp .popupLayer,
+    html.mobileApp .deviceSetupLayer {
       box-sizing:border-box !important;
       padding:24px max(24px, env(safe-area-inset-left)) !important;
     }
-    html.androidApp .popup,
-    html.androidApp .deviceSetup {
+    html.mobileApp .popup,
+    html.mobileApp .deviceSetup {
       width:min(680px, calc(100vw - 48px)) !important;
       max-height:calc(100vh - 48px) !important;
       box-sizing:border-box !important;
@@ -120,39 +120,41 @@
       font-size:18px !important;
       transform:none !important;
     }
-    html.androidApp .deviceSetup {
+    html.mobileApp .deviceSetup {
       height:calc(100vh - 48px) !important;
       min-height:260px !important;
     }
-    html.androidApp .popup { min-height:220px !important; }
-    html.androidApp .popup strong,
-    html.androidApp .deviceSetup label { font-size:14px !important; }
-    html.androidApp .popup h2,
-    html.androidApp .deviceSetup h2 { font-size:28px !important; }
-    html.androidApp .popup button,
-    html.androidApp .deviceSetup button,
-    html.androidApp .deviceSetup input,
-    html.androidApp .deviceSetup select { min-height:52px !important; }
+    html.mobileApp .popup { min-height:220px !important; }
+    html.mobileApp .popup strong,
+    html.mobileApp .deviceSetup label { font-size:14px !important; }
+    html.mobileApp .popup h2,
+    html.mobileApp .deviceSetup h2 { font-size:28px !important; }
+    html.mobileApp .popup button,
+    html.mobileApp .deviceSetup button,
+    html.mobileApp .deviceSetup input,
+    html.mobileApp .deviceSetup select { min-height:52px !important; }
     @media (max-height:600px) {
-      html.androidApp .popup,
-      html.androidApp .deviceSetup {
+      html.mobileApp .popup,
+      html.mobileApp .deviceSetup {
         padding:16px !important;
         gap:9px !important;
         font-size:16px !important;
       }
-      html.androidApp .popup h2,
-      html.androidApp .deviceSetup h2 { font-size:22px !important; }
+      html.mobileApp .popup h2,
+      html.mobileApp .deviceSetup h2 { font-size:22px !important; }
     }
   </style>
   <script>
-    if (document.documentElement.classList.contains('androidApp')) {
+    if (document.documentElement.classList.contains('mobileApp')) {
       const sizeBombForAndroid = () => {
-        const width = Math.max(360, Math.min(window.innerWidth, window.innerHeight * 1.5));
+        const headerHeight = document.documentElement.classList.contains('cloudActive') ? 64 : 0;
+        const width = Math.min(window.innerWidth, Math.max(180, window.innerHeight - headerHeight) * 1.5);
         document.documentElement.style.setProperty('--android-bomb-width', width + 'px');
       };
       sizeBombForAndroid();
       addEventListener('resize', sizeBombForAndroid, { passive:true });
       addEventListener('orientationchange', sizeBombForAndroid, { passive:true });
+      addEventListener('airsoft-room-ready', sizeBombForAndroid);
     }
   </script>
   <link rel="stylesheet" href="airsoft-brand.css?v=20260930-1">

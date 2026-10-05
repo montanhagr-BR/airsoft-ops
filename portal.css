@@ -428,3 +428,26 @@ body { letter-spacing: 0; }
 
 .authNav { flex-wrap: wrap; }
 #formConfirmation button, #resetSent button { margin-top: 12px; }
+
+.welcomeScreen { flex-direction:column; gap:28px; min-height:65svh; padding:24px 0; }
+.welcomeActions { gap:12px; width:min(100%,360px)!important; }
+button { touch-action:manipulation; }
+button:focus-visible { outline:2px solid var(--portal-orange); outline-offset:3px; }
+@media(max-width:600px) {
+ .portalHeader { padding:12px 16px; }
+ .userBadge { flex-wrap:wrap; }
+ .userInfo { min-width:0; flex:1; overflow-wrap:anywhere; }
+ .portalMain { padding:16px 12px; }
+ .portalBox { padding:18px; }
+ .authNav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .authNav button { min-height:44px; }
+ .formGroup input, .formGroup select, .registrationGrid input { font-size:16px; }
+ .sessionCard { flex-direction:column; align-items:stretch; }
+ .sessionCard > div:last-child { flex-wrap:wrap; }
+ .registrationGrid > label { display:grid; gap:8px; }
+ .welcomeScreen h1 { font-size:36px; }
+}
+
+.portalInput { width:100%; min-height:48px; padding:12px; margin:8px 0 12px; background:#0d0c08; color:var(--portal-ink); border:1px solid var(--portal-border); font:inherit; font-size:16px; }
+.userBadge button { width:auto; }
+.userBadge .userInfo { flex:1; }
