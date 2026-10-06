@@ -249,6 +249,13 @@
       <label class="consentLine"><input id="preRegistrationOpen" type="checkbox"> Inscrições antecipadas abertas</label>
       <label class="formGroup" style="margin-top:8px">Capacidade máxima de vagas<input id="registrationCapacity" type="number" min="1" max="1000" placeholder="Sem limite"></label>
       <label class="consentLine" style="margin-top:6px"><input id="registrationTeamChoice" type="checkbox"> Permitir que o jogador escolha o time</label>
+
+      <form id="organizerAccess" class="registrationGrid" style="margin-top:12px">
+        <label class="formGroup">Organizador <input id="organizerEmail" type="email" placeholder="E-mail da conta"></label>
+        <button class="btnSecondary" type="submit">Adicionar organizador</button>
+      </form>
+      <p id="organizerFeedback" role="status" style="margin-top:8px"></p>
+
       <div class="shareRow" style="margin-top:12px"><input id="registrationLink" readonly aria-label="Link de inscrição"><button class="btnSecondary" id="copyRegistrationLink" type="button">Copiar link</button></div>
       <div class="rosterToolbar" style="margin-top:12px"><input id="preRegistrationSearch" placeholder="Buscar jogador ou agremiação" aria-label="Buscar inscrições"><button id="registrationPrev" type="button" class="btnSecondary">Anterior</button><span id="registrationPage"></span><button id="registrationNext" type="button" class="btnSecondary">Próxima</button></div>
       <div id="preRegistrationRoster" class="sessionList"></div>
