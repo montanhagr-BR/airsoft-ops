@@ -96,6 +96,8 @@ window.PreRegistration = (() => {
       operation = {...session,...result.data};
       byId('registrationForce1Name').value=result.data.registration_force1_name || result.data.state?.team1Name || 'Força 1';
       byId('registrationForce2Name').value=result.data.registration_force2_name || result.data.state?.team2Name || 'Força 2';
+      byId('enrollmentOpenStatus').textContent=result.data.registration_open && result.data.status==='setup' ? 'Inscrições antecipadas abertas. Copie o link e receba os jogadores antes de configurar a partida.' : 'Inscrições fechadas.';
+      byId('configureAfterEnrollment').hidden=result.data.controller_id!==AirsoftPortal.getUser().id;
       byId('preRegistrationOpen').checked = result.data.registration_open;
       byId('registrationCapacity').value = result.data.registration_capacity ?? '';
       byId('registrationTeamChoice').checked = result.data.registration_team_choice;
@@ -180,6 +182,10 @@ window.PreRegistration = (() => {
     byId('registrationNext').addEventListener('click',()=>{page++;loadRoster();});
     let searchTimer;
     byId('preRegistrationSearch').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=0;loadRoster();},250);});
+    byId('configureAfterEnrollment').addEventListener('click',async event=>{
+      if(!operation)return;event.target.disabled=true;
+      try{await AirsoftPortal.joinGameSession(operation.join_code,'controller');}catch(error){report(error);}finally{event.target.disabled=false;}
+    });
     byId('forceNamesForm').addEventListener('submit',saveForceNames);
     byId('refreshForceRoster').addEventListener('click',loadRoster);
     byId('registrationSettings').addEventListener('submit', saveSettings);
@@ -209,7 +215,7 @@ window.PreRegistration = (() => {
     try {
       const result=await client().rpc('configure_registration',{target_session:operation.id,is_open:byId('preRegistrationOpen').checked,capacity,team_choice:byId('registrationTeamChoice').checked});
       if(result.error)throw result.error;
-      byId('organizerFeedback').textContent='Configuração salva.';
+      byId('organizerFeedback').textContent='Configuração salva.';byId('enrollmentOpenStatus').textContent=byId('preRegistrationOpen').checked ? 'Inscrições antecipadas abertas.' : 'Inscrições fechadas.';
     } catch(error){byId('organizerFeedback').textContent=error.message;}
     finally {button.disabled=false;}
   }

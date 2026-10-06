@@ -70,6 +70,14 @@ if (require.main === module) (async()=>{
   await page.waitForFunction(()=>document.getElementById('organizerFeedback').textContent.includes('Formação salva'));
   assert.equal(await page.locator('.forceColumn').filter({has:page.locator('h3').filter({hasText:'Força 2'})}).getByText('Jogador teste A',{exact:true}).count(),1);
   await capture(page,`web-${width}-forcas-organizadas`);
+  await page.getByRole('button',{name:'Voltar ao painel',exact:true}).click();
+  await page.locator('#newGameName').fill('Evento antes do jogo');
+  await page.getByRole('button',{name:'Abrir inscrições antecipadas',exact:true}).click();
+  await page.locator('#organizerSection').waitFor({state:'visible'});
+  assert.ok(page.url().includes('index.html'),'Creating enrollment stays in the portal');
+  assert.equal(await page.locator('#registrationLink').inputValue().then(value=>value.includes('registration=ABC123')),true);
+  assert.match(await page.locator('#enrollmentOpenStatus').textContent(),/abertas/);
+  await capture(page,`web-${width}-evento-inscricoes-primeiro`);
   await page.goto(base+'/index.html?flow=recovery');await page.evaluate(()=>window.__reviewLogin());
   // Simulate the SDK recovery event by reinitializing with the returned session.
   await page.evaluate(()=>AirsoftPortal.initAuth());await capture(page,`web-${width}-nova-senha`);

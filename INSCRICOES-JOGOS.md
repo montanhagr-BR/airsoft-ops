@@ -41,3 +41,12 @@ Em cada ficha, selecione a força e clique em **Salvar força**. Marque **Mover 
 No Controle da mesma operação, em **Pré-cadastro / Equipes**, clique em **Importar pré-inscrições**. A importação confirma as forças preparadas e aprova esses jogadores. Quem estiver sem força fica pendente; retirar um jogador de uma força e reimportar retira sua aprovação anterior. Recusados não são importados. A importação preserva as configurações da partida e pode ser repetida sem duplicar jogadores. Somente o dono da sala no Controle pode importar, antes de iniciar a partida.
 
 Validação transacional do banco passou (`tests/force-planning.sql`), com dados sintéticos revertidos. Inclui planejamento separado da formação oficial, distribuição por agremiação, nomes, permissões, importação, reimportação, retirada e bloqueio após o início.
+
+
+## Fluxo reorganizado: inscrições antes da configuração
+
+No painel, informe somente o **Nome do evento** e clique em **Abrir inscrições antecipadas**. O sistema abre as inscrições e leva diretamente à tela do organizador, com link para compartilhar. Não abre o Controle nem define modo ou cronômetros nesse momento.
+
+A sequência passa a ser: **inscrições → organização das forças → configuração no Controle → partida**. O organizador recebe as fichas, organiza as forças e depois usa **Continuar para configuração do jogo**. No Controle, importa a pré-inscrição e define cenário, campo, dispositivos e duração.
+
+Para eventos existentes, o botão **Inscrições e reservas** aparece antes de **Configurar jogo**. Os limites de vagas e a escolha de time continuam em **Configurações das inscrições**. O teste de criação no Supabase confirmou abertura e link funcionando sem parâmetros de jogo, com dados de teste revertidos.

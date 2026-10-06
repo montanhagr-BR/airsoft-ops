@@ -5,6 +5,7 @@ const AirsoftPortal = (() => {
   let recoveringPassword = false;
   let accessRequested = false;
   let destination = 'dashboard';
+  let creatingEnrollment = false;
   let currentTab = 'login'; // 'login', 'signup', 'reset'
   let sessionsRequest = 0;
   let signupBusy = false;
@@ -466,39 +467,29 @@ const AirsoftPortal = (() => {
     if (!currentUser || recoveringPassword) { access(); return; }
     const cleanName = (operationName || '').trim();
     if (cleanName.length < 3) {
-      setStatus('Informe o nome da operação (mínimo 3 letras).', 'error');
+      setStatus('Informe o nome do evento (mínimo 3 letras).', 'error');
       return;
     }
+    if(creatingEnrollment)return;creatingEnrollment=true;
+    const createButton=document.getElementById('createEnrollmentForm')?.querySelector?.('button');
+    if(createButton)createButton.disabled=true;
     try {
-      setStatus('Criando sala de operação...');
+      setStatus('Abrindo inscrições do evento...');
       const client = getClient();
-      const initialState = {
-        operationName: cleanName,
-        running: false,
-        finished: false,
-        gameSeconds: 1080,
-        mode: 'Bomba clássica'
-      };
-
+      // An event starts with enrollment; gameplay is configured later in Controle.
+      const initialState = { operationName: cleanName, running: false, finished: false };
       const result = await client.rpc('create_game_session', { initial_state: initialState });
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
-
-      // Save connection for Controller role
-      const connection = {
-        sessionId: row.session_id,
-        joinCode: row.join_code,
-        memberId: null,
-        role: 'controller',
-        operationName: cleanName
-      };
-      localStorage.setItem('airsoft-cloud-session-v1-controller', JSON.stringify(connection));
-
-      setStatus('Sala criada com sucesso! Abrindo Controle...', 'ok');
-      openModule('controle.html');
+      if (!row?.session_id || !row.join_code) throw new Error('Não foi possível obter o código do evento.');
+      accessRequested = true;
+      destination = 'organizer';
+      renderState();
+      await window.PreRegistration.openOrganizer({id:row.session_id,join_code:row.join_code,status:'setup',controller_id:currentUser.id,state:initialState});
+      setStatus('Evento criado. As inscrições antecipadas estão abertas; configure o jogo quando a formação estiver pronta.', 'ok');
     } catch (err) {
-      setStatus('Erro ao criar sala: ' + err.message, 'error');
-    }
+      setStatus('Não foi possível abrir as inscrições: ' + err.message, 'error');
+    } finally {creatingEnrollment=false;if(createButton)createButton.disabled=false;}
   }
 
   async function joinGameSession(code, role) {
@@ -575,7 +566,7 @@ const AirsoftPortal = (() => {
       const client = getClient();
       const { data, error } = await client
         .from('game_sessions')
-        .select('id, join_code, status, state, created_at')
+        .select('id, join_code, status, state, created_at, registration_open')
         .eq('controller_id', ownerId)
         .neq('status', 'archived')
         .order('created_at', { ascending: false })
@@ -600,11 +591,21 @@ const AirsoftPortal = (() => {
         heading.textContent = name;
         const description = document.createElement('small');
         description.className = 'muted';
-        description.textContent = `Código: ${session.join_code} | ${session.status === 'running' ? 'Em andamento' : session.status === 'finished' ? 'Encerrado' : 'Preparação / lista de espera'}`;
+        description.textContent = `Código: ${session.join_code} | ${session.status === 'running' ? 'Em andamento' : session.status === 'finished' ? 'Encerrado' : session.state?.mode ? 'Configuração do jogo' : session.registration_open ? 'Pré-inscrições abertas' : 'Pré-inscrições fechadas'}`;
         details.append(heading, description);
         const actions = document.createElement('div');
         actions.style.cssText = 'display:flex; gap:6px;';
-        for (const [role, label] of [['controller', 'Controle'], ['artifact', 'Bomba']]) {
+        const organize = document.createElement('button');
+        organize.type = 'button';
+        organize.className = 'btnSecondary';
+        organize.textContent = 'Inscrições e reservas';
+        organize.addEventListener('click', () => {
+          destination = 'organizer';
+          renderState();
+          window.PreRegistration?.openOrganizer(session);
+        });
+        actions.append(organize);
+        for (const [role, label] of [['controller', 'Configurar jogo'], ['artifact', 'Bomba']]) {
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'btnSecondary';
@@ -616,16 +617,7 @@ const AirsoftPortal = (() => {
           });
           actions.append(button);
         }
-        const organize = document.createElement('button');
-        organize.type = 'button';
-        organize.className = 'btnSecondary';
-        organize.textContent = 'Inscrições e reservas';
-        organize.addEventListener('click', () => {
-          destination = 'organizer';
-          renderState();
-          window.PreRegistration?.openOrganizer(session);
-        });
-        actions.append(organize);
+
         if (session.status !== 'finished') {
           const finish = document.createElement('button');
           finish.type = 'button'; finish.className = 'btnDanger'; finish.textContent = 'Encerrar jogo';

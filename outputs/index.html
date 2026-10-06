@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Portal de operações</title>
-  <link rel="stylesheet" href="portal.css?v=20261006-forcas">
+  <link rel="stylesheet" href="portal.css?v=20261006-fluxo">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="portal.js?v=20261005-cadastro" defer></script>
-  <script src="pre-registration.js?v=20261006-forcas" defer></script>
+  <script src="pre-registration.js?v=20261006-fluxo" defer></script>
 </head>
 <body>
 
@@ -155,6 +155,24 @@
     <section class="portalBox" id="dashboardSection" hidden>
       <h1>Painel de operações</h1>
       <p id="sessionsStatus" role="status"></p>
+      <div class="opCard enrollmentStart">
+        <h2>1 · Abrir inscrições antecipadas</h2>
+        <p>Crie o evento e compartilhe o link. Modo de jogo, campo e cronômetros serão configurados depois.</p>
+        <form id="createEnrollmentForm" onsubmit="event.preventDefault(); AirsoftPortal.createGameSession(document.getElementById('newGameName').value);">
+          <label for="newGameName">Nome do evento</label><input id="newGameName" class="portalInput" required minlength="3" maxlength="60" placeholder="Ex.: Operação Fronteira">
+          <button class="btnPrimary" type="submit">Abrir inscrições antecipadas</button>
+        </form>
+        <p class="enrollmentFlow">Inscrições → Organização das forças → Configuração no Controle → Partida</p>
+      </div>
+      <div id="controllerCard" hidden class="opCard highlightCard" style="max-width: 680px; margin: 16px auto 0;">
+        <div style="margin-top: 24px;">
+          <label style="color:var(--portal-paper); font-size:12px; font-weight:bold; text-transform:uppercase;">Minhas Operações / Lista de Jogos</label>
+          <div class="sessionList" id="mySessionsList" style="margin-top: 8px;">
+            <p class="muted">Carregando salas...</p>
+          </div>
+        </div>
+      </div>
+      <h2>Participar de um evento</h2>
       <div class="opCard">
         <label for="joinRoomCode">Código da sala</label>
         <input id="joinRoomCode" class="portalInput" aria-label="Código da sala" maxlength="6" placeholder="A1B2C3">
@@ -167,20 +185,6 @@
         <h2>Jogos com inscrição aberta</h2><div id="openRegistrationEvents"></div>
         <button class="btnSecondary" type="button" onclick="PreRegistration.openByCode(document.getElementById('joinRoomCode').value)">Organizar inscrições deste jogo</button>
         <h2>Minhas inscrições</h2><div id="myWaitlistEvents"></div>
-      </div>
-      <div class="opCard">
-        <label for="newGameName">Nova operação</label><input id="newGameName" class="portalInput" maxlength="60" placeholder="Nome da operação">
-        <button class="btnPrimary" type="button" onclick="AirsoftPortal.createGameSession(document.getElementById('newGameName').value)">Criar jogo</button>
-      </div>
-      <p>Crie um novo jogo ou selecione uma partida existente na sua lista de operações ativas.</p>
-
-      <div id="controllerCard" hidden class="opCard highlightCard" style="max-width: 680px; margin: 16px auto 0;">
-        <div style="margin-top: 24px;">
-          <label style="color:var(--portal-paper); font-size:12px; font-weight:bold; text-transform:uppercase;">Minhas Operações / Lista de Jogos</label>
-          <div class="sessionList" id="mySessionsList" style="margin-top: 8px;">
-            <p class="muted">Carregando salas...</p>
-          </div>
-        </div>
       </div>
     </section>
     <section id="preRegistrationSection" class="portalBox" hidden>
@@ -217,7 +221,10 @@
     <section id="organizerSection" class="portalBox" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Voltar ao painel</button>
       <h2 id="organizerTitle">Pré-inscrição · Organização das forças</h2>
+      <p id="enrollmentOpenStatus" role="status"></p>
       <p>Distribua os inscritos entre as forças. Depois, no Controle, use <strong>Importar pré-inscrições</strong> para carregar a formação na partida.</p>
+      <input id="registrationLink" readonly aria-label="Link de inscrição">
+      <button id="copyRegistrationLink" type="button" class="btnSecondary">Copiar link</button>
       <details class="organizerOptions"><summary>Nomes das forças</summary><form id="forceNamesForm" class="registrationGrid">
         <label>Nome da força 1<input id="registrationForce1Name" required maxlength="24"></label>
         <label>Nome da força 2<input id="registrationForce2Name" required maxlength="24"></label>
@@ -233,9 +240,12 @@
       <button id="registrationPrev" type="button" class="btnSecondary">Anterior</button>
       <span id="registrationPage"></span>
       <button id="registrationNext" type="button" class="btnSecondary">Próxima</button>
-      <details class="organizerOptions"><summary>Configurações e link de inscrição</summary>
-      <input id="registrationLink" readonly aria-label="Link de inscrição">
-      <button id="copyRegistrationLink" type="button" class="btnSecondary">Copiar link</button>
+      <div class="nextGameStep">
+        <h3>3 · Configurar o jogo</h3>
+        <p>Com as forças organizadas, abra o Controle para importar a formação e configurar a partida.</p>
+        <button id="configureAfterEnrollment" class="btnPrimary" type="button">Continuar para configuração do jogo</button>
+      </div>
+      <details class="organizerOptions"><summary>Configurações das inscrições</summary>
       <label><input id="preRegistrationOpen" type="checkbox"> Inscrições abertas</label>
       <form id="registrationSettings" class="registrationGrid">
         <label>Máximo de participantes <small>Deixe vazio para não limitar</small><input id="registrationCapacity" type="number" min="1" step="1" max="100000" placeholder="Sem limite"></label>

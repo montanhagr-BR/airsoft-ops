@@ -494,3 +494,8 @@ button:focus-visible { outline:2px solid var(--portal-orange); outline-offset:3p
 #forceNamesForm label { display:grid; gap:8px; }
 #forceNamesForm button { grid-column:1 / -1; }
 #organizerSection input:focus, #organizerSection select:focus { outline:2px solid var(--portal-orange); outline-offset:2px; }
+
+.enrollmentStart { border-left:4px solid var(--portal-orange); }
+.enrollmentFlow { font-size:14px; line-height:1.7; color:var(--portal-muted); }
+.nextGameStep { padding:18px; margin:24px 0; border:1px solid var(--portal-border); }
+#enrollmentOpenStatus { padding:12px; border-left:3px solid var(--portal-orange); background:#171b1d; }

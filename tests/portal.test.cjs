@@ -21,12 +21,12 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
     async getSession() { return { data: { session: user ? { user } : null } }; },
     async updateUser(data) { calls.push(['password', data]); return { error: null }; },
     async signOut() { return { error: null }; } }, from() { return query; },
-    async rpc(name, args) { calls.push([name, args]); return { data: [{ session_id: 'room',
+    async rpc(name, args) { calls.push([name, args]); return { data: [{ session_id: 'room', join_code:'ABC123',
       member_id: name === 'join_game' ? 'member' : undefined, session_state: { operationName: 'Operation' } }] }; } };
   const context = vm.createContext({ document, URL, URLSearchParams,
     window: { AIRSOFT_SUPABASE_CONFIG: { url: 'test', publishableKey: 'test' },
       location: { origin: 'https://example.com', pathname: '/', search: '', href: 'https://example.com/' },
-      supabase: { createClient() { return client; } }, PreRegistration: { openRegistration() {},
+      supabase: { createClient() { return client; } }, PreRegistration: { openRegistration() {},async openOrganizer(session){calls.push(['openOrganizer',session]);},
         async preparePlayer() { storage.set('airsoft-player-id-v1', 'P-' + user.id); } } },
     localStorage: { getItem(key) { return storage.get(key) || null; },
       setItem(key, value) { storage.set(key, value); }, removeItem(key) { storage.delete(key); } },
@@ -84,6 +84,17 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   assert.equal(f.nodes.get('welcomeSection').hidden, false);
   assert.equal(f.nodes.get('authSection').hidden, true);
   assert.equal(f.nodes.get('controllerCard').hidden, true);
+  const enrollment=fixture();await enrollment.api.initAuth();
+  const originalUrl=enrollment.context.window.location.href;
+  await enrollment.api.createGameSession('Operação futura');
+  const eventCall=enrollment.calls.find(c=>c[0]==='create_game_session');
+  assert.equal(eventCall[1].initial_state.operationName,'Operação futura');
+  assert.equal(eventCall[1].initial_state.mode,undefined,'Enrollment precedes game mode configuration');
+  assert.equal(eventCall[1].initial_state.gameSeconds,undefined,'Enrollment precedes timer configuration');
+  assert.equal(enrollment.nodes.get('organizerSection').hidden,false);
+  assert.equal(enrollment.context.window.location.href,originalUrl,'Opening enrollment does not navigate to Controle');
+  assert.equal(enrollment.storage.has('airsoft-cloud-session-v1-controller'),false,'Game connection is created only when entering Controle');
+  assert.equal(enrollment.calls.find(c=>c[0]==='openOrganizer')[1].join_code,'ABC123');
   const anonymous = fixture({ id: 'guest', is_anonymous: true });
   await anonymous.api.initAuth();
   anonymous.api.access();
