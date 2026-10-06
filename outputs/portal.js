@@ -424,7 +424,7 @@ const AirsoftPortal = (() => {
       if (snapshot.error) throw snapshot.error;
       const state = { ...snapshot.data.state, running: false, finished: true,
         bombState: 'Fim de jogo', phase: 'Encerrado pelo Controlador', winner: 'Sem vencedor',
-        pending: null, operation: null, bombSeconds: null };
+        pending: null, operation: null, bombSeconds: null, playerRegistrationOpen: false, endedAt: Date.now() };
       const result = await client.from('game_sessions').update({ state, status: 'finished',
         registration_open: false, updated_at: new Date().toISOString() }).eq('id', session.id).eq('controller_id', currentUser.id);
       if (result.error) throw result.error;

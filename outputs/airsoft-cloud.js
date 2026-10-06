@@ -9,6 +9,10 @@ const AirsoftCloud = (() => {
   let channel = null;
   let applyingRemote = false;
   let syncing = false;
+  let queuedControllerState = null;
+  let controllerPublish = null;
+  let serverStatus = null;
+  let serverVersion = null;
   let syncTimer = null;
   let heartbeat = null;
   let gate = null;
@@ -155,25 +159,57 @@ const AirsoftCloud = (() => {
     setStatus('Sala fechada', 'ok');
   }
   async function publishControllerState(state) {
-    if (!connection || role !== 'controller' || syncing) return;
-    syncing = true;
-    const result = await client.from('game_sessions').update({
-      state,
-      state_version:Number(state.cloudVersion || 0) + 1,
-      status:state.finished ? 'finished' : state.running ? 'running' : 'setup',
-      updated_at:new Date().toISOString()
-    }).eq('id', connection.sessionId);
-    syncing = false;
-    if (result.error) {
-      // Restore the authoritative state when a limit rejects a local start.
-      const snapshot = await client.from('game_sessions').select('state').eq('id', connection.sessionId).single();
-      if (!snapshot.error && snapshot.data?.state) {
-        applyingRemote = true;
-        try { AirsoftBus.write(snapshot.data.state); } finally { applyingRemote = false; }
+    if (!connection || role !== 'controller') return;
+    if (serverStatus === 'finished' && !state.finished) throw new Error('Esta partida já foi encerrada. Crie uma nova operação pelo painel.');
+    queuedControllerState = state;
+    if (controllerPublish) return controllerPublish;
+    controllerPublish = (async () => {
+      while (queuedControllerState && !leaving) {
+        const next = queuedControllerState; queuedControllerState = null;
+        syncing = true;
+        try {
+          let query = client.from('game_sessions').update({
+            state: next, state_version: Number(serverVersion || 0) + 1,
+            status: next.finished ? 'finished' : next.running ? 'running' : 'setup',
+            ...(next.finished || next.running ? { registration_open: false } : {}),
+            updated_at: new Date().toISOString()
+          }).eq('id', connection.sessionId);
+          if (serverStatus) query = query.eq('status', serverStatus);
+          if (serverVersion != null) query = query.eq('state_version', serverVersion);
+          const result = await query.select('state,status,state_version').single();
+          if (result.error) throw result.error;
+          serverStatus = result.data.status; serverVersion = result.data.state_version;
+          if (!queuedControllerState && result.data.state) {
+            applyingRemote = true;
+            try { AirsoftBus.write(result.data.state); } finally { applyingRemote = false; }
+          }
+        } catch (error) {
+          const pendingFinish = queuedControllerState?.finished || next.finished;
+          queuedControllerState = null;
+          const snapshot = await client.from('game_sessions').select('state,status,state_version').eq('id', connection.sessionId).single();
+          if (!snapshot.error && snapshot.data) {
+            serverStatus = snapshot.data.status; serverVersion = snapshot.data.state_version;
+            if (pendingFinish && serverStatus !== 'finished' && serverStatus !== 'archived') {
+              queuedControllerState = { ...snapshot.data.state, running: false, finished: true, playerRegistrationOpen: false,
+                endedAt: Date.now(), bombSeconds: null, pending: null, operation: null, phase: 'Encerrado pelo Controlador', bombState: 'Fim de jogo' };
+              // Retry an ending once after a concurrent update; do not discard it.
+              if (!next.finishRetried) { queuedControllerState.finishRetried = true; continue; }
+              queuedControllerState = null;
+            }
+            applyingRemote = true;
+            try { AirsoftBus.write(snapshot.data.state); } finally { applyingRemote = false; }
+            if (pendingFinish && serverStatus === 'finished') continue;
+          }
+          setStatus('Falha ao sincronizar: ' + error.message, 'error');
+          throw new Error('Não foi possível salvar a mudança: ' + error.message);
+        } finally { syncing = false; }
       }
-      setStatus('Falha ao sincronizar: ' + result.error.message, 'error');
-      if (state.running) alert(result.error.message);
-    }
+    })();
+    try { await controllerPublish; } finally { controllerPublish = null; }
+  }
+  async function flushControllerState() {
+    clearTimeout(syncTimer);
+    await publishControllerState(AirsoftBus.read());
   }
   async function publishMemberEvent(state) {
     if (!connection || role === 'controller' || syncing) return;
@@ -192,7 +228,7 @@ const AirsoftCloud = (() => {
     if (leaving || applyingRemote || !connection || !client) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
-      if (role === 'controller') publishControllerState(state);
+      if (role === 'controller') publishControllerState(state).catch(error => setStatus(error.message, 'error'));
       else publishMemberEvent(state);
     }, 180);
   }
@@ -232,6 +268,8 @@ const AirsoftCloud = (() => {
     if (role !== 'controller' || !payload.new) return;
     const proposed = payload.new.payload && payload.new.payload.state;
     if (!proposed) return;
+    const authoritative = AirsoftBus.read();
+    if (authoritative.finished || !authoritative.running) return;
     applyingRemote = true;
     // Member telemetry must not replace another account's roster or approvals.
     const current = AirsoftBus.read();
@@ -240,9 +278,11 @@ const AirsoftCloud = (() => {
       if (player.id !== 'P-' + payload.new.user_id || !update) return player;
       return { ...player, lat: update.lat, lng: update.lng, accuracy: update.accuracy, lastFix: update.lastFix, lastSeen: update.lastSeen };
     });
+    // Only the Controle owns lifecycle, countdowns and field configuration.
+    for (const key of ['running','finished','startedAt','endedAt','clockUpdatedAt','gameSeconds','bombSeconds','terminalTeam1Seconds','terminalTeam2Seconds','playerRegistrationOpen','fieldBoundary','tacticalAreas','teamStartPositions','fieldArtifact','log','winner','bombSequence','bombSequenceIndex']) proposed[key] = current[key];
     AirsoftBus.write(proposed);
     applyingRemote = false;
-    await publishControllerState(proposed);
+    await publishControllerState(proposed).catch(error => setStatus(error.message, 'error'));
   }
   async function consumeSession(payload) {
     if (!payload.new) return;
@@ -252,7 +292,10 @@ const AirsoftCloud = (() => {
       return;
     }
     if (!payload.new.state) return;
-    if (payload.new.status === 'finished') clearTimeout(syncTimer);
+    if (serverVersion != null && payload.new.state_version != null && payload.new.state_version < serverVersion) return;
+    serverStatus = payload.new.status; serverVersion = payload.new.state_version ?? serverVersion;
+    if (payload.new.status === 'finished') { clearTimeout(syncTimer); queuedControllerState = null; }
+    else if (role === 'controller' && (syncing || queuedControllerState || AirsoftBus.read().finished)) return;
     applyingRemote = true;
     AirsoftBus.write(payload.new.state);
     applyingRemote = false;
@@ -264,7 +307,7 @@ const AirsoftCloud = (() => {
   async function subscribe() {
     if (!connection) return;
     await ensureAuth();
-    const snapshot = await client.from('game_sessions').select('state,status,controller_id').eq('id', connection.sessionId).single();
+    const snapshot = await client.from('game_sessions').select('state,status,controller_id,state_version').eq('id', connection.sessionId).single();
     if (snapshot.error) throw snapshot.error;
     if (role === 'controller' && snapshot.data.controller_id !== user.id) {
       saveConnection(null);
@@ -280,6 +323,7 @@ const AirsoftCloud = (() => {
       const status = document.getElementById('preRegistrationImportStatus');
       if (status) status.textContent = 'Inscrições carregadas automaticamente. Jogadores distribuídos nas forças estão aprovados; sem força permanecem pendentes.';
     }
+    serverStatus = snapshot.data.status; serverVersion = snapshot.data.state_version;
     if (snapshot.data.state) {
       applyingRemote = true;
       try { AirsoftBus.write(snapshot.data.state); }
@@ -448,7 +492,7 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom, registerPlayer, openRegistration, assignPlayer, importPreRegistrations, back: () => {
+  return { createRoom, joinRoom, leaveRoom, registerPlayer, openRegistration, assignPlayer, importPreRegistrations, flushControllerState, back: () => {
     if (role === 'controller') leaveControl(); else leaveRoom();
     return true;
   } };
