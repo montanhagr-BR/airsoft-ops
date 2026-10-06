@@ -123,11 +123,12 @@ const AirsoftPortal = (() => {
     const hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
     const callbackError = params.get('error_code') || hash.get('error_code') || params.get('error') || hash.get('error');
     if (params.has('registration') || params.get('flow') === 'registration') { accessRequested = true; destination = 'registration'; }
-    else if (params.get('flow') || params.has('code') || hash.has('access_token')) accessRequested = true;
+    else if (params.get('flow') || params.has('code') || hash.has('access_token') || window.location.hash.includes('access_token')) {
+      accessRequested = true;
+      destination = 'dashboard';
+    }
     if (callbackError) { currentTab = params.get('flow') === 'recovery' ? 'reset' : 'confirm'; accessRequested = true; }
 
-    accessRequested = true;
-    destination = 'dashboard';
     renderState();
 
     try {
@@ -136,7 +137,10 @@ const AirsoftPortal = (() => {
       // Listen to auth state changes (including Google OAuth redirect)
       client.auth.onAuthStateChange((event, session) => {
         currentUser = session && !session.user.is_anonymous ? session.user : null;
-        if (currentUser) accessRequested = true;
+        if (currentUser) {
+          accessRequested = true;
+          destination = 'dashboard';
+        }
         if (event === 'PASSWORD_RECOVERY' && !callbackError) { recoveringPassword = true; accessRequested = true; }
         if (event === 'SIGNED_OUT') { recoveringPassword = false; accessRequested = false; }
         if (!currentUser) {
