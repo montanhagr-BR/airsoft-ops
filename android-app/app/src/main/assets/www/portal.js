@@ -737,6 +737,18 @@ const AirsoftPortal = (() => {
     return String(str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  function testSound(type) {
+    if (type === 'voice') {
+      if (window.AirsoftVoice) AirsoftVoice.speak('Atenção operadores. Sistema de voz tática ativado com sucesso.');
+    } else if (type === 'alarm') {
+      if (window.AirsoftAudio) AirsoftAudio.alertAlarm();
+    } else if (type === 'success') {
+      if (window.AirsoftAudio) AirsoftAudio.successChime();
+    } else if (type === 'beep') {
+      if (window.AirsoftAudio) AirsoftAudio.beep(660, 100);
+    }
+  }
+
   return {
     back: () => {
       if (recoveringPassword) return true;
@@ -766,7 +778,8 @@ const AirsoftPortal = (() => {
     createGameSession,
     joinGameSession,
     rejoinSession,
-    loadUserSessions
+    loadUserSessions,
+    testSound
   };
 })();
 
