@@ -131,8 +131,9 @@ const AirsoftPortal = (() => {
       // Listen to auth state changes (including Google OAuth redirect)
       client.auth.onAuthStateChange((event, session) => {
         currentUser = session && !session.user.is_anonymous ? session.user : null;
+        if (currentUser) accessRequested = true;
         if (event === 'PASSWORD_RECOVERY' && !callbackError) { recoveringPassword = true; accessRequested = true; }
-        if (event === 'SIGNED_OUT') recoveringPassword = false;
+        if (event === 'SIGNED_OUT') { recoveringPassword = false; accessRequested = false; }
         if (!currentUser) {
           sessionsRequest++;
           const card = document.getElementById('controllerCard');
@@ -150,6 +151,7 @@ const AirsoftPortal = (() => {
       if (sessionResponse.error) throw sessionResponse.error;
       if (sessionResponse.data && sessionResponse.data.session) {
         currentUser = sessionResponse.data.session.user.is_anonymous ? null : sessionResponse.data.session.user;
+        if (currentUser) accessRequested = true;
         if (currentUser && params.get('flow') === 'recovery' && !callbackError) recoveringPassword = true;
         renderState();
         loadUserSessions();
