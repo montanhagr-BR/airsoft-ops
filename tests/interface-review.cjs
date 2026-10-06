@@ -60,7 +60,7 @@ if (require.main === module) (async()=>{
   await page.evaluate(()=>window.__reviewLogin());await page.evaluate(()=>AirsoftPortal.access());await capture(page,`web-${width}-painel`);
   await page.getByRole('button',{name:'Inscrição antecipada',exact:true}).click();await capture(page,`web-${width}-inscricao`);
   await page.getByRole('button',{name:'Voltar ao painel',exact:true}).click();
-  await page.getByRole('button',{name:'Lista de espera',exact:true}).click();await capture(page,`web-${width}-organizador`);
+  await page.getByRole('button',{name:'Inscrições e reservas',exact:true}).click();await capture(page,`web-${width}-organizador`);
   await page.goto(base+'/index.html?flow=recovery');await page.evaluate(()=>window.__reviewLogin());
   // Simulate the SDK recovery event by reinitializing with the returned session.
   await page.evaluate(()=>AirsoftPortal.initAuth());await capture(page,`web-${width}-nova-senha`);

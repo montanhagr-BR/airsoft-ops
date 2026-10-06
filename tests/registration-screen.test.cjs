@@ -1,11 +1,12 @@
 const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
 (async()=>{
  const elements=Object.fromEntries(['code','name','organization','email','phone','emergencyName','emergencyPhone','consent'].map(name=>[name,{value:'',checked:false}]));
+ elements.requestedTeam={value:'',disabled:false,options:[{},{},{}]};
  const submit={disabled:false}; const form={elements,querySelector:()=>submit};
  const nodes=new Map([['preRegistrationForm',form]]);
  const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',hidden:false,disabled:false});return nodes.get(id)};
- let status='pending', entered;
- const client={rpc:async()=>({data:[{session_id:'room',operation_name:'Operação',registration_open:true}]}),from:()=>({select(){return this},eq(){return this},async maybeSingle(){return {data:{status,name:'Jogador',email:'gabriel@aem.ms.gov.br',organization:'',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}}}})};
+ let status='pending', entered, capacity=null, reserved=0, choice=false, noRow=false;
+ const client={rpc:async()=>({data:[{session_id:'room',operation_name:'Operação',registration_open:true,registration_capacity:capacity,reserved_count:reserved,registration_team_choice:choice,team1_name:'Azul',team2_name:'Vermelho'}]}),from:()=>({select(){return this},eq(){return this},async maybeSingle(){return {data:noRow?null:{requested_team:'terrorist',status,name:'Jogador',email:'gabriel@aem.ms.gov.br',organization:'',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}}}})};
  const context=vm.createContext({window:{},document:{getElementById:node,addEventListener(){}},location:{search:''},URLSearchParams,AirsoftPortal:{getUser:()=>({id:'user',email:'gabriel@aem.ms.gov.br'}),getClient:()=>client,joinGameSession(code,role){entered={code,role}}}});
  vm.runInContext(fs.readFileSync('outputs/pre-registration.js','utf8'),context);
  await context.window.PreRegistration.selectGame('ABC123');
@@ -20,5 +21,18 @@ const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/
  status='rejected';await context.window.PreRegistration.selectGame('ABC123');
  assert.equal(node('enterRegisteredGame').disabled,true);
  assert.match(node('preRegistrationStatus').textContent,/recusada/);
+ status='pending';capacity=1;reserved=1;choice=true;noRow=true;
+ await context.window.PreRegistration.selectGame('ABC123');
+ assert.equal(submit.disabled,true,'Full event blocks new reservations');
+ assert.match(node('preRegistrationStatus').textContent,/esgotadas/);
+ assert.equal(node('registrationTeamField').hidden,false);
+ assert.equal(elements.requestedTeam.options[1].textContent,'Azul');
+ noRow=false;await context.window.PreRegistration.selectGame('ABC123');
+ assert.equal(submit.disabled,false,'Existing reservation remains editable at capacity');
+ assert.equal(elements.requestedTeam.value,'terrorist');
+ choice=false;capacity=null;await context.window.PreRegistration.selectGame('ABC123');
+ assert.equal(elements.requestedTeam.disabled,true,'Team selection disabled by organizer');
+ assert.equal(elements.requestedTeam.value,'');
+ assert.match(node('registrationAvailability').textContent,/sem limite/);
  console.log('PASS: ficha oficial, estados pendente/aprovado/recusado e acesso ao terminal.');
 })().catch(e=>{console.error(e);process.exitCode=1});

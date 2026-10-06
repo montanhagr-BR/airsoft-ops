@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 (async () => {
- let state = { players: [{id:'P-a',name:'A',status:'approved',team:'ct'}, {id:'P-b',name:'B',status:'pending'}] };
+ let state = { running:true, players: [{id:'P-a',name:'A',status:'approved',team:'ct'}, {id:'P-b',name:'B',status:'pending'}] };
  const context = vm.createContext({ URL, URLSearchParams, window:{}, location:{pathname:'/controle.html',search:''}, localStorage:{getItem(){return null}}, addEventListener(){}, AirsoftBus:{read(){return state},write(value){state=value}} });
  let source = fs.readFileSync('outputs/airsoft-cloud.js','utf8');
  source = source.replace('  addEventListener(\'DOMContentLoaded\', init);', `  globalThis.testSetup = () => {user={id:'owner'}; connection=null;}; globalThis.testEvent=consumeEvent; globalThis.testSession=consumeSession;`);

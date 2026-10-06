@@ -1,0 +1,36 @@
+begin;
+do $$
+declare owner_id uuid:=gen_random_uuid(); player_a uuid:=gen_random_uuid(); player_b uuid:=gen_random_uuid(); sid uuid; rid uuid; code text:=upper(substr(replace(gen_random_uuid()::text,'-',''),1,6)); profile jsonb:='{"name":"Teste reserva","email":"teste@example.invalid","phone":"67999999999","emergencyName":"Contato teste","emergencyPhone":"67999999998","consent":true,"requestedTeam":"ct"}';
+begin
+ insert into auth.users(id,email) values(owner_id,owner_id::text||'@example.invalid'),(player_a,player_a::text||'@example.invalid'),(player_b,player_b::text||'@example.invalid');
+ insert into public.game_sessions(join_code,controller_id,state,registration_capacity,registration_team_choice) values(code,owner_id,'{"operationName":"Teste transacional reservas","keepOrganizationsTogether":false}',1,true) returning id into sid;
+ perform set_config('request.jwt.claim.sub',player_a::text,true);
+ rid:=public.submit_game_registration(code,profile);
+ perform public.submit_game_registration(code,profile);
+ if (select count(*) from public.game_registrations where session_id=sid)<>1 then raise exception 'FAIL inscrição duplicada'; end if;
+ perform set_config('request.jwt.claim.sub',player_b::text,true);
+ begin perform public.submit_game_registration(code,profile); raise exception 'FAIL lotação aceita'; exception when others then if sqlerrm not like 'Vagas esgotadas%' then raise; end if; end;
+ begin perform public.configure_registration(sid,true,2,true); raise exception 'FAIL jogador alterou configurações'; exception when others then if sqlerrm not like 'Acesso restrito%' then raise; end if; end;
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ perform public.assign_game_registration(rid,'ct','rejected');
+ perform set_config('request.jwt.claim.sub',player_b::text,true);
+ rid:=public.submit_game_registration(code,profile);
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ perform public.configure_registration(sid,true,null,false);
+ perform set_config('request.jwt.claim.sub',player_a::text,true);
+ begin perform public.submit_game_registration(code,profile); raise exception 'FAIL escolha desabilitada aceita'; exception when others then if sqlerrm not like 'A escolha de time%' then raise; end if; end;
+ perform public.submit_game_registration(code,profile-'requestedTeam');
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ begin perform public.configure_registration(sid,true,1,false); raise exception 'FAIL limite inferior aceito'; exception when others then if sqlerrm not like 'O limite não pode%' then raise; end if; end;
+ perform public.set_registration_organizer(sid,player_b::text||'@example.invalid',false);
+ perform set_config('request.jwt.claim.sub',player_b::text,true);
+ if not public.is_registration_organizer(sid) then raise exception 'FAIL equipe organizadora'; end if;
+ perform public.configure_registration(sid,true,null,true);
+ perform public.assign_game_registration(rid,'ct','approved');
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ perform public.set_registration_organizer(sid,player_b::text||'@example.invalid',true);
+ perform set_config('request.jwt.claim.sub',player_b::text,true);
+ if public.is_registration_organizer(sid) then raise exception 'FAIL remoção de acesso'; end if;
+end; $$;
+rollback;
+select 'PASS: reserva, edição lotada, duplicidade, lotação, rejeição libera vaga, escolha opcional, limite mínimo e organizadores. Todos os dados de teste foram revertidos.' as resultado;

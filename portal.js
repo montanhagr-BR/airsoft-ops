@@ -619,7 +619,7 @@ const AirsoftPortal = (() => {
         const organize = document.createElement('button');
         organize.type = 'button';
         organize.className = 'btnSecondary';
-        organize.textContent = 'Lista de espera';
+        organize.textContent = 'Inscrições e reservas';
         organize.addEventListener('click', () => {
           destination = 'organizer';
           renderState();
