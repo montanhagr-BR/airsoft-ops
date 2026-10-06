@@ -89,14 +89,17 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     request: WebResourceRequest
                 ): Boolean {
                     val url = request.url.toString()
-                    if (url.contains("airsoft.local") || url.contains("netlify.app") || url.contains("supabase.co") || url.contains("accounts.google.com") || url.contains("google.com")) {
+                    if (url.contains("airsoft.local")) {
                         return false
                     }
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                        context.startActivity(intent)
-                    } catch (_: Exception) {}
-                    return true
+                    if (url.contains("accounts.google.com") || url.contains("supabase.co/auth") || url.contains("oauth")) {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                        return true
+                    }
+                    return false
                 }
                 override fun shouldInterceptRequest(
                     view: WebView,
