@@ -82,8 +82,20 @@ window.PreRegistration = (() => {
     finally { submitting = false; if (selectedCode) await loadRegistration(); else button.disabled = false; }
   }
 
+  function showOrganizerScreen(screen) {
+    for (const name of ['Select', 'Roster']) {
+      const element = byId('organizer' + name + 'Screen');
+      if (element) element.hidden = name !== screen;
+    }
+  }
+  function openSelector() {
+    operation = null;
+    showOrganizerScreen('Select');
+    byId('organizerFeedback').textContent = '';
+  }
   async function openOrganizer(session) {
     operation = session;
+    showOrganizerScreen('Roster');
     page = 0;
     byId('preRegistrationSearch').value = '';
     byId('organizerTitle').textContent = 'Pré-inscrição · ' + (session.state?.operationName || 'Operação');
@@ -160,7 +172,7 @@ window.PreRegistration = (() => {
         button.disabled = operation.status !== 'setup' || row.status==='rejected';
         button.addEventListener('click',async()=>{
           button.disabled=true;
-          try { const result=decision==='plan' ? await client().rpc('plan_registration_force',{registration_id:row.id,force_team:team.value || null,move_organization:group.checked}) : await client().rpc('assign_game_registration',{registration_id:row.id,assigned_team:row.team || 'ct',decision}); if(result.error)throw result.error; byId('organizerFeedback').textContent=decision==='plan' ? 'Formação salva. Importe no Controle quando estiver pronta.' : 'Inscrição recusada.'; await loadRoster(); }
+          try { const result=decision==='plan' ? await client().rpc('plan_registration_force',{registration_id:row.id,force_team:team.value || null,move_organization:group.checked}) : await client().rpc('assign_game_registration',{registration_id:row.id,assigned_team:row.team || 'ct',decision}); if(result.error)throw result.error; byId('organizerFeedback').textContent=decision==='plan' ? 'Formação salva. O Controle carregará as listas automaticamente ao abrir.' : 'Inscrição recusada.'; await loadRoster(); }
           catch(error){report(error);button.disabled=false;}
         });item.append(button);
       }
@@ -174,6 +186,7 @@ window.PreRegistration = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    byId('organizerSelectForm').addEventListener('submit',event=>{event.preventDefault();openByCode(byId('organizerCode').value);});
     byId('preRegistrationForm').addEventListener('submit',submit);
     byId('preRegistrationForm').elements.code.addEventListener('change',loadRegistration);
     byId('refreshRegistration').addEventListener('click',loadRegistration);
@@ -216,6 +229,9 @@ window.PreRegistration = (() => {
       const result=await client().rpc('configure_registration',{target_session:operation.id,is_open:byId('preRegistrationOpen').checked,capacity,team_choice:byId('registrationTeamChoice').checked});
       if(result.error)throw result.error;
       byId('organizerFeedback').textContent='Configuração salva.';byId('enrollmentOpenStatus').textContent=byId('preRegistrationOpen').checked ? 'Inscrições antecipadas abertas.' : 'Inscrições fechadas.';
+      operation.registration_open=byId('preRegistrationOpen').checked;
+      await loadRoster();
+      showOrganizerScreen('Roster');
     } catch(error){byId('organizerFeedback').textContent=error.message;}
     finally {button.disabled=false;}
   }
@@ -240,5 +256,5 @@ window.PreRegistration = (() => {
     byId('preRegistrationForm').elements.code.value = code;
     await loadRegistration();
   }
-  return { openRegistration, openOrganizer, preparePlayer, selectGame, openByCode };
+  return { openRegistration, openOrganizer, openSelector, preparePlayer, selectGame, openByCode };
 })();

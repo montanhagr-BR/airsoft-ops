@@ -106,11 +106,18 @@ const AirsoftPortal = (() => {
   }
 
   function getRedirectUrl(flow) {
-    if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
+    if (typeof window !== 'undefined' && window.location.protocol === 'file:' && flow !== 'recovery') {
       return 'airsoftops://auth-callback';
     }
-    const url = new URL('https://warm-hummingbird-8988f6.netlify.app/');
+    const url = new URL(window.location.protocol === 'file:' || window.location.hostname === 'airsoft.local'
+      ? (config.webRedirectUrl || 'https://warm-hummingbird-8988f6.netlify.app/') : window.location.href);
+    url.hash = '';
+    for (const key of ['code', 'error', 'error_code', 'error_description']) url.searchParams.delete(key);
     url.searchParams.set('flow', flow || (destination === 'registration' ? 'registration' : 'dashboard'));
+    if (destination === 'registration') {
+      const code = new URLSearchParams(window.location.search).get('registration') || document.getElementById('preRegistrationForm')?.elements.code.value;
+      if (code && /^[A-Za-z0-9]{6}$/.test(code)) url.searchParams.set('registration', code.toUpperCase());
+    }
     return url.href;
   }
 
@@ -123,7 +130,7 @@ const AirsoftPortal = (() => {
     const hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
     const callbackError = params.get('error_code') || hash.get('error_code') || params.get('error') || hash.get('error');
     if (params.has('registration') || params.get('flow') === 'registration') { accessRequested = true; destination = 'registration'; }
-    else if (params.get('flow') || params.has('code') || hash.has('access_token') || window.location.hash.includes('access_token')) {
+    else if (params.get('flow') || params.has('code') || hash.has('access_token') || (window.location.hash || '').includes('access_token')) {
       accessRequested = true;
       destination = 'dashboard';
     }
@@ -139,7 +146,7 @@ const AirsoftPortal = (() => {
         currentUser = session && !session.user.is_anonymous ? session.user : null;
         if (currentUser) {
           accessRequested = true;
-          destination = 'dashboard';
+          if (destination !== 'registration' && destination !== 'organizer') destination = 'dashboard';
         }
         if (event === 'PASSWORD_RECOVERY' && !callbackError) { recoveringPassword = true; accessRequested = true; }
         if (event === 'SIGNED_OUT') { recoveringPassword = false; accessRequested = false; }
@@ -335,6 +342,7 @@ const AirsoftPortal = (() => {
     destination = target;
     renderState();
     if (currentUser && target === 'dashboard') loadUserSessions();
+    if (currentUser && target === 'organizer') window.PreRegistration?.openSelector?.();
     if (currentUser && target === 'registration') window.PreRegistration?.openRegistration();
   }
 
@@ -722,8 +730,9 @@ const AirsoftPortal = (() => {
     const formReset = document.getElementById('formReset');
     const confirmation = document.getElementById('signupConfirmation');
     if (confirmation) confirmation.hidden = currentTab !== 'confirmation';
-    document.getElementById('formConfirmation').hidden = currentTab !== 'confirm';
-    document.getElementById('resetSent').hidden = currentTab !== 'resetSent';
+    const confirmForm=document.getElementById('formConfirmation'), resetNotice=document.getElementById('resetSent');
+    if(confirmForm)confirmForm.hidden=currentTab!=='confirm';
+    if(resetNotice)resetNotice.hidden=currentTab!=='resetSent';
 
     if (tabLogin) tabLogin.classList.toggle('active', currentTab === 'login');
     if (tabSignup) tabSignup.classList.toggle('active', currentTab === 'signup');

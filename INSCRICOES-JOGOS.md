@@ -53,4 +53,8 @@ O terminal do jogador usa **Abrir ficha de inscrição** ou **Consultar minha in
 
 Migração 010 sincroniza aprovações e forças e preserva aprovações anteriores feitas diretamente no Controle. Validação: teste de carga automática antes da exibição, bloqueio em partida ativa, preservação em falha de conexão e teste transacional de reabertura após alteração de força no Controle.
 
+## Revisão após alterações do portal
+
+Layout anterior restaurado no site e no Android, com os formulários e identificadores necessários ao pré-cadastro. A organização continua disponível em **Inscrições e reservas** ou pelo código do evento. O link de inscrição mantém o evento selecionado após o login e a renovação da sessão. As listas e forças continuam carregando automaticamente no Controle. As alterações do login com Google e do retorno ao app foram preservadas.
+
 Para eventos existentes, o botão **Inscrições e reservas** aparece antes de **Configurar jogo**. Os limites de vagas e a escolha de time continuam em **Configurações das inscrições**. O teste de criação no Supabase confirmou abertura e link funcionando sem parâmetros de jogo, com dados de teste revertidos.

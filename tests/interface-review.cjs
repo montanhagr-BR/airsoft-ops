@@ -83,7 +83,7 @@ if (require.main === module) (async()=>{
   // Simulate the SDK recovery event by reinitializing with the returned session.
   await page.evaluate(()=>AirsoftPortal.initAuth());await capture(page,`web-${width}-nova-senha`);
   await page.locator('#newPassword').fill('new-test-secret');await page.locator('#confirmPassword').fill('new-test-secret');
-  await page.getByRole('button',{name:'Salvar senha',exact:true}).click();assert.equal(await page.locator('#dashboardSection').isVisible(),true);
+  await page.getByRole('button',{name:'Salvar senha',exact:true}).click();await page.locator('#dashboardSection').waitFor({state:'visible'});assert.equal(await page.locator('#dashboardSection').isVisible(),true);
   for(const [file,role] of [['controle.html','controller'],['jogador.html','player'],['bomba.html','artifact']]){
    for(const android of [false,true]){
     await page.setViewportSize({width:role==='artifact'?844:width,height:role==='artifact'?width:844});

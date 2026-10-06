@@ -38,6 +38,7 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
 (async () => {
   // Verify the real HTML contract; the DOM fixture alone accepts nonexistent IDs.
   const html = fs.readFileSync(path.join(__dirname, '../outputs/index.html'), 'utf8');
+  assert.equal(fs.readFileSync(path.join(__dirname, '../android-app/app/src/main/assets/www/index.html'), 'utf8'),html,'Android and web expose the same enrollment screen');
   for (const script of ['portal.js', 'pre-registration.js']) {
     const source = fs.readFileSync(path.join(__dirname, '../outputs', script), 'utf8');
     for (const match of source.matchAll(/(?:getElementById|byId)\('([^']+)'\)/g)) {
@@ -47,7 +48,7 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   }
   const f = fixture();
   await f.api.initAuth();
-  assert.equal(f.nodes.get('welcomeSection').hidden, false);
+  assert.equal(f.nodes.get('welcomeSection').hidden, true, 'An authenticated account opens the dashboard directly');
   assert.equal(f.nodes.get('authSection').hidden, true);
   f.api.access();
   assert.equal(f.nodes.get('dashboardSection').hidden, false);
@@ -95,6 +96,11 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
   assert.equal(enrollment.context.window.location.href,originalUrl,'Opening enrollment does not navigate to Controle');
   assert.equal(enrollment.storage.has('airsoft-cloud-session-v1-controller'),false,'Game connection is created only when entering Controle');
   assert.equal(enrollment.calls.find(c=>c[0]==='openOrganizer')[1].join_code,'ABC123');
+  const invitation=fixture();
+  invitation.context.window.location.search='?registration=ABC123';
+  await invitation.api.initAuth();
+  invitation.auth('TOKEN_REFRESHED',{user:{id:'owner',email:'owner@example.com'}});
+  assert.equal(invitation.nodes.get('preRegistrationSection').hidden,false,'A login or token refresh preserves the enrollment invitation');
   const anonymous = fixture({ id: 'guest', is_anonymous: true });
   await anonymous.api.initAuth();
   anonymous.api.access();
