@@ -106,6 +106,9 @@ const AirsoftPortal = (() => {
   }
 
   function getRedirectUrl(flow) {
+    if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
+      return 'airsoftops://auth-callback';
+    }
     const url = new URL('https://warm-hummingbird-8988f6.netlify.app/');
     url.searchParams.set('flow', flow || (destination === 'registration' ? 'registration' : 'dashboard'));
     return url.href;

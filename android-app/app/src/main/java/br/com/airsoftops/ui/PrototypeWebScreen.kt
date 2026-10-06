@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import br.com.airsoftops.model.AppRole
 import br.com.airsoftops.BuildConfig
+import br.com.airsoftops.MainActivity
 import java.io.ByteArrayInputStream
 
 @Composable
@@ -216,9 +217,14 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 }
             }
             requestFocus()
-            val suffix = "?android=1"
-            val onlineUrl = "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
-            loadUrl(onlineUrl)
+            val initialUrl = MainActivity.pendingAuthUrl?.let {
+                MainActivity.pendingAuthUrl = null
+                it
+            } ?: run {
+                val suffix = if (role == AppRole.CONTROLLER) "" else "?android=1"
+                "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
+            }
+            loadUrl(initialUrl)
         }
     }
 
