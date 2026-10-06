@@ -161,3 +161,89 @@ const AirsoftBus = (() => {
 
   return { read, write, update, log, reset, subscribe };
 })();
+
+const AirsoftVoice = (() => {
+  function speak(text) {
+    if (!text || typeof window === 'undefined' || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(String(text));
+      utterance.lang = 'pt-BR';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } catch (_) {}
+  }
+  return { speak };
+})();
+
+const AirsoftAudio = (() => {
+  let audioCtx = null;
+  function getContext() {
+    if (!audioCtx && typeof window !== 'undefined') {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    return audioCtx;
+  }
+
+  function beep(frequency = 440, duration = 80, type = 'sine') {
+    if (window.AirsoftSound && typeof window.AirsoftSound.play === 'function') {
+      window.AirsoftSound.play('button');
+      return;
+    }
+    try {
+      const ctx = getContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration / 1000);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration / 1000);
+    } catch (_) {}
+  }
+
+  function alertAlarm() {
+    beep(880, 220, 'square');
+    setTimeout(() => beep(660, 220, 'square'), 240);
+  }
+
+  function successChime() {
+    beep(523.25, 120);
+    setTimeout(() => beep(659.25, 120), 130);
+    setTimeout(() => beep(783.99, 220), 260);
+  }
+
+  return { beep, alertAlarm, successChime };
+})();
+
+if (typeof window !== 'undefined') {
+  let lastPhase = '';
+  let lastBombState = '';
+  AirsoftBus.subscribe(s => {
+    if (s.phase && s.phase !== lastPhase) {
+      lastPhase = s.phase;
+      if (s.phase.includes('iniciada') || s.phase.includes('andamento')) {
+        AirsoftVoice.speak('Atenção operadores. Missão iniciada.');
+      } else if (s.phase.includes('Concluído') || s.phase.includes('neutralizada')) {
+        AirsoftVoice.speak('Missão cumprida. Etapa concluída com sucesso.');
+      }
+    }
+    if (s.bombState && s.bombState !== lastBombState) {
+      lastBombState = s.bombState;
+      if (s.bombState.includes('Armada')) {
+        AirsoftVoice.speak('Atenção: Bomba armada. Contagem regressiva iniciada.');
+        AirsoftAudio.alertAlarm();
+      } else if (s.bombState.includes('neutralizada')) {
+        AirsoftVoice.speak('Bomba neutralizada com sucesso.');
+        AirsoftAudio.successChime();
+      }
+    }
+  });
+}
