@@ -8,7 +8,7 @@
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
-  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
+  <script src="airsoft-cloud.js?v=20261006-bomba" defer></script>
   <style>
     body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
     main { min-height: 100vh; display: grid; place-items: center; padding: 18px; box-sizing: border-box; background: radial-gradient(circle at 20% 0%, #12382a, transparent 28rem), linear-gradient(135deg, #050708, #111719); }
@@ -300,7 +300,7 @@
     <h2 id="deviceSetupTitle">Cadastrar este dispositivo</h2>
     <p>Identifique este tablet ou celular. O Controlador deverá aprovar e escolher qual bomba será exibida nele.</p>
     <label>Nome do aparelho<input id="deviceName" maxlength="40" placeholder="Ex.: Tablet maleta norte"></label>
-    <label>Tipo de dispositivo<select id="deviceType"><option value="tablet">Tablet</option><option value="phone">Celular</option></select></label>
+    <label>Tipo de dispositivo<select id="deviceType"><option value="tablet">Tablet</option><option value="phone">Celular</option><option value="notebook">Notebook</option></select></label>
     <button class="primary" id="requestDeviceRegistration">Solicitar cadastro</button>
     <p class="deviceSetupStatus" id="deviceSetupStatus">Este aparelho ainda não está cadastrado.</p>
     <button id="deviceDemoMode">Abrir somente para demonstração</button>
@@ -340,6 +340,7 @@
     bombDeviceId = 'bomb-device-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     localStorage.setItem(bombDeviceStorageKey, bombDeviceId);
   }
+  let deviceRegistrationError = '';
   let bombDemoMode = localStorage.getItem('airsoft-bomb-demo-v1') === '1';
   function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
   function playOperationalSound(kind) {
@@ -355,8 +356,8 @@
     } catch (_) {}
   }
   function syncOperationalSound(s) {
-    const armed = !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && s.bombSeconds != null && s.running && !s.finished;
-    const locating = isLocatorMode(s) && s.locatorEnabled && s.locatorArtifactLat != null && s.locatorArtifactLng != null;
+    const armed = canOperateDevice(s) && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && s.bombSeconds != null && s.running && !s.finished;
+    const locating = canOperateDevice(s) && isLocatorMode(s) && s.locatorEnabled && s.locatorArtifactLat != null && s.locatorArtifactLng != null;
     const nextMode = armed ? 'armed' : locating ? 'locator' : null;
     if (nextMode === operationalSoundMode) return;
     clearInterval(operationalSoundTimer);
@@ -383,19 +384,30 @@
   function isDataMode(s) { return s.mode === 'Roubo de dados'; }
   function isTerminalMode(s) { return s.mode === 'Dominação de terminal'; }
   function isLocatorMode(s) { return s.mode === 'Localização de artefato'; }
+  function onlineDevice() { return typeof AirsoftCloud !== 'undefined' && AirsoftCloud.isConnected(); }
+  function canOperateDevice(s) {
+    if (!onlineDevice()) return Boolean(bombDemoMode && s.running && !s.finished);
+    const device = (s.bombDevices || []).find(item => item.id === bombDeviceId && item.status === 'approved');
+    const bomb = device && (s.bombSequence || []).find(item => item.id === device.bombId);
+    if (!device || !AirsoftCloud.isDeviceOwner(device) || !bomb || !s.running || s.finished) return false;
+    if (isDataMode(s) || isTerminalMode(s) || isLocatorMode(s)) return true;
+    return bomb.id === s.bombSequence[s.bombSequenceIndex || 0]?.id;
+  }
   function activeBomb(s) {
     const list = s.bombSequence || [];
     const device = (s.bombDevices || []).find(item => item.id === bombDeviceId && item.status === 'approved');
     if (device && device.bombId) return list.find(item => item.id === device.bombId) || null;
-    return list[Math.max(0, Math.min(Number(s.bombSequenceIndex || 0), list.length - 1))] || null;
+    return bombDemoMode && !onlineDevice() ? list[Math.max(0, Math.min(Number(s.bombSequenceIndex || 0), list.length - 1))] || null : null;
   }
   function renderDeviceSetup(s) {
     const device = (s.bombDevices || []).find(item => item.id === bombDeviceId);
-    if (bombDemoMode) { deviceSetupLayer.hidden = true; return; }
-    deviceSetupLayer.hidden = Boolean(device && device.status === 'approved' && device.bombId);
+    deviceDemoMode.hidden = onlineDevice();
+    if (bombDemoMode && !onlineDevice()) { deviceSetupLayer.hidden = true; return; }
+    const assigned = device && (s.bombSequence || []).find(item => item.id === device.bombId);
+    deviceSetupLayer.hidden = Boolean(onlineDevice() && device && device.status === 'approved' && assigned && AirsoftCloud.isDeviceOwner(device));
     if (!device) {
-      deviceSetupStatus.textContent = 'Este aparelho ainda não está cadastrado.';
-      requestDeviceRegistration.disabled = false;
+      deviceSetupStatus.textContent = deviceRegistrationError || (s.finished ? 'Partida encerrada. Abra uma nova operação para cadastrar o aparelho.' : s.running ? 'Partida iniciada. O cadastro de novos dispositivos está fechado.' : 'Este aparelho ainda não está cadastrado.');
+      requestDeviceRegistration.disabled = Boolean(s.running || s.finished);
       return;
     }
     deviceName.value = device.name || '';
@@ -406,7 +418,9 @@
     } else {
       deviceSetupStatus.textContent = 'Solicitação enviada. Aguarde a aprovação no painel do Controlador.';
     }
-    requestDeviceRegistration.disabled = device.status === 'pending';
+    if (deviceRegistrationError) deviceSetupStatus.textContent=deviceRegistrationError;
+    requestDeviceRegistration.disabled = Boolean(s.running || s.finished);
+    requestDeviceRegistration.textContent = device.status === 'pending' ? 'Atualizar solicitação' : 'Atualizar cadastro';
   }
   function advanceBombSequence(st) {
     const list = st.bombSequence || [];
@@ -475,7 +489,7 @@
   }
   function publishArtifactPosition() {
     const current = AirsoftBus.read();
-    if (!current.locatorEnabled || !navigator.geolocation) return;
+    if (!canOperateDevice(current) || !current.locatorEnabled || !navigator.geolocation) return;
     const highAccuracy = current.locatorAccuracyMode !== 'battery';
     navigator.geolocation.getCurrentPosition(storeArtifactPosition, () => {}, { enableHighAccuracy: highAccuracy, timeout: highAccuracy ? 10000 : 6000, maximumAge: current.locatorAccuracyMode === 'high' ? 0 : 10000 });
   }
@@ -488,7 +502,7 @@
   }
   function syncArtifactGps(s) {
     const nextMode = s.locatorUpdateMode === 'realtime' ? 'realtime' : '10s';
-    if (!s.locatorEnabled || !navigator.geolocation) { stopArtifactGps(); return; }
+    if (!canOperateDevice(s) || !s.locatorEnabled || !navigator.geolocation) { stopArtifactGps(); return; }
     if (artifactGpsMode === nextMode) return;
     stopArtifactGps();
     artifactGpsMode = nextMode;
@@ -634,6 +648,7 @@
       bombProgressFill.style.width = '100%';
       bombProgressTime.textContent = '100%';
       bombProgressLabel.textContent = 'Processo concluído';
+      if (!canOperateDevice(AirsoftBus.read())) { showPopup('Operação interrompida','O aparelho perdeu a autorização ou a partida terminou.','Bloqueado'); return; }
       onComplete();
       showPopup('Operação concluída', 'A etapa local foi finalizada.', progressKind);
     }, total * 1000);
@@ -668,6 +683,7 @@
     showPopup('Operação cancelada', 'O operador cancelou a etapa local no notebook.', 'Cancelado');
   };
   function startTerminalCapture(team) {
+    if (!canOperateDevice(AirsoftBus.read())) return;
     const seconds = AirsoftBus.read().terminalCaptureSeconds;
     AirsoftBus.update(st => {
       st.pending = null;
@@ -698,6 +714,7 @@
     });
   }
   function startTerminalValidation(team) {
+    if (!canOperateDevice(AirsoftBus.read())) return;
     AirsoftBus.update(st => {
       st.pending = null;
       st.bombState = 'Validando domínio';
@@ -728,6 +745,7 @@
     });
   }
   popupConfirm.onclick = () => {
+    if (!canOperateDevice(AirsoftBus.read())) return;
     const s = AirsoftBus.read();
     if (!s.pending) return;
     if (s.pending.type === 'dataDecodeConfirm') {
@@ -819,7 +837,7 @@
     }
   }
   function isKeyboardPending(s) {
-    return Boolean(s.pending && ['arm', 'defuse', 'dataAccess', 'dataAdmin', 'dataDecrypt', 'dataEmail', 'terminalCaptureCode', 'terminalValidationCode'].includes(s.pending.type));
+    return Boolean(canOperateDevice(s) && s.pending && ['arm', 'defuse', 'dataAccess', 'dataAdmin', 'dataDecrypt', 'dataEmail', 'terminalCaptureCode', 'terminalValidationCode'].includes(s.pending.type));
   }
   function render(s) {
     renderDeviceSetup(s);
@@ -835,8 +853,12 @@
     renderLocator(s);
     const selectedBomb = activeBomb(s);
     bombState.textContent = s.bombState;
-    mode.textContent = s.mode + (selectedBomb && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? ' · ' + selectedBomb.name + ' (' + (Number(s.bombSequenceIndex || 0) + 1) + '/' + s.bombSequence.length + ')' : '');
+    mode.textContent = s.mode + (selectedBomb && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? ' · ' + selectedBomb.name + ' (' + ((s.bombSequence || []).findIndex(bomb=>bomb.id===selectedBomb.id) + 1) + '/' + s.bombSequence.length + ')' : '');
     phase.textContent = s.phase;
+    if (selectedBomb && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) && selectedBomb.id !== s.bombSequence[s.bombSequenceIndex || 0]?.id && !s.finished) {
+      bombState.textContent = selectedBomb.status === 'defused' ? 'Bomba neutralizada' : 'Aguardando sua vez';
+      phase.textContent = 'Aparelho vinculado a ' + selectedBomb.name;
+    }
     resultTimerLabel.textContent = isDataMode(s) ? 'Progresso hostil' : isTerminalMode(s) ? 'Validação' : isLocatorMode(s) ? 'Sinal GPS' : 'Tempo da bomba';
     if (s.winner) {
       phase.textContent = s.winner;
@@ -845,9 +867,9 @@
       phase.classList.remove('winnerText');
     }
     renderSevenSegment(gameTimer, fmt(s.gameSeconds));
-    const displayedBombSeconds = selectedBomb && s.bombDeploymentMode === 'allArmed' ? Number(selectedBomb.remainingSeconds ?? selectedBomb.resultSeconds ?? 0) : s.bombSeconds;
+    const displayedBombSeconds = selectedBomb?.status === 'defused' ? 0 : selectedBomb && s.bombDeploymentMode === 'allArmed' ? Number(selectedBomb.remainingSeconds ?? selectedBomb.resultSeconds ?? 0) : selectedBomb && selectedBomb.id !== s.bombSequence[s.bombSequenceIndex || 0]?.id && !isDataMode(s) && !isTerminalMode(s) && !isLocatorMode(s) ? null : s.bombSeconds;
     renderSevenSegment(bombTimer, fmt(displayedBombSeconds));
-    pending.textContent = s.pending ? 'Solicitação: ' + s.pending.label : 'Solicitação: nenhuma';
+    pending.textContent = canOperateDevice(s) && s.pending ? 'Solicitação: ' + s.pending.label : 'Solicitação: nenhuma neste aparelho';
     const qrEnabled = s.qrRequired !== false;
     const qrVariant = Math.abs(Number(s.qrStageNonce || 0)) % 6;
     stageQr.className = 'qr qrVariant' + qrVariant + (qrEnabled ? '' : ' qrDisabled');
@@ -861,39 +883,42 @@
     keys.querySelectorAll('button').forEach(btn => btn.disabled = !keyboardPending);
     if (!keyboardPending && entry) { entry = ''; updateDisplay(); }
     if (!keyboardPending) display.textContent = 'BLOQ';
-    if (s.notice && s.noticeId !== lastNoticeId) {
+    if (canOperateDevice(s) && s.notice && s.noticeId !== lastNoticeId) {
       if (s.pending && (s.pending.type === 'dataDecodeConfirm' || s.pending.type === 'dataDownloadConfirm' || s.pending.type === 'terminalCaptureConfirm' || s.pending.type === 'terminalValidationConfirm')) showConfirm(s.notice.title, s.notice.body, s.notice.kind || 'Solicitação');
       else showPopup(s.notice.title, s.notice.body, s.notice.kind || 'Solicitação');
       lastNoticeId = s.noticeId;
     }
   }
-  requestDeviceRegistration.onclick = () => {
+  requestDeviceRegistration.onclick = async () => {
     const name = deviceName.value.trim();
-    if (!name) { deviceSetupStatus.textContent = 'Digite um nome para identificar este aparelho.'; deviceName.focus(); return; }
-    AirsoftBus.update(s => {
-      s.bombDevices = s.bombDevices || [];
-      let device = s.bombDevices.find(item => item.id === bombDeviceId);
-      if (!device) {
-        device = { id:bombDeviceId, name, type:deviceType.value, status:'pending', bombId:null, requestedAt:Date.now(), approvedAt:null, lastSeen:Date.now() };
-        s.bombDevices.push(device);
-      } else {
-        device.name = name; device.type = deviceType.value; device.status = 'pending'; device.bombId = null; device.requestedAt = Date.now(); device.lastSeen = Date.now();
-      }
-      return s;
-    });
-    AirsoftBus.log('Novo dispositivo solicitou cadastro como bomba: ' + name + '.');
+    if (name.length < 2) { deviceSetupStatus.textContent = 'Digite um nome com pelo menos dois caracteres.'; deviceName.focus(); return; }
+    requestDeviceRegistration.disabled = true; deviceRegistrationError='';
+    try {
+      await AirsoftCloud.registerBombDevice({id:bombDeviceId,name,type:deviceType.value});
+      deviceSetupStatus.textContent = 'Cadastro salvo. Aguarde a aprovação e o vínculo com uma bomba no Controle.';
+    } catch (error) { deviceRegistrationError='Cadastro não enviado: ' + error.message; deviceSetupStatus.textContent = deviceRegistrationError; }
+    finally { requestDeviceRegistration.disabled = Boolean(AirsoftBus.read().running || AirsoftBus.read().finished); }
   };
-  deviceDemoMode.onclick = () => { bombDemoMode = true; localStorage.setItem('airsoft-bomb-demo-v1', '1'); deviceSetupLayer.hidden = true; };
+  deviceDemoMode.onclick = () => {
+    if (onlineDevice()) return;
+    bombDemoMode = true; localStorage.setItem('airsoft-bomb-demo-v1', '1'); deviceSetupLayer.hidden = true;
+  };
+  addEventListener('airsoft-room-ready', async () => {
+    bombDemoMode = false; localStorage.removeItem('airsoft-bomb-demo-v1');
+    const state=AirsoftBus.read(), device=(state.bombDevices || []).find(item=>item.id===bombDeviceId);
+    if (device && !device.memberDeviceId && !state.finished) {
+      try { await AirsoftCloud.registerBombDevice({id:bombDeviceId,name:device.name,type:device.type}); }
+      catch(error) { deviceSetupStatus.textContent=error.message; }
+    }
+    renderDeviceSetup(AirsoftBus.read());
+  });
   setInterval(() => {
-    if (bombDemoMode) return;
-    const state = AirsoftBus.read();
-    const device = (state.bombDevices || []).find(item => item.id === bombDeviceId);
-    if (!device) return;
-    AirsoftBus.update(s => { const current = (s.bombDevices || []).find(item => item.id === bombDeviceId); if (current) current.lastSeen = Date.now(); return s; });
+    if (onlineDevice() && (AirsoftBus.read().bombDevices || []).some(item=>item.id===bombDeviceId)) AirsoftCloud.touchBombDevice(bombDeviceId).catch(()=>{});
   }, 10000);
   function updateDisplay() { display.textContent = isKeyboardPending(AirsoftBus.read()) ? (entry || '----') : 'BLOQ'; }
   function validate() {
     const s = AirsoftBus.read();
+    if (!canOperateDevice(s)) { showPopup('Aparelho bloqueado', 'Aguarde a aprovação, o vínculo correto e o início da partida.', 'Bomba'); return; }
     if (!s.pending) { showPopup('Sem solicitação', 'Nenhuma ação está aguardando senha nesta bomba.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
     if (!s.running || s.finished) { showPopup('Jogo inativo', 'O teclado só valida senha durante uma partida ativa.', 'Bloqueado'); entry = ''; updateDisplay(); return; }
     if (!isDataMode(s) && s.pending.type === 'arm' && s.bombSeconds != null) { showPopup('Arme bloqueado', 'A bomba já está em contagem.', 'Bloqueado'); entry = ''; updateDisplay(); return; }

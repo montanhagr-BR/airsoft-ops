@@ -67,9 +67,11 @@ if (require.main === module) (async()=>{
   await page.getByRole('button',{name:'Voltar ao painel',exact:true}).click();
   await page.getByRole('button',{name:'Inscrições e reservas',exact:true}).click();await page.locator('#forceSummary').waitFor();await capture(page,`web-${width}-organizador`);
   const stagedPlayer=page.locator('.registrationRow').filter({hasText:'Jogador teste A'});
+  const force2Name=await page.locator('#registrationForce2Name').inputValue();
   await stagedPlayer.locator('select').selectOption('terrorist');await stagedPlayer.getByRole('button',{name:'Salvar força'}).click();
   await page.waitForFunction(()=>document.getElementById('organizerFeedback').textContent.includes('Formação salva'));
-  assert.equal(await page.locator('.forceColumn').filter({has:page.locator('h3').filter({hasText:'Força 2'})}).getByText('Jogador teste A',{exact:true}).count(),1);
+  await page.locator('.forceColumn').filter({has:page.locator('h3').filter({hasText:force2Name})}).getByText('Jogador teste A',{exact:true}).waitFor();
+  assert.equal(await page.locator('.forceColumn').filter({has:page.locator('h3').filter({hasText:force2Name})}).getByText('Jogador teste A',{exact:true}).count(),1);
   await capture(page,`web-${width}-forcas-organizadas`);
   await page.getByRole('button',{name:'Voltar ao painel',exact:true}).click();
   await page.locator('#newGameName').fill('Evento antes do jogo');
@@ -93,6 +95,7 @@ if (require.main === module) (async()=>{
     await page.evaluate(role=>{
       window.__reviewLogin();
       localStorage.setItem('airsoft-cloud-session-v1-'+role,JSON.stringify({sessionId:'review-room',joinCode:'ABC123',memberId:role==='controller'?null:'review-member',role,operationName:'Operação de teste'}));
+      localStorage.setItem('airsoft-cloud-device-v1-'+role,role+'-review');
       localStorage.setItem('airsoft-player-id-v1','P-review-user');
       localStorage.setItem('airsoft-ops-state-v1',JSON.stringify({operationName:'Operação de teste',players:[{id:'P-review-user',name:'Operador de teste',team:'ct',status:'approved'}],resetId:0}));
     },role);
@@ -107,7 +110,7 @@ if (require.main === module) (async()=>{
       for(const tab of ['objectives','terminal','locator','squad']){await page.locator('[data-tab="'+tab+'"]').click();await capture(page,prefix+'-'+tab);}
     }else{
       await page.waitForSelector('.cloudActive');await capture(page,prefix+'-cadastro-aparelho');
-      if(await page.locator('#deviceDemoMode').isVisible()) await page.locator('#deviceDemoMode').click();await capture(page,prefix+'-bomba');
+      await page.evaluate(()=>AirsoftBus.update(s=>{s.bombDevices=[{id:localStorage.getItem('airsoft-bomb-device-id-v1'),userId:'review-user',memberDeviceId:localStorage.getItem('airsoft-cloud-device-v1-artifact'),name:'Aparelho de teste',type:'tablet',status:'approved',bombId:s.bombSequence[0].id}]}));await capture(page,prefix+'-bomba');
       for(const mode of ['Roubo de dados','Dominação de terminal','Localização de artefato']){
         await page.evaluate(mode=>AirsoftBus.update(s=>{s.mode=mode}),mode);await capture(page,prefix+'-'+mode.replaceAll(' ','-'));
       }

@@ -1,0 +1,24 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+(async()=>{
+ const device={id:'d1',userId:'operator',memberDeviceId:'artifact-1',status:'approved',bombId:'b1'};
+ const initial={running:true,finished:false,mode:'Bomba clássica',team1Name:'Azul',team2Name:'Vermelho',players:[],bombDevices:[device],bombSequence:[{id:'b1',armCode:'1234',defuseCode:'5678',resultSeconds:90},{id:'b2',armCode:'4444',defuseCode:'9999',resultSeconds:120}],bombSequenceIndex:0,resultSeconds:90,qrStageNonce:1,resetId:1,bombSeconds:null,pending:{type:'arm',label:'Armar'}};
+ let state=structuredClone(initial),writes=0;
+ const ctx=vm.createContext({window:{},location:{pathname:'/controle.html'},localStorage:{getItem(){return null}},addEventListener(){},AirsoftBus:{read:()=>state,write:s=>{state=s;writes++}}});
+ const source=fs.readFileSync('outputs/airsoft-cloud.js','utf8').replace("  addEventListener('DOMContentLoaded', init);","  publishControllerState=async()=>{};globalThis.receive=consumeEvent;");vm.runInContext(source,ctx);
+ const proposal=(changes={},id='artifact-1')=>({new:{user_id:'operator',device_id:id,payload:{state:{...structuredClone(state),...changes},basePending:structuredClone(state.pending),baseNonce:state.qrStageNonce,baseReset:state.resetId}}});
+ await ctx.receive(proposal({pending:null,terroristBombValidated:true,bombSeconds:9999,bombDevices:[]}));
+ assert.equal(state.bombSeconds,90,'Arming uses the configured duration');assert.equal(state.bombDevices.length,1,'Device cannot replace the approval roster');
+ state.pending={type:'defuse',label:'Desarmar'};
+ await ctx.receive(proposal({pending:null,ctBombValidated:false,bombSeconds:null,bombSequence:[{...state.bombSequence[0],status:'defused'},state.bombSequence[1]]}));
+ assert.equal(state.bombSequenceIndex,1);assert.equal(state.bombSequence[0].status,'defused');assert.equal(state.resultSeconds,120);assert.equal(state.finished,false);
+ state.bombDevices=[{...device,bombId:'b2'}];state.pending={type:'defuse',label:'Desarmar'};
+ await ctx.receive(proposal({pending:null,ctBombValidated:true}));assert.equal(state.finished,true);assert.equal(state.running,false);assert.equal(state.winner,'Azul venceu');
+ state=structuredClone(initial);const before=writes;await ctx.receive(proposal({pending:null},'artifact-unapproved'));assert.equal(writes,before,'Unapproved devices cannot operate');
+ await ctx.receive({new:{user_id:'operator',device_id:'artifact-1',payload:{state:{...initial,mode:'alterado',resultSeconds:9999}}}});
+ assert.equal(state.mode,'Bomba clássica');assert.equal(state.resultSeconds,90);
+ state={...structuredClone(initial),mode:'Dominação de terminal',pending:null,operation:{id:1,kind:'terminalCapture',type:'ct'},terminalValidationIntervalSeconds:75};
+ await ctx.receive(proposal({operation:null,terminalOwner:'ct',phase:'Domínio ativo',bombSeconds:9999}));assert.equal(state.bombSeconds,75,'Terminal capture starts the official validation interval');
+ state={...structuredClone(initial),mode:'Roubo de dados',pending:null,operation:{id:2,kind:'bombSend'}};
+ await ctx.receive(proposal({operation:null,dataStage:'sent',dataSent:true,finished:true}));assert.equal(state.finished,true);assert.equal(state.winner,'Vermelho venceu');
+ console.log('PASS: aprovação protegida, arme com duração oficial, sequência, término e bloqueio de aparelho não aprovado.');
+})().catch(e=>{console.error(e);process.exitCode=1});

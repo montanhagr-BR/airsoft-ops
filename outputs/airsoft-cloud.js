@@ -20,12 +20,16 @@ const AirsoftCloud = (() => {
   let scannerStream = null;
   let leaving = false;
   let connecting = false;
+  let memberBaseState = null;
+  let queuedMemberEvent = null;
+  let memberPublish = null;
 
   function readConnection() {
     try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch { return null; }
   }
   function saveConnection(value) {
     connection = value;
+    if (!value) { queuedMemberEvent = null; memberBaseState = null; }
     if (value) localStorage.setItem(storageKey, JSON.stringify(value));
     else localStorage.removeItem(storageKey);
     renderHeader();
@@ -197,7 +201,7 @@ const AirsoftCloud = (() => {
               queuedControllerState = null;
             }
             applyingRemote = true;
-            try { AirsoftBus.write(snapshot.data.state); } finally { applyingRemote = false; }
+            try { memberBaseState = snapshot.data.state; AirsoftBus.write(snapshot.data.state); } finally { applyingRemote = false; }
             if (pendingFinish && serverStatus === 'finished') continue;
           }
           setStatus('Falha ao sincronizar: ' + error.message, 'error');
@@ -212,25 +216,55 @@ const AirsoftCloud = (() => {
     await publishControllerState(AirsoftBus.read());
   }
   async function publishMemberEvent(state) {
-    if (!connection || role === 'controller' || syncing) return;
-    syncing = true;
-    const result = await client.from('game_events').insert({
-      session_id:connection.sessionId,
-      user_id:user.id,
-      device_id:deviceId(),
-      event_type:'state_proposal',
-      payload:{ state }
-    });
-    syncing = false;
-    if (result.error) setStatus('Falha ao enviar ação: ' + result.error.message, 'error');
+    if (!connection || role === 'controller' || leaving) return;
+    queuedMemberEvent = {state,basePending:memberBaseState?.pending || null,baseNonce:memberBaseState?.qrStageNonce,baseReset:memberBaseState?.resetId};
+    if (memberPublish) return memberPublish;
+    memberPublish = (async () => {
+      syncing = true;
+      try {
+        while (queuedMemberEvent && connection && !leaving) {
+          const payload = queuedMemberEvent; queuedMemberEvent = null;
+          const result = await client.from('game_events').insert({session_id:connection.sessionId,user_id:user.id,device_id:deviceId(),event_type:'state_proposal',payload});
+          if (result.error) throw result.error;
+        }
+      } finally { syncing = false; }
+    })();
+    try { await memberPublish; } finally { memberPublish = null; }
   }
   function scheduleSync(state) {
     if (leaving || applyingRemote || !connection || !client) return;
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => {
       if (role === 'controller') publishControllerState(state).catch(error => setStatus(error.message, 'error'));
-      else publishMemberEvent(state);
+      else publishMemberEvent(state).catch(error => setStatus('Falha ao enviar ação: ' + error.message, 'error'));
     }, 180);
+  }
+  function applyRoomResult(data) {
+    applyingRemote = true;
+    try { if (data?.state) AirsoftBus.write(data.state); }
+    finally { applyingRemote = false; }
+    serverVersion = data?.state_version ?? serverVersion;
+    serverStatus = data?.status ?? serverStatus;
+  }
+  async function registerBombDevice(profile) {
+    if (!connection || role !== 'artifact') throw new Error('Entre como Bomba nesta operação.');
+    const result = await client.rpc('register_bomb_device', {target_session:connection.sessionId,
+      registration_id:profile.id,member_device:deviceId(),device_name:profile.name,device_type:profile.type});
+    if (result.error) throw result.error;
+    applyRoomResult(result.data);
+  }
+  async function assignBombDevice(id, bombId, remove = false) {
+    if (!connection || role !== 'controller') throw new Error('Abra o Controle desta operação.');
+    await flushControllerState();
+    const result = await client.rpc('assign_bomb_device', {target_session:connection.sessionId,
+      registration_id:id,selected_bomb:bombId,remove_device:remove});
+    if (result.error) throw result.error;
+    applyRoomResult(result.data);
+  }
+  async function touchBombDevice(id) {
+    if (!connection || role !== 'artifact') return;
+    const result = await client.rpc('touch_bomb_device', {target_session:connection.sessionId,registration_id:id,member_device:deviceId()});
+    if (result.error) setStatus('Sem sinal do dispositivo: ' + result.error.message, 'error');
   }
   async function registerPlayer(profile) {
     if (!connection || role !== 'player') throw new Error('Entre em uma sala primeiro.');
@@ -270,16 +304,53 @@ const AirsoftCloud = (() => {
     if (!proposed) return;
     const authoritative = AirsoftBus.read();
     if (authoritative.finished || !authoritative.running) return;
-    applyingRemote = true;
     // Member telemetry must not replace another account's roster or approvals.
     const current = AirsoftBus.read();
+    proposed.bombDevices = current.bombDevices || [];
+    const artifact = (current.bombDevices || []).find(device => device.status === 'approved' && device.userId === payload.new.user_id && device.memberDeviceId === payload.new.device_id);
+    if (payload.new.device_id?.startsWith('artifact-') && !artifact) return;
+    const actionContext = payload.new.payload;
+    const acceptedAction = artifact && current.pending && JSON.stringify(current.pending) === JSON.stringify(actionContext.basePending) && current.qrStageNonce === actionContext.baseNonce && current.resetId === actionContext.baseReset;
+    const defuseCompleted = proposed.ctBombValidated === true || proposed.bombSequence?.[current.bombSequenceIndex || 0]?.status === 'defused';
+    const position = artifact && proposed.bombSequence?.find(bomb => bomb.id === artifact.bombId);
+    if (actionContext.baseReset != null && actionContext.baseReset !== current.resetId) return;
+    if (artifact && current.pending && !acceptedAction) return;
+    if (artifact && !['Roubo de dados','Dominação de terminal','Localização de artefato'].includes(current.mode) && artifact.bombId !== current.bombSequence?.[current.bombSequenceIndex || 0]?.id) return;
+    applyingRemote = true;
     proposed.players = (current.players || []).map(player => {
       const update = (proposed.players || []).find(p => p.id === player.id);
       if (player.id !== 'P-' + payload.new.user_id || !update) return player;
       return { ...player, lat: update.lat, lng: update.lng, accuracy: update.accuracy, lastFix: update.lastFix, lastSeen: update.lastSeen };
     });
     // Only the Controle owns lifecycle, countdowns and field configuration.
-    for (const key of ['running','finished','startedAt','endedAt','clockUpdatedAt','gameSeconds','bombSeconds','terminalTeam1Seconds','terminalTeam2Seconds','playerRegistrationOpen','fieldBoundary','tacticalAreas','teamStartPositions','fieldArtifact','log','winner','bombSequence','bombSequenceIndex']) proposed[key] = current[key];
+    for (const key of ['mode','operationName','team1Name','team2Name','resetId','resultSeconds','actionSeconds','penaltySeconds','penaltyEnabled','armCode','defuseCode','armFactors','defuseFactors','qrRequired','bombDeploymentMode','teamTrackingEnabled','keepOrganizationsTogether','gameObjectives','dataDecryptCode','dataRecipient','dataCorrectFolder','dataAccessSeconds','dataDownloadSeconds','dataDecryptSeconds','dataSendSeconds','terminalCaptureSeconds','terminalValidationIntervalSeconds','terminalValidationWindowSeconds','terminalWinSeconds','terminalCaptureCode','terminalCaptureNeedsCode','locatorAccuracyMode','locatorUpdateMode','locatorTransmitOnMove','locatorMovementThresholdMeters','running','finished','startedAt','endedAt','clockUpdatedAt','gameSeconds','bombSeconds','terminalTeam1Seconds','terminalTeam2Seconds','playerRegistrationOpen','fieldBoundary','tacticalAreas','teamStartPositions','fieldArtifact','log','winner','bombSequence','bombSequenceIndex']) proposed[key] = current[key];
+    if (position && Number.isFinite(position.lat) && Number.isFinite(position.lng) && Math.abs(position.lat)<=90 && Math.abs(position.lng)<=180) {
+      proposed.bombSequence=(current.bombSequence || []).map(bomb=>bomb.id===artifact.bombId?{...bomb,lat:position.lat,lng:position.lng}:bomb);
+    }
+    if (acceptedAction && !proposed.pending && current.mode !== 'Roubo de dados' && current.mode !== 'Dominação de terminal' && current.mode !== 'Localização de artefato' && (!current.bombSequence?.length || artifact.bombId === current.bombSequence[current.bombSequenceIndex || 0]?.id)) {
+      if (current.pending.type === 'arm' && proposed.terroristBombValidated === true) proposed.bombSeconds = Math.max(1, Number(current.resultSeconds || 600));
+      if (current.pending.type === 'arm' && proposed.terroristBombValidated === true) proposed.bombSequence = (current.bombSequence || []).map((bomb,i) => i === Number(current.bombSequenceIndex || 0) ? {...bomb,status:'armed'} : bomb);
+      if (current.pending.type === 'defuse' && defuseCompleted) {
+        proposed.bombSeconds = null;
+        const index = Number(current.bombSequenceIndex || 0);
+        proposed.bombSequence = (current.bombSequence || []).map((bomb,i) => i === index ? {...bomb,status:'defused'} : bomb);
+        if (index + 1 < proposed.bombSequence.length) {
+          proposed.bombSequenceIndex = index + 1;
+          const next = proposed.bombSequence[index + 1];
+          proposed.armCode = next.armCode; proposed.defuseCode = next.defuseCode;
+          proposed.resultSeconds = Number(next.resultSeconds || 600);
+          next.status = current.bombDeploymentMode === 'allArmed' ? 'armed' : 'active';
+          if (current.bombDeploymentMode === 'allArmed') proposed.bombSeconds = Number(next.remainingSeconds ?? next.resultSeconds ?? 600);
+        } else { proposed.finished = true; proposed.running = false; proposed.endedAt = Date.now(); proposed.winner = current.team1Name + ' venceu'; }
+      }
+    }
+    if (artifact && current.mode === 'Roubo de dados' && acceptedAction && current.pending.type === 'dataAdmin' && !proposed.pending) proposed.armCode = String(Math.floor(1000 + Math.random() * 9000));
+    if (artifact && current.mode === 'Roubo de dados' && current.operation?.kind === 'bombSend' && proposed.dataSent && proposed.dataStage === 'sent') {
+      proposed.finished = true; proposed.running = false; proposed.endedAt = Date.now(); proposed.winner = current.team2Name + ' venceu';
+    }
+    if (artifact && current.mode === 'Dominação de terminal' && ['terminalCapture','terminalValidation'].includes(current.operation?.kind) && !proposed.operation && proposed.terminalOwner === current.operation.type && ['Domínio ativo','Validação renovada'].includes(proposed.phase)) {
+      proposed.bombSeconds = Number(current.terminalValidationIntervalSeconds || 60);
+    }
     AirsoftBus.write(proposed);
     applyingRemote = false;
     await publishControllerState(proposed).catch(error => setStatus(error.message, 'error'));
@@ -297,6 +368,7 @@ const AirsoftCloud = (() => {
     if (payload.new.status === 'finished') { clearTimeout(syncTimer); queuedControllerState = null; }
     else if (role === 'controller' && (syncing || queuedControllerState || AirsoftBus.read().finished)) return;
     applyingRemote = true;
+    memberBaseState = payload.new.state;
     AirsoftBus.write(payload.new.state);
     applyingRemote = false;
     if (payload.new.state.operationName && connection) {
@@ -326,7 +398,7 @@ const AirsoftCloud = (() => {
     serverStatus = snapshot.data.status; serverVersion = snapshot.data.state_version;
     if (snapshot.data.state) {
       applyingRemote = true;
-      try { AirsoftBus.write(snapshot.data.state); }
+      try { memberBaseState = snapshot.data.state; AirsoftBus.write(snapshot.data.state); }
       finally { applyingRemote = false; }
     }
     if (channel) await client.removeChannel(channel);
@@ -492,7 +564,7 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom, registerPlayer, openRegistration, assignPlayer, importPreRegistrations, flushControllerState, back: () => {
+  return { createRoom, joinRoom, leaveRoom, registerPlayer, registerBombDevice, assignBombDevice, touchBombDevice, isConnected: () => Boolean(connection && user), isDeviceOwner: device => Boolean(device && user && device.userId === user.id && device.memberDeviceId === deviceId()), openRegistration, assignPlayer, importPreRegistrations, flushControllerState, back: () => {
     if (role === 'controller') leaveControl(); else leaveRoom();
     return true;
   } };

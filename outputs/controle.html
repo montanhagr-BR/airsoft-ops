@@ -748,7 +748,7 @@
       const lastSeen = device.lastSeen ? new Date(device.lastSeen).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : 'sem sinal';
       const selectedBombId = pendingDeviceBombs.get(device.id) || device.bombId;
       const options = '<option value="">Escolha uma bomba</option>' + bombs.map(bomb => '<option value="' + escapeHtml(bomb.id) + '"' + (selectedBombId === bomb.id ? ' selected' : '') + '>' + escapeHtml(bomb.number + ' · ' + bomb.name) + '</option>').join('');
-      return '<div class="deviceRow" data-device-id="' + escapeHtml(device.id) + '"><div><b>' + escapeHtml(device.name || 'Dispositivo sem nome') + '</b><br><small>' + (device.type === 'phone' ? 'Celular' : 'Tablet') + ' · ' + status + ' · visto ' + lastSeen + '</small></div><select data-device-bomb>' + options + '</select><div><button class="primary" data-device-approve>' + (device.status === 'approved' ? 'Atualizar' : 'Aprovar') + '</button> <button class="danger" data-device-remove title="Remover dispositivo">×</button></div></div>';
+      return '<div class="deviceRow" data-device-id="' + escapeHtml(device.id) + '"><div><b>' + escapeHtml(device.name || 'Dispositivo sem nome') + '</b><br><small>' + (device.type === 'phone' ? 'Celular' : device.type === 'notebook' ? 'Notebook' : 'Tablet') + ' · ' + status + ' · visto ' + lastSeen + '</small></div><select data-device-bomb>' + options + '</select><div><button class="primary" data-device-approve>' + (device.status === 'approved' ? 'Atualizar' : 'Aprovar') + '</button> <button class="danger" data-device-remove title="Remover dispositivo">×</button></div></div>';
     }).join('') : '<p class="muted">Nenhum tablet ou celular solicitou cadastro como bomba.</p>';
   }
   function setHoursMinutes(prefix, totalSeconds) {
@@ -1151,30 +1151,20 @@
     const row = e.target.closest('[data-player-id]');
     if (row) pendingPlayerTeams.set(row.dataset.playerId, e.target.value);
   });
-  deviceRoster.addEventListener('click', e => {
-    const row = e.target.closest('[data-device-id]');
-    if (!row) return;
-    const id = row.dataset.deviceId;
-    if (e.target.closest('[data-device-remove]')) {
-      AirsoftBus.update(s => { s.bombDevices = (s.bombDevices || []).filter(device => device.id !== id); return s; });
-      AirsoftBus.log('Controlador removeu um dispositivo de bomba.');
-      return;
-    }
-    if (e.target.closest('[data-device-approve]')) {
-      const bombId = row.querySelector('[data-device-bomb]').value;
-      if (!bombId) { showPopup('Escolha uma bomba', 'Selecione qual bomba será exibida neste aparelho antes de aprová-lo.', 'Pareamento'); return; }
-      const state = AirsoftBus.read();
-      const occupied = (state.bombDevices || []).find(device => device.id !== id && device.status === 'approved' && device.bombId === bombId);
-      if (occupied) { showPopup('Bomba já vinculada', 'Esta bomba já está usando o dispositivo ' + occupied.name + '. Remova ou altere o vínculo atual.', 'Pareamento'); return; }
-      AirsoftBus.update(s => {
-        const device = (s.bombDevices || []).find(item => item.id === id);
-        if (device) { device.bombId = bombId; device.status = 'approved'; device.approvedAt = Date.now(); }
-        return s;
-      });
-      pendingDeviceBombs.delete(id);
-      AirsoftBus.log('Controlador aprovou e vinculou um dispositivo de bomba.');
-      showPopup('Dispositivo aprovado', 'O aparelho foi vinculado à bomba escolhida e já pode abrir a interface operacional.', 'Pareamento');
-    }
+  deviceRoster.addEventListener('click', async e => {
+    const row=e.target.closest('[data-device-id]');
+    const button=e.target.closest('[data-device-approve], [data-device-remove]');
+    if (!row || !button) return;
+    const removing=Boolean(button.matches('[data-device-remove]'));
+    const bombId=row.querySelector('[data-device-bomb]').value;
+    if (!removing && !bombId) { showPopup('Escolha uma bomba', 'Selecione a bomba antes de aprovar este aparelho.', 'Pareamento'); return; }
+    button.disabled=true;
+    try {
+      await AirsoftCloud.assignBombDevice(row.dataset.deviceId,bombId,removing);
+      pendingDeviceBombs.delete(row.dataset.deviceId);
+      showPopup(removing ? 'Dispositivo removido' : 'Dispositivo aprovado', removing ? 'O aparelho perdeu o vínculo operacional.' : 'Cadastro confirmado e vinculado à bomba escolhida.', 'Pareamento');
+    } catch(error) { showPopup('Vínculo não salvo',error.message,'Pareamento'); }
+    finally { render(AirsoftBus.read()); }
   });
   deviceRoster.addEventListener('change', e => {
     if (!e.target.matches('[data-device-bomb]')) return;
