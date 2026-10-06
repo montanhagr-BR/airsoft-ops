@@ -150,6 +150,10 @@
             Criar Sala e Abrir Controle
           </button>
 
+          <button class="btnSecondary" onclick="AirsoftPortal.access('registration')" type="button" style="margin-top: 8px; width: 100%;">
+            📝 Inscrição Antecipada de Jogador
+          </button>
+
           <div style="margin-top: 8px;">
             <label style="color:var(--portal-paper); font-size:11px; font-weight:bold; text-transform:uppercase;">Minhas Operações Ativas</label>
             <div class="sessionList" id="mySessionsList" style="margin-top: 6px;">
@@ -205,6 +209,7 @@
     <section class="portalBox" id="preRegistrationSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar</button>
       <h2 id="preRegistrationTitle">Inscrição antecipada</h2>
+      <p class="muted" id="registrationAvailability"></p>
       <form id="preRegistrationForm">
         <div class="registrationGrid">
           <label class="formGroup">Código da operação<input name="code" maxlength="6" pattern="[A-Za-z0-9]{6}" required></label>
@@ -214,20 +219,38 @@
           <label class="formGroup">Celular<input name="phone" type="tel" maxlength="24" autocomplete="tel" required></label>
           <label class="formGroup">Contato de emergência<input name="emergencyName" maxlength="50" minlength="2" required></label>
           <label class="formGroup">Telefone de emergência<input name="emergencyPhone" type="tel" maxlength="24" required></label>
+          <label class="formGroup" id="registrationTeamField" hidden>Time pretendido
+            <select name="requestedTeam">
+              <option value="">Indiferente / Sorteio</option>
+              <option value="ct">Time 1</option>
+              <option value="terrorist">Time 2</option>
+            </select>
+          </label>
         </div>
         <label class="consentLine"><input name="consent" type="checkbox" required> Autorizo o organizador a usar estes dados para inscrição e contato nesta partida.</label>
         <button class="btnPrimary" type="submit">Enviar inscrição</button>
       </form>
       <p id="preRegistrationStatus" role="status"></p>
+      <div id="registrationNextActions" hidden style="margin-top:10px">
+        <button class="btnPrimary" id="enterRegisteredGame" type="button">Entrar na sala do jogo</button>
+      </div>
       <button class="btnSecondary" id="refreshRegistration" type="button">Consultar inscrição</button>
     </section>
 
     <section class="portalBox" id="organizerSection" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.access()">Voltar às operações</button>
       <h2 id="organizerTitle">Preparação de equipes</h2>
+      <p class="muted" id="enrollmentOpenStatus"></p>
+      <button class="btnPrimary" id="configureAfterEnrollment" type="button" style="margin-bottom:12px">Configurar o jogo</button>
+      <div class="registrationGrid" style="margin-bottom:12px">
+        <label class="formGroup">Nome da Força 1 / Time 1<input id="registrationForce1Name" maxlength="24" value="Time 1 - CT"></label>
+        <label class="formGroup">Nome da Força 2 / Time 2<input id="registrationForce2Name" maxlength="24" value="Time 2 - Terrorista"></label>
+      </div>
       <label class="consentLine"><input id="preRegistrationOpen" type="checkbox"> Inscrições antecipadas abertas</label>
-      <div class="shareRow"><input id="registrationLink" readonly aria-label="Link de inscrição"><button class="btnSecondary" id="copyRegistrationLink" type="button">Copiar link</button></div>
-      <div class="rosterToolbar"><input id="preRegistrationSearch" placeholder="Buscar jogador ou agremiação" aria-label="Buscar inscrições"><button id="registrationPrev" type="button" class="btnSecondary">Anterior</button><span id="registrationPage"></span><button id="registrationNext" type="button" class="btnSecondary">Próxima</button></div>
+      <label class="formGroup" style="margin-top:8px">Capacidade máxima de vagas<input id="registrationCapacity" type="number" min="1" max="1000" placeholder="Sem limite"></label>
+      <label class="consentLine" style="margin-top:6px"><input id="registrationTeamChoice" type="checkbox"> Permitir que o jogador escolha o time</label>
+      <div class="shareRow" style="margin-top:12px"><input id="registrationLink" readonly aria-label="Link de inscrição"><button class="btnSecondary" id="copyRegistrationLink" type="button">Copiar link</button></div>
+      <div class="rosterToolbar" style="margin-top:12px"><input id="preRegistrationSearch" placeholder="Buscar jogador ou agremiação" aria-label="Buscar inscrições"><button id="registrationPrev" type="button" class="btnSecondary">Anterior</button><span id="registrationPage"></span><button id="registrationNext" type="button" class="btnSecondary">Próxima</button></div>
       <div id="preRegistrationRoster" class="sessionList"></div>
     </section>
 
