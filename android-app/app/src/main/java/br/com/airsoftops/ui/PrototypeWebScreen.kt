@@ -89,8 +89,15 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     request: WebResourceRequest
                 ): Boolean {
                     val url = request.url.toString()
-                    if (url.contains("airsoft.local") || url.contains("netlify.app") || url.contains("supabase.co") || url.contains("google.com") || url.contains("accounts.google.com")) {
+                    if (url.contains("airsoft.local") || url.contains("netlify.app")) {
                         return false
+                    }
+                    if (url.contains("accounts.google.com") || url.contains("supabase.co/auth") || url.contains("provider=google")) {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        } catch (_: Exception) {}
+                        return true
                     }
                     return false
                 }

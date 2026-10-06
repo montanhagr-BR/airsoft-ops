@@ -106,12 +106,9 @@ const AirsoftPortal = (() => {
   }
 
   function getRedirectUrl(flow) {
-    const url = new URL(window.location.protocol === 'file:' || window.location.hostname === 'airsoft.local'
-      ? (config.webRedirectUrl || 'https://warm-hummingbird-8988f6.netlify.app/')
-      : window.location.href);
-    for (const key of ['code', 'error', 'error_code', 'error_description']) url.searchParams.delete(key);
+    const url = new URL('https://warm-hummingbird-8988f6.netlify.app/');
     url.searchParams.set('flow', flow || (destination === 'registration' ? 'registration' : 'dashboard'));
-    return url.origin + url.pathname + url.search;
+    return url.href;
   }
 
   // --- AUTHENTICATION FUNCTIONS ---
