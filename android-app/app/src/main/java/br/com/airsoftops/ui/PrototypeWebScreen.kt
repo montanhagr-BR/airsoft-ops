@@ -3,6 +3,7 @@ package br.com.airsoftops.ui
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.media.AudioManager
@@ -82,6 +83,20 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                     pageLoaded = false
                     loadError = null
+                }
+                override fun shouldOverrideUrlLoading(
+                    view: WebView,
+                    request: WebResourceRequest
+                ): Boolean {
+                    val url = request.url.toString()
+                    if (url.contains("airsoft.local") || url.contains("netlify.app") || url.contains("supabase.co") || url.contains("accounts.google.com") || url.contains("google.com")) {
+                        return false
+                    }
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
+                    } catch (_: Exception) {}
+                    return true
                 }
                 override fun shouldInterceptRequest(
                     view: WebView,
