@@ -125,6 +125,11 @@ const AirsoftPortal = (() => {
     if (params.has('registration') || params.get('flow') === 'registration') { accessRequested = true; destination = 'registration'; }
     else if (params.get('flow') || params.has('code') || hash.has('access_token')) accessRequested = true;
     if (callbackError) { currentTab = params.get('flow') === 'recovery' ? 'reset' : 'confirm'; accessRequested = true; }
+
+    accessRequested = true;
+    destination = 'dashboard';
+    renderState();
+
     try {
       const client = getClient();
 
