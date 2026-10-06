@@ -150,8 +150,9 @@
     </div>
   </header>
   <div class="setup" id="setup">
-    <h2>Credenciamento do jogador</h2>
-    <p class="muted">Preencha os dados para esta partida. O Controlador revisará a ficha e definirá o lado operacional.</p>
+    <h2>Inscrição do jogador</h2>
+    <p class="muted">A inscrição antecipada e a inscrição do jogo usam a mesma ficha. Seu cadastro e sua força acompanham você até o início da partida.</p>
+    <div hidden aria-hidden="true">
     <div class="registrationBlock" id="registrationForm">
       <h3>Identificação</h3>
       <label>Nome do jogador <input id="playerName" maxlength="40" placeholder="Nome completo ou indicativo" autocomplete="name"></label>
@@ -168,7 +169,8 @@
       <label>Nome do contato <input id="emergencyName" maxlength="50" placeholder="Nome do responsável" autocomplete="off"></label>
       <label>Telefone do contato <input id="emergencyPhone" type="tel" maxlength="24" placeholder="(00) 00000-0000" autocomplete="off"></label>
     </div>
-    <div class="registrationState"><strong id="registrationStateTitle">Cadastro não enviado</strong><p class="muted" id="registrationStatus">Preencha a ficha e envie para aprovação.</p></div>
+    </div>
+    <div class="registrationState"><strong id="registrationStateTitle">Cadastro não enviado</strong><p class="muted" id="registrationStatus">Abra a ficha única para reservar sua vaga ou consultar sua inscrição.</p></div>
     <div class="registrationActions"><button class="primary" id="requestRegistration">Enviar cadastro</button><button id="cancelRegistration" type="button" hidden>Corrigir ficha</button></div>
     <p class="muted">A ficha fica vinculada à inscrição desta operação. Sua equipe será definida pelo Controlador.</p>
     <button class="primary big" id="registerCt" hidden>Cadastro legado CT</button>
@@ -503,10 +505,10 @@
       roleBadge.className = 'badge';
       const pending = Boolean(player) && !editingRegistration;
       registrationStateTitle.textContent = editingRegistration ? 'Cadastro em edição' : pending ? 'Aguardando aprovação' : (state.playerRegistrationOpen === false ? 'Cadastro fechado' : 'Cadastro não enviado');
-      registrationStatus.textContent = editingRegistration ? 'Corrija os dados e envie novamente. A ficha anterior permanece salva até o envio.' : pending ? 'Ficha recebida. O Controlador precisa revisar e definir o lado da partida.' : (state.playerRegistrationOpen === false ? 'O Controlador ainda não liberou novos cadastros.' : 'Preencha a ficha e envie para aprovação.');
-      requestRegistration.disabled = state.playerRegistrationOpen === false || Boolean(player);
-      requestRegistration.textContent = pending ? 'Cadastro enviado' : 'Enviar cadastro';
-      cancelRegistration.hidden = !pending;
+      registrationStatus.textContent = editingRegistration ? 'Corrija os dados e envie novamente. A ficha anterior permanece salva até o envio.' : pending ? 'Vaga reservada. Aguarde a organização distribuir sua força e abrir o Controle. Você pode consultar os dados na mesma ficha.' : (state.playerRegistrationOpen === false ? 'O Controlador ainda não liberou novos cadastros.' : 'Abra a ficha única para reservar sua vaga ou consultar sua inscrição.');
+      requestRegistration.disabled = false;
+      requestRegistration.textContent = pending ? 'Consultar minha inscrição' : 'Abrir ficha de inscrição';
+      cancelRegistration.hidden = true;
       [playerName, hasOrganization, organizationName, playerEmail, playerPhone, emergencyName, emergencyPhone].forEach(field => field.disabled = pending);
       if (pending && shownRegistrationId !== playerId + ':' + state.resetId) {
         shownRegistrationId = playerId + ':' + state.resetId;
@@ -1034,33 +1036,7 @@
       return completed;
     });
   }
-  requestRegistration.onclick = async () => {
-    const s = AirsoftBus.read();
-    const name = playerName.value.trim();
-    const email = playerEmail.value.trim();
-    const phone = playerPhone.value.trim();
-    const emergencyContact = emergencyName.value.trim();
-    const emergencyContactPhone = emergencyPhone.value.trim();
-    const organization = hasOrganization.checked ? organizationName.value.trim() : '';
-    if (s.playerRegistrationOpen === false) { showPopup('Cadastro fechado', 'O Controlador ainda não abriu o cadastro de jogadores.', 'Times'); return; }
-    if (name.length < 2) { showPopup('Nome necessário', 'Informe um nome ou indicativo com pelo menos dois caracteres.', 'Cadastro'); return; }
-    if (!/^\S+@\S+\.\S+$/.test(email)) { showPopup('Email inválido', 'Informe um endereço de email válido.', 'Cadastro'); return; }
-    if (phone.replace(/\D/g, '').length < 8) { showPopup('Celular inválido', 'Informe um celular de contato válido.', 'Cadastro'); return; }
-    if (emergencyContact.length < 2 || emergencyContactPhone.replace(/\D/g, '').length < 8) { showPopup('Contato de emergência', 'Informe nome e telefone válidos para o contato de emergência.', 'Cadastro'); return; }
-    if (hasOrganization.checked && organization.length < 2) { showPopup('Agremiação necessária', 'Informe o nome da sua agremiação ou desmarque essa opção.', 'Cadastro'); return; }
-    requestRegistration.disabled = true;
-    try {
-      await AirsoftCloud.registerPlayer({ name, email, phone, organization, emergencyName: emergencyContact, emergencyPhone: emergencyContactPhone, consent: true });
-    } catch (error) {
-      showPopup('Inscrição não enviada', error.message, 'Cadastro');
-      return;
-    } finally { requestRegistration.disabled = false; }
-    editingRegistration = false;
-    shownRegistrationId = null;
-    applyRegistration();
-    localStorage.setItem(playerResetKey, String(s.resetId));
-    showPopup('Solicitação enviada', 'Aguarde o Controlador aprovar e definir seu time.', 'Cadastro');
-  };
+  requestRegistration.onclick = () => AirsoftCloud.openRegistration();
   cancelRegistration.onclick = () => {
     editingRegistration = true;
     localStorage.setItem(registrationStateKey, 'none');

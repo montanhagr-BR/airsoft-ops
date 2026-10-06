@@ -215,6 +215,13 @@ const AirsoftCloud = (() => {
     await subscribe();
     return Number(result.data?.imported || 0);
   }
+  function openRegistration() {
+    if (!connection) throw new Error('Entre na operação para abrir sua inscrição.');
+    const url = new URL('index.html', location.href);
+    url.searchParams.set('registration', connection.joinCode || connection.code);
+    if (new URLSearchParams(location.search).has('android')) url.searchParams.set('android', '1');
+    location.href = url.href;
+  }
   async function assignPlayer(registrationId, team, decision = 'approved') {
     if (!connection || role !== 'controller') throw new Error('Somente o Controle pode aprovar.');
     const result = await client.rpc('assign_game_registration', { registration_id: registrationId, assigned_team: team, decision });
@@ -264,6 +271,15 @@ const AirsoftCloud = (() => {
       throw new Error('Somente o proprietário desta sala pode abrir o Controle.');
     }
     if (snapshot.data.status === 'archived') { await leaveRoom(); return; }
+    // Prepare the authoritative roster before displaying or publishing local configuration.
+    if (role === 'controller' && snapshot.data.status === 'setup') {
+      const formation = await client.rpc('import_registration_forces', { target_session: connection.sessionId });
+      if (formation.error) throw formation.error;
+      snapshot.data.state = formation.data.state;
+      snapshot.data.state_version = formation.data.state_version;
+      const status = document.getElementById('preRegistrationImportStatus');
+      if (status) status.textContent = 'Inscrições carregadas automaticamente. Jogadores distribuídos nas forças estão aprovados; sem força permanecem pendentes.';
+    }
     if (snapshot.data.state) {
       applyingRemote = true;
       try { AirsoftBus.write(snapshot.data.state); }
@@ -343,6 +359,8 @@ const AirsoftCloud = (() => {
   }
   async function openApp() {
     if (role === 'controller' && connection) {
+      try { await subscribe(); }
+      catch (error) { setStatus("Não foi possível carregar as inscrições: " + error.message, "error"); return; }
       const current = AirsoftBus.read();
       if (!current.running && !current.finished) {
         const preparation = { ...current, running: false, finished: false, startedAt: null,
@@ -430,7 +448,7 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom, registerPlayer, assignPlayer, importPreRegistrations, back: () => {
+  return { createRoom, joinRoom, leaveRoom, registerPlayer, openRegistration, assignPlayer, importPreRegistrations, back: () => {
     if (role === 'controller') leaveControl(); else leaveRoom();
     return true;
   } };

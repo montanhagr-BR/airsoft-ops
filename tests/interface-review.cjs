@@ -21,6 +21,7 @@ const mock = `(() => {
   async signUp(){return {data:{session:null}}},async resend(){return {error:null}},async resetPasswordForEmail(){return {error:null}},async updateUser(){return {error:null}},
   async signOut(){window.__reviewUser=null;listener?.('SIGNED_OUT',null);return {error:null}}},from:query,
   async rpc(name,args){
+   if(name==='import_registration_forces')return {data:{imported:2,state:{...state(),players:registrations.map(r=>({id:'P-'+r.id,registrationId:r.id,name:r.name,organization:r.organization,status:r.planned_team?'approved':'pending',team:r.planned_team}))}}};
    if(name==='registration_force_summary')return {data:{unassigned:registrations.filter(r=>!r.planned_team).length,ct:registrations.filter(r=>r.planned_team==='ct').length,terrorist:registrations.filter(r=>r.planned_team==='terrorist').length,rejected:0,pending_import:3}};
    if(name==='plan_registration_force'){registrations.find(r=>r.id===args.registration_id).planned_team=args.force_team;return {data:1}};
    return {data:name==='my_waitlist_events'?[]:[{session_id:'review-room',join_code:'ABC123',member_id:'review-member',session_state:state()}]}},

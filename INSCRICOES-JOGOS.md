@@ -38,7 +38,7 @@ Migração 009 aplicada ao Supabase. No painel, abra **Inscrições e reservas**
 
 Em cada ficha, selecione a força e clique em **Salvar força**. Marque **Mover a agremiação inteira** para distribuir juntos todos os inscritos ativos da mesma agremiação. A formação é salva no banco sem aprovar a participação nem substituir a força já importada. Os nomes das forças ficam na seção **Nomes das forças**.
 
-No Controle da mesma operação, em **Pré-cadastro / Equipes**, clique em **Importar pré-inscrições**. A importação confirma as forças preparadas e aprova esses jogadores. Quem estiver sem força fica pendente; retirar um jogador de uma força e reimportar retira sua aprovação anterior. Recusados não são importados. A importação preserva as configurações da partida e pode ser repetida sem duplicar jogadores. Somente o dono da sala no Controle pode importar, antes de iniciar a partida.
+Ao abrir o Controle da mesma operação, as inscrições são carregadas automaticamente em **Pré-cadastro / Equipes**. Os jogadores distribuídos nas forças são aprovados; os que estão sem força aparecem como pendentes. **Atualizar inscrições e forças** permite buscar alterações recentes sem fechar o painel. Recusados não entram na lista. A carga preserva as configurações e pode ser repetida sem duplicar jogadores. Ajustes feitos no Controle também atualizam a formação do organizador e permanecem ao reabrir. A importação é bloqueada depois do início da partida.
 
 Validação transacional do banco passou (`tests/force-planning.sql`), com dados sintéticos revertidos. Inclui planejamento separado da formação oficial, distribuição por agremiação, nomes, permissões, importação, reimportação, retirada e bloqueio após o início.
 
@@ -47,6 +47,10 @@ Validação transacional do banco passou (`tests/force-planning.sql`), com dados
 
 No painel, informe somente o **Nome do evento** e clique em **Abrir inscrições antecipadas**. O sistema abre as inscrições e leva diretamente à tela do organizador, com link para compartilhar. Não abre o Controle nem define modo ou cronômetros nesse momento.
 
-A sequência passa a ser: **inscrições → organização das forças → configuração no Controle → partida**. O organizador recebe as fichas, organiza as forças e depois usa **Continuar para configuração do jogo**. No Controle, importa a pré-inscrição e define cenário, campo, dispositivos e duração.
+A sequência passa a ser: **ficha única de inscrição → organização das forças → Controle com listas prontas → configuração → início da partida**. O organizador recebe as fichas, organiza as forças e depois usa **Continuar para configuração do jogo**. O Controle carrega os jogadores automaticamente antes de exibir a preparação. Depois são definidos cenário, campo, dispositivos e duração.
+
+O terminal do jogador usa **Abrir ficha de inscrição** ou **Consultar minha inscrição** para abrir a mesma ficha da inscrição antecipada, com o código da operação preenchido. Dados já salvos aparecem nessa ficha. Jogadores aprovados continuam acessando diretamente seu terminal e sua força, sem novo cadastro. Vagas limitadas ou ilimitadas, escolha opcional de time e validação dos dados continuam na ficha única.
+
+Migração 010 sincroniza aprovações e forças e preserva aprovações anteriores feitas diretamente no Controle. Validação: teste de carga automática antes da exibição, bloqueio em partida ativa, preservação em falha de conexão e teste transacional de reabertura após alteração de força no Controle.
 
 Para eventos existentes, o botão **Inscrições e reservas** aparece antes de **Configurar jogo**. Os limites de vagas e a escolha de time continuam em **Configurações das inscrições**. O teste de criação no Supabase confirmou abertura e link funcionando sem parâmetros de jogo, com dados de teste revertidos.

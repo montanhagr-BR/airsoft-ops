@@ -124,7 +124,7 @@ window.PreRegistration = (() => {
     for(const [key,label] of [['unassigned','Sem força'],['ct',teamName('ct')],['terrorist',teamName('terrorist')],['rejected','Recusados']]){
       const card=document.createElement('div');const total=document.createElement('b');total.textContent=counts[key] || 0;const title=document.createElement('span');title.textContent=label;card.append(total,title);byId('forceSummary').append(card);
     }
-    byId('forceImportStatus').textContent=`${counts.pending_import || 0} jogador(es) com formação nova ou alterada para importar no Controle.`;
+    byId('forceImportStatus').textContent=`${counts.pending_import || 0} jogador(es) com formação nova ou alterada. O Controle carregará as listas automaticamente ao abrir.`;
     const total = Math.max(1,Math.ceil((count || 0)/pageSize));
     if (page >= total) { page = total-1; return loadRoster(); }
     byId('registrationPage').textContent = `${page+1}/${total} | ${count || 0} inscritos`;
