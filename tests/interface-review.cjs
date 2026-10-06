@@ -10,16 +10,20 @@ fs.mkdirSync(evidence, { recursive: true });
 const mock = `(() => {
  const user = {id:'review-user',email:'operator@example.com',user_metadata:{full_name:'Operador de teste'}};
  let listener; window.__reviewUser = null;
+ const registrations=[{id:'r1',name:'Jogador teste A',organization:'Esquadra Alpha',status:'pending',planned_team:null,requested_team:'ct',email:'a@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}, {id:'r2',name:'Jogador teste B',organization:'Esquadra Bravo',status:'pending',planned_team:'ct',email:'b@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}, {id:'r3',name:'Jogador teste C',organization:'Esquadra Delta',status:'pending',planned_team:'terrorist',email:'c@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}];
  const state = () => typeof AirsoftBus !== 'undefined' ? AirsoftBus.read() : {operationName:'Operação de teste'};
  const sessions = [{id:'review-room',join_code:'ABC123',status:'setup',state:{operationName:'Operação de teste'}}];
  const query = table => ({ select(){return this},eq(){return this},neq(){return this},order(){return this},range(){return this},or(){return this},update(){return this},insert(){return this},
   async limit(){return {data:sessions}},async single(){return {data:{state:state(),status:'setup',controller_id:window.__reviewControllerId||'review-user',registration_open:true}}},
-  async maybeSingle(){return {data:null}},then(resolve){resolve({data:table==='game_sessions'?sessions:[],count:0,error:null})} });
+  async maybeSingle(){return {data:null}},then(resolve){resolve({data:table==='game_sessions'?sessions:table==='game_registrations'?registrations:[],count:table==='game_registrations'?registrations.length:0,error:null})} });
  const client={auth:{onAuthStateChange(cb){listener=cb},async getSession(){return {data:{session:window.__reviewUser?{user}:null}}},
   async signInWithPassword(){window.__reviewUser=user;listener?.('SIGNED_IN',{user});return {data:{user}}},
   async signUp(){return {data:{session:null}}},async resend(){return {error:null}},async resetPasswordForEmail(){return {error:null}},async updateUser(){return {error:null}},
   async signOut(){window.__reviewUser=null;listener?.('SIGNED_OUT',null);return {error:null}}},from:query,
-  async rpc(name){return {data:name==='my_waitlist_events'?[]:[{session_id:'review-room',join_code:'ABC123',member_id:'review-member',session_state:state()}]}},
+  async rpc(name,args){
+   if(name==='registration_force_summary')return {data:{unassigned:registrations.filter(r=>!r.planned_team).length,ct:registrations.filter(r=>r.planned_team==='ct').length,terrorist:registrations.filter(r=>r.planned_team==='terrorist').length,rejected:0,pending_import:3}};
+   if(name==='plan_registration_force'){registrations.find(r=>r.id===args.registration_id).planned_team=args.force_team;return {data:1}};
+   return {data:name==='my_waitlist_events'?[]:[{session_id:'review-room',join_code:'ABC123',member_id:'review-member',session_state:state()}]}},
   channel(){return {on(){return this},subscribe(cb){cb('SUBSCRIBED');return this}}},async removeChannel(){}};
  window.supabase={createClient(){return client}};
  window.__reviewLogin=()=>{window.__reviewUser=user;listener?.('SIGNED_IN',{user})};
@@ -42,7 +46,7 @@ if (require.main === module) (async()=>{
   const overflow=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));
   assert.ok(overflow.scroll<=overflow.width+2,`${name}: horizontal overflow ${JSON.stringify(overflow)}`);
  }
- for(const width of [320,390,412]){
+ for(const width of [320,390,412,1280]){
   const context=await browser.newContext({viewport:{width,height:844},isMobile:true,hasTouch:true});
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   // Disallow external services, including QR image generation, map and auth servers.
@@ -60,7 +64,12 @@ if (require.main === module) (async()=>{
   await page.evaluate(()=>window.__reviewLogin());await page.evaluate(()=>AirsoftPortal.access());await capture(page,`web-${width}-painel`);
   await page.getByRole('button',{name:'Inscrição antecipada',exact:true}).click();await capture(page,`web-${width}-inscricao`);
   await page.getByRole('button',{name:'Voltar ao painel',exact:true}).click();
-  await page.getByRole('button',{name:'Inscrições e reservas',exact:true}).click();await capture(page,`web-${width}-organizador`);
+  await page.getByRole('button',{name:'Inscrições e reservas',exact:true}).click();await page.locator('#forceSummary').waitFor();await capture(page,`web-${width}-organizador`);
+  const stagedPlayer=page.locator('.registrationRow').filter({hasText:'Jogador teste A'});
+  await stagedPlayer.locator('select').selectOption('terrorist');await stagedPlayer.getByRole('button',{name:'Salvar força'}).click();
+  await page.waitForFunction(()=>document.getElementById('organizerFeedback').textContent.includes('Formação salva'));
+  assert.equal(await page.locator('.forceColumn').filter({has:page.locator('h3').filter({hasText:'Força 2'})}).getByText('Jogador teste A',{exact:true}).count(),1);
+  await capture(page,`web-${width}-forcas-organizadas`);
   await page.goto(base+'/index.html?flow=recovery');await page.evaluate(()=>window.__reviewLogin());
   // Simulate the SDK recovery event by reinitializing with the returned session.
   await page.evaluate(()=>AirsoftPortal.initAuth());await capture(page,`web-${width}-nova-senha`);
@@ -118,5 +127,5 @@ if (require.main === module) (async()=>{
  await accessContext.close();
  await browser.close();server.close();
  fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify({captures,errors},null,2));
- assert.deepEqual(errors,[]);console.log(`PASS: ${captures} telas revisadas a 320, 390 e 412 px, navegador e contexto Android.`);
+ assert.deepEqual(errors,[]);console.log(`PASS: ${captures} telas revisadas a 320, 390, 412 e 1280 px, navegador e contexto Android.`);
 })().catch(error=>{console.error(error);server.close();process.exit(1)});

@@ -1,0 +1,35 @@
+begin;
+do $$
+declare owner_id uuid:=gen_random_uuid(); player_a uuid:=gen_random_uuid(); player_b uuid:=gen_random_uuid(); sid uuid; ra uuid; rb uuid; result jsonb;
+ code text:=upper(substr(replace(gen_random_uuid()::text,'-',''),1,6));
+ profile jsonb:='{"name":"Teste forças","organization":"Esquadra teste","email":"teste@example.invalid","phone":"67999999999","emergencyName":"Contato teste","emergencyPhone":"67999999998","consent":true}';
+begin
+ insert into auth.users(id,email) values(owner_id,owner_id::text||'@example.invalid'),(player_a,player_a::text||'@example.invalid'),(player_b,player_b::text||'@example.invalid');
+ insert into public.game_sessions(join_code,controller_id,state) values(code,owner_id,'{"operationName":"Teste transacional forças","team1Name":"Anterior 1","team2Name":"Anterior 2","gameSeconds":5400}') returning id into sid;
+ perform set_config('request.jwt.claim.sub',player_a::text,true); ra:=public.submit_game_registration(code,profile);
+ perform set_config('request.jwt.claim.sub',player_b::text,true); rb:=public.submit_game_registration(code,profile);
+ begin perform public.plan_registration_force(ra,'ct'); raise exception 'FAIL jogador organizou forças'; exception when others then if sqlerrm not like 'Acesso restrito%' then raise; end if; end;
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ perform public.name_registration_forces(sid,'Força Azul','Força Vermelha');
+ if public.plan_registration_force(ra,'ct',true)<>2 then raise exception 'FAIL distribuição da agremiação'; end if;
+ if exists(select 1 from public.game_registrations where session_id=sid and (team is not null or status<>'pending')) then raise exception 'FAIL planejamento aprovou antes da importação'; end if;
+ if (select state->>'team1Name' from public.game_sessions where id=sid)<>'Anterior 1' then raise exception 'FAIL planejamento alterou nome oficial'; end if;
+ if (public.registration_force_summary(sid)->>'ct')::integer<>2 then raise exception 'FAIL contagem das forças'; end if;
+ perform public.set_registration_organizer(sid,player_b::text||'@example.invalid');
+ perform set_config('request.jwt.claim.sub',player_b::text,true);
+ perform public.plan_registration_force(ra,'terrorist',false);
+ begin perform public.import_registration_forces(sid); raise exception 'FAIL organizador importou sem Controle'; exception when others then if sqlerrm not like 'Somente o Controle%' then raise; end if; end;
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);
+ result:=public.import_registration_forces(sid);
+ if (result->>'imported')::integer<>2 then raise exception 'FAIL total importado'; end if;
+ if (select team from public.game_registrations where id=ra)<>'terrorist' or (select team from public.game_registrations where id=rb)<>'ct' then raise exception 'FAIL forças importadas'; end if;
+ if result->'state'->>'team1Name'<>'Força Azul' or result->'state'->>'gameSeconds'<>'5400' then raise exception 'FAIL nomes ou configuração da partida'; end if;
+ if (public.import_registration_forces(sid)->>'imported')::integer<>0 then raise exception 'FAIL importação duplicada'; end if;
+ perform public.plan_registration_force(ra,null,false);
+ perform public.import_registration_forces(sid);
+ if (select status from public.game_registrations where id=ra)<>'pending' then raise exception 'FAIL retirada da força'; end if;
+ update public.game_sessions set status='running' where id=sid;
+ begin perform public.import_registration_forces(sid); raise exception 'FAIL importação durante partida'; exception when others then if sqlerrm not like 'Importe as forças%' then raise; end if; end;
+end; $$;
+rollback;
+select 'PASS: planejamento separado, agremiação, forças nomeadas, permissões, importação, reimportação sem duplicidade, retirada e bloqueio com partida iniciada. Dados de teste revertidos.' as resultado;

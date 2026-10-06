@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Portal de operações</title>
-  <link rel="stylesheet" href="portal.css?v=20261006-reservas">
+  <link rel="stylesheet" href="portal.css?v=20261006-forcas">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="portal.js?v=20261005-cadastro" defer></script>
-  <script src="pre-registration.js?v=20261006-reservas" defer></script>
+  <script src="pre-registration.js?v=20261006-forcas" defer></script>
 </head>
 <body>
 
@@ -216,7 +216,24 @@
     </section>
     <section id="organizerSection" class="portalBox" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Voltar ao painel</button>
-      <h2 id="organizerTitle">Inscrições e reservas</h2>
+      <h2 id="organizerTitle">Pré-inscrição · Organização das forças</h2>
+      <p>Distribua os inscritos entre as forças. Depois, no Controle, use <strong>Importar pré-inscrições</strong> para carregar a formação na partida.</p>
+      <details class="organizerOptions"><summary>Nomes das forças</summary><form id="forceNamesForm" class="registrationGrid">
+        <label>Nome da força 1<input id="registrationForce1Name" required maxlength="24"></label>
+        <label>Nome da força 2<input id="registrationForce2Name" required maxlength="24"></label>
+        <button class="btnPrimary" type="submit">Salvar nomes das forças</button>
+      </form>
+      </details>
+      <div id="forceSummary" class="forceSummary" aria-live="polite"></div>
+      <p id="forceImportStatus" role="status"></p>
+      <button id="refreshForceRoster" class="btnSecondary" type="button">Atualizar inscritos</button>
+      <p id="organizerFeedback" role="status" aria-live="polite"></p>
+      <input id="preRegistrationSearch" placeholder="Buscar nome ou agremiação" aria-label="Buscar inscritos">
+      <p class="muted">A busca e a paginação mostram parte da lista. Os totais acima consideram todos os inscritos.</p><div id="preRegistrationRoster" class="forceBoard"></div>
+      <button id="registrationPrev" type="button" class="btnSecondary">Anterior</button>
+      <span id="registrationPage"></span>
+      <button id="registrationNext" type="button" class="btnSecondary">Próxima</button>
+      <details class="organizerOptions"><summary>Configurações e link de inscrição</summary>
       <input id="registrationLink" readonly aria-label="Link de inscrição">
       <button id="copyRegistrationLink" type="button" class="btnSecondary">Copiar link</button>
       <label><input id="preRegistrationOpen" type="checkbox"> Inscrições abertas</label>
@@ -225,17 +242,13 @@
         <label><input id="registrationTeamChoice" type="checkbox"> Permitir que o jogador escolha o time</label>
         <button class="btnPrimary" type="submit">Salvar configuração</button>
       </form>
-      <p id="organizerFeedback" role="status" aria-live="polite"></p>
-      <form id="organizerAccess" class="registrationGrid">
+      <details class="organizerOptions"><summary>Equipe de organizadores</summary><form id="organizerAccess" class="registrationGrid">
         <label>Organizador <input id="organizerEmail" type="email" required placeholder="E-mail da conta no app"></label>
         <button class="btnSecondary" type="submit">Adicionar organizador</button>
         <button id="removeOrganizer" class="btnSecondary" type="button">Remover acesso</button>
       </form>
-      <input id="preRegistrationSearch" placeholder="Buscar nome ou agremiação" aria-label="Buscar inscritos">
-      <div id="preRegistrationRoster"></div>
-      <button id="registrationPrev" type="button" class="btnSecondary">Anterior</button>
-      <span id="registrationPage"></span>
-      <button id="registrationNext" type="button" class="btnSecondary">Próxima</button>
+      </details>
+      </details>
     </section>
   </main>
 

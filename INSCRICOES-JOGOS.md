@@ -30,3 +30,14 @@ O dono adiciona ou remove organizadores pelo e-mail de uma conta já cadastrada 
 Validação pendente em banco real: duas contas concorrendo pela última vaga; edição de reserva com jogo cheio; recusado libera vaga; bloqueio de alteração do limite abaixo das reservas; jogador sem permissão não acessa organizadores; organizador removido perde acesso; escolha de time desabilitada rejeita envio manipulado.
 
 Atualização 06/10/2026: migração 008 aplicada no Supabase. Teste transacional `tests/reserved-registration.sql` passou e reverteu os dados sintéticos. Testes de interface passaram em 114 telas. Concorrência real entre aparelhos ainda requer teste.
+
+
+## Tela do organizador e importação das forças (06/10/2026)
+
+Migração 009 aplicada ao Supabase. No painel, abra **Inscrições e reservas** do jogo para acessar a tela de pré-inscrição. O quadro divide os jogadores entre **Sem força**, as duas forças nomeadas e **Recusados**. Os totais abrangem o jogo inteiro; a busca e a paginação afetam as fichas mostradas.
+
+Em cada ficha, selecione a força e clique em **Salvar força**. Marque **Mover a agremiação inteira** para distribuir juntos todos os inscritos ativos da mesma agremiação. A formação é salva no banco sem aprovar a participação nem substituir a força já importada. Os nomes das forças ficam na seção **Nomes das forças**.
+
+No Controle da mesma operação, em **Pré-cadastro / Equipes**, clique em **Importar pré-inscrições**. A importação confirma as forças preparadas e aprova esses jogadores. Quem estiver sem força fica pendente; retirar um jogador de uma força e reimportar retira sua aprovação anterior. Recusados não são importados. A importação preserva as configurações da partida e pode ser repetida sem duplicar jogadores. Somente o dono da sala no Controle pode importar, antes de iniciar a partida.
+
+Validação transacional do banco passou (`tests/force-planning.sql`), com dados sintéticos revertidos. Inclui planejamento separado da formação oficial, distribuição por agremiação, nomes, permissões, importação, reimportação, retirada e bloqueio após o início.

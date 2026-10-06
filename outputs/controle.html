@@ -10,7 +10,7 @@
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="maps-config.js?v=20261002-google-1"></script>
   <script src="airsoft-maps.js?v=20261002-field-1"></script>
-  <script src="airsoft-cloud.js?v=20261005-paridade" defer></script>
+  <script src="airsoft-cloud.js?v=20261006-forcas-paridade" defer></script>
   <style>
     * { box-sizing: border-box; }
     html { min-width: 0; overflow-x: hidden; }
@@ -293,6 +293,12 @@
           </div>
           <b>QR Code da Sala de Jogo</b>
           <span class="muted">Os jogadores escaneiam este QR ou usam o código da sala para entrar e enviar a ficha de cadastro.</span>
+        </div>
+        <div class="section" id="preRegistrationImportSection">
+          <h2>Importar formação da pré-inscrição</h2>
+          <p>Carrega as forças salvas pelo organizador e aprova os jogadores distribuídos. Quem estiver sem força continua pendente. Reimportar aplica as alterações mais recentes.</p>
+          <button id="importPreRegistrations" type="button">Importar pré-inscrições</button>
+          <p id="preRegistrationImportStatus" role="status" aria-live="polite"></p>
         </div>
         <div class="teamOps">
           <div class="sectionHead"><div><h2>Jogadores</h2><p>Solicitações precisam ser aprovadas e vinculadas a um time pelo Controlador.</p></div><span class="sectionTag" id="playerCount">0 conectados</span></div>
@@ -907,6 +913,7 @@
     locatorMovementThresholdMeters.value = s.locatorMovementThresholdMeters || 25;
   }
   function render(s) {
+    document.getElementById('importPreRegistrations').disabled = !!(s.running || s.finished || document.getElementById('importPreRegistrations').dataset.importing);
     document.body.classList.toggle('dataMode', isDataMode(s));
     document.body.classList.toggle('terminalMode', isTerminalMode(s));
     document.body.classList.toggle('locatorMode', isLocatorMode(s));
@@ -1326,6 +1333,18 @@
     googleTacticalMap = instance;
     if (instance) renderTeamControl(AirsoftBus.read());
   });
+  document.getElementById('importPreRegistrations').onclick = async () => {
+    const button=document.getElementById('importPreRegistrations');
+    const feedback=document.getElementById('preRegistrationImportStatus');
+    if(button.dataset.importing)return;button.dataset.importing='true';
+    button.disabled=true;feedback.textContent='Importando formação...';
+    try {
+      const count=await AirsoftCloud.importPreRegistrations();
+      pullForm(AirsoftBus.read());
+      feedback.textContent=count ? `${count} jogador(es) atualizado(s) no Controle.` : 'Formação já atualizada. Nomes das forças carregados.';
+    } catch(error) { feedback.textContent=error.message; }
+    finally { delete button.dataset.importing; button.disabled=AirsoftBus.read().running || AirsoftBus.read().finished; }
+  };
   showControlTab('teams');
   window.addEventListener('airsoft-room-ready', () => {
     const state = AirsoftBus.read();

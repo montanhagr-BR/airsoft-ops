@@ -86,14 +86,16 @@ window.PreRegistration = (() => {
     operation = session;
     page = 0;
     byId('preRegistrationSearch').value = '';
-    byId('organizerTitle').textContent = 'Inscrições e reservas — ' + (session.state?.operationName || 'Operação');
+    byId('organizerTitle').textContent = 'Pré-inscrição · ' + (session.state?.operationName || 'Operação');
     const localHost = ['airsoft.local', 'localhost', '127.0.0.1'].includes(location.hostname);
     const publicBase = localHost ? 'https://warm-hummingbird-8988f6.netlify.app/' : location.origin + location.pathname;
     byId('registrationLink').value = publicBase + '?registration=' + encodeURIComponent(session.join_code);
     try {
-      const result = await client().from('game_sessions').select('registration_open,registration_capacity,registration_team_choice,controller_id,state,status').eq('id', session.id).single();
+      const result = await client().from('game_sessions').select('registration_open,registration_capacity,registration_team_choice,controller_id,state,status,registration_force1_name,registration_force2_name').eq('id', session.id).single();
       if (result.error) throw result.error;
       operation = {...session,...result.data};
+      byId('registrationForce1Name').value=result.data.registration_force1_name || result.data.state?.team1Name || 'Força 1';
+      byId('registrationForce2Name').value=result.data.registration_force2_name || result.data.state?.team2Name || 'Força 2';
       byId('preRegistrationOpen').checked = result.data.registration_open;
       byId('registrationCapacity').value = result.data.registration_capacity ?? '';
       byId('registrationTeamChoice').checked = result.data.registration_team_choice;
@@ -112,6 +114,15 @@ window.PreRegistration = (() => {
     const { data, count, error } = await query.order('created_at').order('id').range(page*pageSize, (page+1)*pageSize-1);
     if (version !== requestVersion) return;
     if (error) { report(error); return; }
+    const summary=await client().rpc('registration_force_summary',{target_session:operation.id});
+    if(version!==requestVersion)return;
+    if(summary.error){report(summary.error);return;}
+    const counts=summary.data || {};
+    byId('forceSummary').replaceChildren();
+    for(const [key,label] of [['unassigned','Sem força'],['ct',teamName('ct')],['terrorist',teamName('terrorist')],['rejected','Recusados']]){
+      const card=document.createElement('div');const total=document.createElement('b');total.textContent=counts[key] || 0;const title=document.createElement('span');title.textContent=label;card.append(total,title);byId('forceSummary').append(card);
+    }
+    byId('forceImportStatus').textContent=`${counts.pending_import || 0} jogador(es) com formação nova ou alterada para importar no Controle.`;
     const total = Math.max(1,Math.ceil((count || 0)/pageSize));
     if (page >= total) { page = total-1; return loadRoster(); }
     byId('registrationPage').textContent = `${page+1}/${total} | ${count || 0} inscritos`;
@@ -119,13 +130,17 @@ window.PreRegistration = (() => {
     byId('registrationNext').disabled = page+1 >= total;
     const list = byId('preRegistrationRoster');
     list.replaceChildren();
-    if (!data?.length) { list.textContent = 'Nenhuma inscricao encontrada.'; return; }
+    if (!data?.length) { list.textContent = 'Nenhuma inscrição encontrada.'; return; }
+    const columns={};
+    for(const [key,label] of [['unassigned','Sem força'],['ct',teamName('ct')],['terrorist',teamName('terrorist')],['rejected','Recusados']]){
+      const column=document.createElement('section');column.className='forceColumn';const heading=document.createElement('h3');heading.textContent=label;column.append(heading);columns[key]=column;list.append(column);
+    }
     for (const row of data) {
       const item = document.createElement('div');
       item.className = 'registrationRow';
       const details = document.createElement('div');
       const name = document.createElement('b'); name.textContent = row.name;
-      const info = document.createElement('small'); info.textContent = `${row.organization || 'Sem agremiação'} | ${row.status === 'approved' ? 'Aprovado' : row.status === 'rejected' ? 'Recusado' : 'Vaga reservada'} | ${teamName(row.team || row.requested_team)}`;
+      const info = document.createElement('small'); info.textContent = `${row.organization || 'Sem agremiação'} | ${row.status === 'approved' ? 'Aprovado' : row.status === 'rejected' ? 'Recusado' : 'Vaga reservada'} | ${row.status==='approved' && row.team!==row.planned_team ? 'Alteração aguardando importação' : row.imported_at ? 'Importado no Controle' : 'Aguardando importação'}${row.requested_team ? ' · Preferência: '+teamName(row.requested_team) : ''}`;
       const contacts = document.createElement('details');
       const summary = document.createElement('summary'); summary.textContent = 'Contatos';
       const text = document.createElement('p'); text.textContent = `${row.email} | ${row.phone} | Emergencia: ${row.emergency_name} (${row.emergency_phone})`;
@@ -133,19 +148,21 @@ window.PreRegistration = (() => {
       item.append(details);
       const team = document.createElement('select');
       team.setAttribute('aria-label', 'Time de ' + row.name);
-      for (const value of ['ct','terrorist']) { const option = document.createElement('option'); option.value=value; option.textContent=teamName(value); team.append(option); }
-      team.value = row.team || row.requested_team || 'ct';
+      for (const value of ['','ct','terrorist']) { const option = document.createElement('option'); option.value=value; option.textContent=teamName(value); team.append(option); }
+      team.value = row.planned_team || '';
+      team.disabled=operation.status!=='setup' || row.status==='rejected';
       item.append(team);
-      for (const [decision,label] of [['approved','Aprovar'],['rejected','Recusar']]) {
+      const group=document.createElement('input');group.type='checkbox';const groupLabel=document.createElement('label');groupLabel.append(group,document.createTextNode(' Mover a agremiação inteira'));groupLabel.hidden=!row.organization;item.append(groupLabel);
+      for (const [decision,label] of [['plan','Salvar força'],['rejected','Recusar']]) {
         const button = document.createElement('button'); button.type='button'; button.className='btnSecondary'; button.textContent=label;
-        button.disabled = operation.status !== 'setup';
+        button.disabled = operation.status !== 'setup' || row.status==='rejected';
         button.addEventListener('click',async()=>{
           button.disabled=true;
-          try { const result=await client().rpc('assign_game_registration',{registration_id:row.id,assigned_team:team.value,decision}); if(result.error)throw result.error; await loadRoster(); }
+          try { const result=decision==='plan' ? await client().rpc('plan_registration_force',{registration_id:row.id,force_team:team.value || null,move_organization:group.checked}) : await client().rpc('assign_game_registration',{registration_id:row.id,assigned_team:row.team || 'ct',decision}); if(result.error)throw result.error; byId('organizerFeedback').textContent=decision==='plan' ? 'Formação salva. Importe no Controle quando estiver pronta.' : 'Inscrição recusada.'; await loadRoster(); }
           catch(error){report(error);button.disabled=false;}
         });item.append(button);
       }
-      list.append(item);
+      columns[row.status==='rejected' ? 'rejected' : row.planned_team || 'unassigned'].append(item);
     }
   }
 
@@ -163,6 +180,8 @@ window.PreRegistration = (() => {
     byId('registrationNext').addEventListener('click',()=>{page++;loadRoster();});
     let searchTimer;
     byId('preRegistrationSearch').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=0;loadRoster();},250);});
+    byId('forceNamesForm').addEventListener('submit',saveForceNames);
+    byId('refreshForceRoster').addEventListener('click',loadRoster);
     byId('registrationSettings').addEventListener('submit', saveSettings);
     byId('organizerAccess').addEventListener('submit', event=>{event.preventDefault();changeOrganizer(false);});
     byId('removeOrganizer').addEventListener('click',()=>changeOrganizer(true));
@@ -172,7 +191,14 @@ window.PreRegistration = (() => {
     });
   });
   function teamName(value) {
-    return value === 'ct' ? operation?.state?.team1Name || 'Time 1' : value === 'terrorist' ? operation?.state?.team2Name || 'Time 2' : 'Organizador define';
+    return value === 'ct' ? operation?.registration_force1_name || operation?.state?.team1Name || 'Força 1' : value === 'terrorist' ? operation?.registration_force2_name || operation?.state?.team2Name || 'Força 2' : 'Sem força';
+  }
+  async function saveForceNames(event){
+    event.preventDefault();if(!operation || !event.target.reportValidity())return;
+    const button=event.target.querySelector('button');button.disabled=true;
+    const force1_name=byId('registrationForce1Name').value.trim(),force2_name=byId('registrationForce2Name').value.trim();
+    try{const result=await client().rpc('name_registration_forces',{target_session:operation.id,force1_name,force2_name});if(result.error)throw result.error;operation.registration_force1_name=force1_name;operation.registration_force2_name=force2_name;byId('organizerFeedback').textContent='Nomes salvos para a importação no Controle.';await loadRoster();}
+    catch(error){report(error);}finally{button.disabled=false;}
   }
   async function saveSettings(event) {
     event.preventDefault(); if (!operation || !event.target.reportValidity()) return;

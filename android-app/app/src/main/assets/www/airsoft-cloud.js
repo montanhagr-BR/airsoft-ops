@@ -202,6 +202,19 @@ const AirsoftCloud = (() => {
     if (result.error) throw result.error;
     await subscribe();
   }
+  async function importPreRegistrations() {
+    if (!connection || role !== 'controller') throw new Error('Abra o Controle de uma sala online para importar.');
+    if (syncing) throw new Error('Aguarde a sincronização e tente novamente.');
+    if (AirsoftBus.read().running || AirsoftBus.read().finished) throw new Error('Importe antes de iniciar a partida.');
+    clearTimeout(syncTimer);
+    await publishControllerState(AirsoftBus.read());
+    const result=await client.rpc('import_registration_forces',{target_session:connection.sessionId});
+    if(result.error)throw result.error;
+    applyingRemote=true;
+    try { if(result.data?.state)AirsoftBus.write(result.data.state); } finally { applyingRemote=false; }
+    await subscribe();
+    return Number(result.data?.imported || 0);
+  }
   async function assignPlayer(registrationId, team, decision = 'approved') {
     if (!connection || role !== 'controller') throw new Error('Somente o Controle pode aprovar.');
     const result = await client.rpc('assign_game_registration', { registration_id: registrationId, assigned_team: team, decision });
@@ -417,7 +430,7 @@ const AirsoftCloud = (() => {
     } catch (error) { setStatus(error.message || 'Sem conexão', 'error'); renderGate(); }
   }
   addEventListener('DOMContentLoaded', init);
-  return { createRoom, joinRoom, leaveRoom, registerPlayer, assignPlayer, back: () => {
+  return { createRoom, joinRoom, leaveRoom, registerPlayer, assignPlayer, importPreRegistrations, back: () => {
     if (role === 'controller') leaveControl(); else leaveRoom();
     return true;
   } };

@@ -472,3 +472,25 @@ button:focus-visible { outline:2px solid var(--portal-orange); outline-offset:3p
 .registrationGrid select, .registrationRow select { min-height:44px; padding:10px; font:inherit; font-size:16px; background:#0d0c08; color:var(--portal-paper); border:1px solid var(--portal-border); max-width:100%; }
 .registrationRow { flex-wrap:wrap; gap:10px; }
 #registrationSettings, #organizerAccess { margin:18px 0; padding:16px; border:1px solid var(--portal-border); }
+
+#organizerSection { max-width:1120px; }
+.forceSummary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:20px 0; }
+.forceSummary > div { display:grid; gap:6px; padding:16px; border:1px solid var(--portal-border); background:#171b1d; }
+.forceSummary b { color:var(--portal-orange); font-size:28px; }
+.forceSummary span { overflow-wrap:anywhere; }
+.forceBoard { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:20px 0; }
+.forceColumn { min-width:0; padding:14px; border:1px solid var(--portal-border); background:#101416; }
+.forceColumn:last-child { grid-column:1 / -1; }
+.forceColumn h3 { margin:0 0 14px; overflow-wrap:anywhere; }
+.forceColumn .registrationRow { display:grid; grid-template-columns:1fr; margin-bottom:12px; padding:12px; background:#1a1f21; border:1px solid var(--portal-border); overflow-wrap:anywhere; }
+.forceColumn .registrationRow label { font-size:14px; line-height:1.5; }
+.organizerOptions { margin:16px 0; }
+.organizerOptions summary { cursor:pointer; padding:12px 0; }
+@media(max-width:760px) { .forceBoard { grid-template-columns:1fr; } .forceSummary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+#organizerSection label { font-size:14px; }
+#organizerSection p { font-size:16px; }
+#organizerSection input:not([type="checkbox"]) { box-sizing:border-box; width:100%; min-height:44px; padding:10px; background:#0d0c08; color:var(--portal-paper); border:1px solid var(--portal-border); font:inherit; font-size:16px; }
+#forceNamesForm label { display:grid; gap:8px; }
+#forceNamesForm button { grid-column:1 / -1; }
+#organizerSection input:focus, #organizerSection select:focus { outline:2px solid var(--portal-orange); outline-offset:2px; }
