@@ -8,7 +8,7 @@
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
-  <script src="airsoft-audio.js?v=20261007-voz-nativa"></script>
+  <script src="airsoft-audio.js?v=20261007-sirene"></script>
   <script src="portal.js?v=20261006-revisado" defer></script>
   <script src="pre-registration.js?v=20261006-revisado" defer></script>
 </head>
@@ -167,6 +167,8 @@
           <button class="btnSecondary" type="button" onclick="AirsoftPortal.testSound('voice')">Testar voz</button>
           <button class="btnSecondary" type="button" onclick="if(window.AirsoftNativeVoice) AirsoftNativeVoice.openSettings(); else document.getElementById('soundStatus').textContent='Abra as configurações de voz do seu aparelho.'">Configurar voz do Android</button>
           <button class="btnSecondary" type="button" onclick="AirsoftPortal.testSound('alarm')">Testar alarme</button>
+          <button class="btnSecondary" type="button" onclick="AirsoftAudio.evacuationSiren()">Testar sirene de evacuação</button>
+          <button class="btnSecondary" type="button" onclick="AirsoftAudio.stopSiren()">Parar sirene</button>
           <button class="btnSecondary" type="button" onclick="AirsoftPortal.testSound('success')">Testar sucesso</button>
           <button class="btnSecondary" type="button" onclick="AirsoftPortal.testSound('beep')">Testar bip</button>
         </div>

@@ -329,6 +329,7 @@ private fun bundledAssetResponse(
         "css" -> "text/css"
         "js" -> "application/javascript"
         "json" -> "application/json"
+        "wav" -> "audio/wav"
         "png" -> "image/png"
         "jpg", "jpeg" -> "image/jpeg"
         "svg" -> "image/svg+xml"

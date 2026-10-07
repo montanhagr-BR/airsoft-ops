@@ -1,5 +1,18 @@
 (() => {
   let context;
+  let siren;
+  function stopSiren() { if (siren) { siren.pause(); siren.currentTime = 0; } }
+  async function evacuationSiren() {
+    if (!enabled()) return;
+    try {
+      siren ||= new Audio('assets/audio/delta-7-evacuation-siren.wav');
+      siren.currentTime = 0;
+      await siren.play();
+    } catch (_) {
+      const status = document.getElementById('soundStatus');
+      if (status) status.textContent = 'Toque em Testar sirene para liberar a reprodução neste aparelho.';
+    }
+  }
   const enabled = () => localStorage.getItem('airsoft-audio-enabled') !== '0';
   async function unlock() {
     const Audio = window.AudioContext || window.webkitAudioContext;
@@ -63,13 +76,14 @@
   }
   function setEnabled(value) {
     localStorage.setItem('airsoft-audio-enabled', value ? '1' : '0');
+    if (!value) stopSiren();
     if (!value && window.speechSynthesis) speechSynthesis.cancel();
     if (!value && window.AirsoftNativeVoice) AirsoftNativeVoice.stop();
     if (value) { unlock(); beep(); }
     const status = document.getElementById('soundStatus');
     if (status) status.textContent = value ? 'Sons ativados neste aparelho.' : 'Sons desativados neste aparelho.';
   }
-  window.AirsoftAudio = { unlock, beep, alertAlarm, successChime, setEnabled, enabled };
+  window.AirsoftAudio = { unlock, beep, alertAlarm, successChime, setEnabled, enabled, evacuationSiren, stopSiren };
   window.AirsoftVoice = { speak };
   if (!window.AirsoftSound) window.AirsoftSound = { play(kind) {
     if (kind === 'armed') beep(960, 280);
@@ -83,9 +97,14 @@
     const state = AirsoftBus.read();
     if (previous && state.resetId === previous.resetId) {
       if (state.running && !previous.running && !state.finished) successChime();
-      if (state.finished && !previous.finished) { alertAlarm(); speak('Operação encerrada.'); }
+      if (state.finished && !previous.finished) {
+        if (state.bombState === 'Explosão cenográfica' && state.bombSeconds === 0) evacuationSiren();
+        else alertAlarm();
+        speak('Operação encerrada.');
+      }
       else if (state.bombSequenceIndex > previous.bombSequenceIndex) successChime();
     }
+    if (previous && (state.resetId !== previous.resetId || (state.running && !previous.running))) stopSiren();
     previous = state;
   });
 })();
