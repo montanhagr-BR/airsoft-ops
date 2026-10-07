@@ -429,8 +429,8 @@ body { letter-spacing: 0; }
 .authNav { flex-wrap: wrap; }
 #formConfirmation button, #resetSent button { margin-top: 12px; }
 
-.welcomeScreen { flex-direction:column; gap:28px; min-height:65svh; padding:24px 0; }
-.welcomeActions { gap:12px; width:min(100%,360px)!important; }
+.welcomeActions { gap:8px; }
+.welcomeActions button { min-height:44px; font-size:clamp(12px, 2.8vw, 16px); padding:10px 6px; }
 button { touch-action:manipulation; }
 button:focus-visible { outline:2px solid var(--portal-orange); outline-offset:3px; }
 @media(max-width:600px) {

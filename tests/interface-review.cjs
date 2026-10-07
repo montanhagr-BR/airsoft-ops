@@ -53,7 +53,7 @@ if (require.main === module) (async()=>{
   // Disallow external services, including QR image generation, map and auth servers.
   await context.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
   await page.goto(base+'/index.html');await capture(page,`web-${width}-inicio`);
-  await page.getByRole('button',{name:'Acessar painel de jogos'}).click();await capture(page,`web-${width}-login`);
+  await page.getByRole('button',{name:'Login',exact:true}).click();await capture(page,`web-${width}-login`);
   await page.locator('#tabSignupBtn').click();await capture(page,`web-${width}-cadastro-dados`);
   await page.locator('#signupName').fill('Operador de teste');await page.locator('#signupEmail').fill('operator@example.com');
   await page.getByRole('button',{name:'Continuar',exact:true}).click();await capture(page,`web-${width}-cadastro-senha`);

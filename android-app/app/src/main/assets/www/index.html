@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Airsoft Ops - Portal de operações</title>
-  <link rel="stylesheet" href="portal.css?v=20261006-revisado">
+  <link rel="stylesheet" href="portal.css?v=20261007-logo">
   <script src="supabase-config.js?v=20261001-2"></script>
   <script src="supabase.js?v=20261001-2"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
@@ -39,11 +39,13 @@
     <!-- Status Alert Banner -->
     <div class="statusMsg" id="portalStatus" role="status" aria-live="polite" hidden></div>
 
-    <section class="welcomeScreen" id="welcomeSection">
-      <h1>AIRSOFT OPS</h1>
-      <div class="welcomeActions" style="position:static; transform:none; width:auto">
-        <button class="btnPrimary" type="button" onclick="AirsoftPortal.access()">Acessar painel de jogos</button>
+    <section class="welcomeScreen" id="welcomeSection" aria-label="Bem-vindo ao Montanha Bomb System">
+      <div class="welcomeArtwork">
+      <img class="welcomeLogo" src="assets/airsoft-ops-identity.png" alt="Montanha Bomb System" fetchpriority="high">
+      <div class="welcomeActions">
+        <button class="btnPrimary" type="button" onclick="AirsoftPortal.access()">Login</button>
         <button class="btnSecondary" type="button" onclick="AirsoftPortal.access(); AirsoftPortal.switchAuthTab('signup')">Criar minha conta</button>
+      </div>
       </div>
     </section>
 
