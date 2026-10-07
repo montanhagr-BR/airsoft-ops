@@ -1,6 +1,21 @@
 (() => {
   let context;
   let siren;
+  let explosion;
+  function stopExplosion() { if (explosion) { explosion.pause(); explosion.currentTime = 0; } }
+  function stopEffects() { stopSiren(); stopExplosion(); }
+  async function nuclearExplosion() {
+    if (!enabled()) return;
+    stopSiren();
+    try {
+      explosion ||= new Audio('assets/audio/nuclear-explosion.mp3');
+      explosion.currentTime = 0;
+      await explosion.play();
+    } catch (_) {
+      const status = document.getElementById('soundStatus');
+      if (status) status.textContent = 'Toque em Testar explosão para liberar a reprodução neste aparelho.';
+    }
+  }
   function stopSiren() { if (siren) { siren.pause(); siren.currentTime = 0; } }
   async function evacuationSiren() {
     if (!enabled()) return;
@@ -76,14 +91,14 @@
   }
   function setEnabled(value) {
     localStorage.setItem('airsoft-audio-enabled', value ? '1' : '0');
-    if (!value) stopSiren();
+    if (!value) stopEffects();
     if (!value && window.speechSynthesis) speechSynthesis.cancel();
     if (!value && window.AirsoftNativeVoice) AirsoftNativeVoice.stop();
     if (value) { unlock(); beep(); }
     const status = document.getElementById('soundStatus');
     if (status) status.textContent = value ? 'Sons ativados neste aparelho.' : 'Sons desativados neste aparelho.';
   }
-  window.AirsoftAudio = { unlock, beep, alertAlarm, successChime, setEnabled, enabled, evacuationSiren, stopSiren };
+  window.AirsoftAudio = { unlock, beep, alertAlarm, successChime, setEnabled, enabled, evacuationSiren, stopSiren, nuclearExplosion, stopEffects };
   window.AirsoftVoice = { speak };
   if (!window.AirsoftSound) window.AirsoftSound = { play(kind) {
     if (kind === 'armed') beep(960, 280);
@@ -98,13 +113,13 @@
     if (previous && state.resetId === previous.resetId) {
       if (state.running && !previous.running && !state.finished) successChime();
       if (state.finished && !previous.finished) {
-        if (state.bombState === 'Explosão cenográfica' && state.bombSeconds === 0) evacuationSiren();
+        if (state.bombState === 'Explosão cenográfica' && state.bombSeconds === 0) nuclearExplosion();
         else alertAlarm();
         speak('Operação encerrada.');
       }
       else if (state.bombSequenceIndex > previous.bombSequenceIndex) successChime();
     }
-    if (previous && (state.resetId !== previous.resetId || (state.running && !previous.running))) stopSiren();
+    if (previous && (state.resetId !== previous.resetId || (state.running && !previous.running))) stopEffects();
     previous = state;
   });
 })();
