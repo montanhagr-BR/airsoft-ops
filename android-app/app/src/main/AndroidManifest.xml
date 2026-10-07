@@ -14,7 +14,9 @@
 
     <application
         android:allowBackup="false"
-        android:label="Airsoft Ops"
+        android:label="Montanha Bomb System"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.AirsoftOps">
         <activity
