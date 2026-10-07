@@ -8,6 +8,7 @@
   <script src="supabase-config.js?v=20260930-1"></script>
   <script src="supabase.js?v=20260930-1"></script>
   <script src="airsoft-shared.js?v=20261002-9"></script>
+  <script src="airsoft-audio.js?v=20261007-som"></script>
   <script src="airsoft-cloud.js?v=20261006-bomba" defer></script>
   <style>
     body { margin: 0; min-height: 100vh; background: #050708; color: #e8f0ed; font-family: Segoe UI, Arial, sans-serif; }
@@ -344,6 +345,7 @@
   let bombDemoMode = localStorage.getItem('airsoft-bomb-demo-v1') === '1';
   function fmt(v) { return v == null ? '--:--' : String(Math.floor(v / 60)).padStart(2, '0') + ':' + String(v % 60).padStart(2, '0'); }
   function playOperationalSound(kind) {
+    if (window.AirsoftAudio && !AirsoftAudio.enabled()) return;
     if (window.AirsoftSound) { window.AirsoftSound.play(kind); return; }
     try {
       const audio = new (window.AudioContext || window.webkitAudioContext)();

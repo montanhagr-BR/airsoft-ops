@@ -290,9 +290,7 @@ private class AppSoundBridge(context: Context) {
     fun play(kind: String) {
         if (audioManager.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
         handler.post {
-            val stream = if (kind == "button") AudioManager.STREAM_MUSIC else AudioManager.STREAM_ALARM
-            val previousVolume = audioManager.getStreamVolume(stream)
-            val maxVolume = audioManager.getStreamMaxVolume(stream)
+            val stream = AudioManager.STREAM_MUSIC
             val tone = when (kind) {
                 "armed" -> ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
                 "locator" -> ToneGenerator.TONE_PROP_BEEP2
@@ -303,12 +301,10 @@ private class AppSoundBridge(context: Context) {
                 "locator" -> 160
                 else -> 45
             }
-            if (kind != "button") audioManager.setStreamVolume(stream, maxVolume, 0)
             val generator = ToneGenerator(stream, if (kind == "button") 55 else 100)
             generator.startTone(tone, duration)
             handler.postDelayed({
                 generator.release()
-                if (kind != "button") audioManager.setStreamVolume(stream, previousVolume, 0)
             }, duration.toLong() + 80L)
         }
     }
