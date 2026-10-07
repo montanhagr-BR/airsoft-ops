@@ -1,0 +1,14 @@
+{
+  "packageName": "br.com.airsoftops",
+  "productId": "montanha_monthly",
+  "basePlanId": "monthly",
+  "billingPeriod": "P1M",
+  "autoRenewing": true,
+  "status": "draft",
+  "price": {
+    "currency": "BRL",
+    "monthlyAmount": 30
+  },
+  "payingAudience": "all_users",
+  "adminEmail": "montanhagr@gmail.com"
+}

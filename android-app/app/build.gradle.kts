@@ -29,7 +29,16 @@ android {
         }
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            // Play uploads must use a private upload key, never the debug key.
+            val uploadStore = providers.environmentVariable("ANDROID_UPLOAD_KEYSTORE").orNull
+            if (uploadStore != null) {
+                signingConfig = signingConfigs.create("playUpload") {
+                    storeFile = file(uploadStore)
+                    storePassword = providers.environmentVariable("ANDROID_UPLOAD_STORE_PASSWORD").get()
+                    keyAlias = providers.environmentVariable("ANDROID_UPLOAD_KEY_ALIAS").get()
+                    keyPassword = providers.environmentVariable("ANDROID_UPLOAD_KEY_PASSWORD").get()
+                }
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
