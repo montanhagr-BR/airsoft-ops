@@ -28,6 +28,22 @@
   function successChime() { beep(523, 130); beep(659, 130, 150); beep(784, 260, 300); }
   function speak(text) {
     if (!enabled()) return false;
+    if (window.AirsoftNativeVoice && typeof AirsoftNativeVoice.speak === 'function') {
+      AirsoftNativeVoice.speak(String(text));
+      const report = () => {
+        const state = AirsoftNativeVoice.status();
+        const status = document.getElementById('soundStatus');
+        if (status) status.textContent = state === 'ready' ? 'Voz nativa em português ativada.'
+          : state === 'initializing' ? 'Preparando a voz do aparelho…'
+          : 'A voz em português precisa ser configurada. Abra Configurar voz do Android.';
+        return state;
+      };
+      if (report() === 'initializing') {
+        let attempts = 0;
+        const timer = setInterval(() => { if (report() !== 'initializing' || ++attempts >= 10) clearInterval(timer); }, 500);
+      }
+      return true;
+    }
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
       const status = document.getElementById('soundStatus');
       if (status) status.textContent = 'Voz indisponível neste aparelho. Os efeitos sonoros continuam disponíveis.';
@@ -48,6 +64,7 @@
   function setEnabled(value) {
     localStorage.setItem('airsoft-audio-enabled', value ? '1' : '0');
     if (!value && window.speechSynthesis) speechSynthesis.cancel();
+    if (!value && window.AirsoftNativeVoice) AirsoftNativeVoice.stop();
     if (value) { unlock(); beep(); }
     const status = document.getElementById('soundStatus');
     if (status) status.textContent = value ? 'Sons ativados neste aparelho.' : 'Sons desativados neste aparelho.';

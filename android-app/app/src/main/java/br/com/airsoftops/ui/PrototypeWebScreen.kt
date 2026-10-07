@@ -6,6 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.speech.tts.TextToSpeech
+import java.util.Locale
+import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
@@ -64,6 +67,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
     ) { }
     var loadError by remember { mutableStateOf<String?>(null) }
     var pageLoaded by remember { mutableStateOf(false) }
+    val voiceBridge = remember { AppVoiceBridge(context) }
     val webView = remember {
         WebView(context).apply {
             WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
@@ -80,6 +84,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             cookieManager.setAcceptCookie(true)
             cookieManager.setAcceptThirdPartyCookies(this, true)
             addJavascriptInterface(AppSoundBridge(context), "AirsoftSound")
+            addJavascriptInterface(voiceBridge, "AirsoftNativeVoice")
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
                     pageLoaded = false
@@ -252,6 +257,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             webView.stopLoading()
             webView.destroy()
+            voiceBridge.close()
         }
     }
 
@@ -366,4 +372,55 @@ private fun errorResponse(status: Int, message: String): WebResourceResponse {
         mapOf("Cache-Control" to "no-store"),
         ByteArrayInputStream(message.toByteArray(Charsets.UTF_8))
     )
+}
+
+private class AppVoiceBridge(private val context: Context) {
+    private val handler = Handler(Looper.getMainLooper())
+    private var engine: TextToSpeech? = null
+    private var pending: String? = null
+    private var closed = false
+    @Volatile private var state = "initializing"
+
+    init {
+        engine = TextToSpeech(context.applicationContext) { result ->
+            handler.post {
+                if (!closed) {
+                    val tts = engine
+                    if (result != TextToSpeech.SUCCESS || tts == null) state = "unavailable"
+                    else {
+                        val language = tts.setLanguage(Locale("pt", "BR"))
+                        state = if (language == TextToSpeech.LANG_MISSING_DATA) "missing-data"
+                            else if (language == TextToSpeech.LANG_NOT_SUPPORTED) "unsupported"
+                            else "ready"
+                        tts.setAudioAttributes(AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())
+                        pending?.let { text -> if (state == "ready") say(text) }
+                        pending = null
+                    }
+                }
+            }
+        }
+    }
+    @JavascriptInterface fun status(): String = state
+    @JavascriptInterface fun speak(text: String) {
+        handler.post {
+            if (!closed) {
+                if (state == "initializing") pending = text.take(500)
+                else if (state == "ready") say(text.take(500))
+            }
+        }
+    }
+    private fun say(text: String) {
+        if (engine?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "airsoft-voice") == TextToSpeech.ERROR)
+            state = "unavailable"
+    }
+    @JavascriptInterface fun stop() { handler.post { pending = null; engine?.stop() } }
+    @JavascriptInterface fun openSettings() {
+        handler.post {
+            try { context.startActivity(Intent("com.android.settings.TTS_SETTINGS").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            catch (_: Exception) { }
+        }
+    }
+    fun close() { closed = true; pending = null; engine?.stop(); engine?.shutdown(); engine = null }
 }
