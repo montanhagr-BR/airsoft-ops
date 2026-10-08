@@ -114,6 +114,13 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                     if (request.url.host == "airsoft.local") {
                         return bundledAssetResponse(context.assets, request.url)
                     }
+                    // Keep the production origin for saved sessions and OAuth,
+                    // while loading the tested UI shipped with this APK.
+                    if (request.url.scheme == "https" && request.url.host == "warm-hummingbird-8988f6.netlify.app") {
+                        val assetUri = request.url.buildUpon().authority("airsoft.local").build()
+                        val bundled = bundledAssetResponse(context.assets, assetUri)
+                        if (bundled?.statusCode == 200) return bundled
+                    }
                     return super.shouldInterceptRequest(view, request)
                 }
 

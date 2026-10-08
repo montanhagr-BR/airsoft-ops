@@ -1,5 +1,7 @@
 # Atualizações do APK beta
 
+A partir da beta 4, as páginas do app são carregadas dos arquivos incluídos no APK, mantendo o endereço de produção para sessões e links de autenticação. Mudanças de interface passam a exigir um novo APK; dados e autenticação continuam online.
+
 A partir da versão 1.0.0-beta.2, o app consulta a versão publicada ao abrir. Se houver uma versão maior, oferece “Baixar atualização” e “Agora não”. Sem internet, continua funcionando sem bloquear a abertura. A configuração inicial do aparelho termina antes de mostrar o aviso.
 
 Instale esta versão uma vez para ativar o recurso. O download abre no navegador e a instalação exige confirmação do Android. Não há instalação silenciosa. Os APKs beta devem manter a mesma chave de assinatura.
