@@ -47,6 +47,26 @@ function fixture(user = { id: 'owner', email: 'owner@example.com' }) {
     assert.ok(html.includes(`src="${script}`));
   }
   const f = fixture();
+  const startupAndroid = fixture();
+  startupAndroid.context.window.location.search = '?android=1';
+  await startupAndroid.api.initAuth();
+  startupAndroid.auth('INITIAL_SESSION', { user: { id: 'owner', email: 'owner@example.com' } });
+  assert.equal(startupAndroid.nodes.get('welcomeSection').hidden, false, 'APK shows welcome with a saved session');
+  assert.equal(startupAndroid.nodes.get('dashboardSection').hidden, true);
+  startupAndroid.api.access();
+  assert.equal(startupAndroid.nodes.get('dashboardSection').hidden, false, 'Welcome button resumes the signed-in account');
+  const freshAndroid = fixture(null);
+  freshAndroid.context.window.location.search = '?android=1';
+  await freshAndroid.api.initAuth();
+  assert.equal(freshAndroid.nodes.get('welcomeSection').hidden, false);
+  freshAndroid.api.access();
+  assert.equal(freshAndroid.nodes.get('authSection').hidden, false, 'New APK users can open login');
+  await freshAndroid.api.logout();
+  assert.equal(freshAndroid.nodes.get('welcomeSection').hidden, false, 'Signing out restores welcome buttons');
+  const callbackAndroid = fixture();
+  callbackAndroid.context.window.location.search = '?android=1&flow=dashboard';
+  await callbackAndroid.api.initAuth();
+  assert.equal(callbackAndroid.nodes.get('dashboardSection').hidden, false, 'Authentication links still open their destination');
   await f.api.initAuth();
   assert.equal(f.nodes.get('welcomeSection').hidden, true, 'An authenticated account opens the dashboard directly');
   assert.equal(f.nodes.get('authSection').hidden, true);

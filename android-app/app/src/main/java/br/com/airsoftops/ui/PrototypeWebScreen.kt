@@ -76,7 +76,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.databaseEnabled = true
-            settings.cacheMode = WebSettings.LOAD_DEFAULT
+            settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.allowFileAccess = false
             settings.allowContentAccess = false
             settings.mediaPlaybackRequiresUserGesture = false
@@ -226,7 +226,7 @@ fun PrototypeWebScreen(role: AppRole, onBack: () -> Unit) {
                 MainActivity.pendingAuthUrl = null
                 it
             } ?: run {
-                val suffix = if (role == AppRole.CONTROLLER) "" else "?android=1"
+                val suffix = if (role == AppRole.CONTROLLER) "?appVersion=${BuildConfig.VERSION_CODE}" else "?android=1&appVersion=${BuildConfig.VERSION_CODE}"
                 "https://warm-hummingbird-8988f6.netlify.app/$page$suffix"
             }
             loadUrl(initialUrl)

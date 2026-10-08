@@ -135,6 +135,9 @@ const AirsoftPortal = (() => {
       destination = 'dashboard';
     }
     if (callbackError) { currentTab = params.get('flow') === 'recovery' ? 'reset' : 'confirm'; accessRequested = true; }
+    // A normal APK launch starts at the artwork, even with a saved session.
+    // Explicit authentication and registration links keep their destination.
+    const welcomeOnStartup = params.get('android') === '1' && !accessRequested;
 
     renderState();
 
@@ -145,7 +148,7 @@ const AirsoftPortal = (() => {
       client.auth.onAuthStateChange((event, session) => {
         currentUser = session && !session.user.is_anonymous ? session.user : null;
         if (currentUser) {
-          accessRequested = true;
+          if (!welcomeOnStartup || event === 'SIGNED_IN') accessRequested = true;
           if (destination !== 'registration' && destination !== 'organizer') destination = 'dashboard';
         }
         if (event === 'PASSWORD_RECOVERY' && !callbackError) { recoveringPassword = true; accessRequested = true; }
@@ -167,7 +170,7 @@ const AirsoftPortal = (() => {
       if (sessionResponse.error) throw sessionResponse.error;
       if (sessionResponse.data && sessionResponse.data.session) {
         currentUser = sessionResponse.data.session.user.is_anonymous ? null : sessionResponse.data.session.user;
-        if (currentUser) accessRequested = true;
+        if (currentUser && !welcomeOnStartup) accessRequested = true;
         if (currentUser && params.get('flow') === 'recovery' && !callbackError) recoveringPassword = true;
         renderState();
         loadUserSessions();

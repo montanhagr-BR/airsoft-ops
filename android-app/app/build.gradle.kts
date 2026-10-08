@@ -11,8 +11,8 @@ android {
         applicationId = "br.com.airsoftops"
         minSdk = 26
         targetSdk = 37
-        versionCode = 39
-        versionName = "1.0.0-beta.2"
+        versionCode = 40
+        versionName = "1.0.0-beta.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
