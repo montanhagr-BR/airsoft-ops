@@ -186,7 +186,6 @@ window.PreRegistration = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    byId('organizerSelectForm').addEventListener('submit',event=>{event.preventDefault();openByCode(byId('organizerCode').value);});
     byId('preRegistrationForm').addEventListener('submit',submit);
     byId('preRegistrationForm').elements.code.addEventListener('change',loadRegistration);
     byId('refreshRegistration').addEventListener('click',loadRegistration);

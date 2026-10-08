@@ -9,17 +9,17 @@ const evidence = path.resolve(__dirname, '../work/revisao-telas');
 fs.mkdirSync(evidence, { recursive: true });
 const mock = `(() => {
  const user = {id:'review-user',email:'operator@example.com',user_metadata:{full_name:'Operador de teste'}};
- let listener; window.__reviewUser = null;
+ const listeners=new Set(); const emit=(event,session)=>listeners.forEach(listener=>listener(event,session)); window.__reviewUser = null;
  const registrations=[{id:'r1',name:'Jogador teste A',organization:'Esquadra Alpha',status:'pending',planned_team:null,requested_team:'ct',email:'a@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}, {id:'r2',name:'Jogador teste B',organization:'Esquadra Bravo',status:'pending',planned_team:'ct',email:'b@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}, {id:'r3',name:'Jogador teste C',organization:'Esquadra Delta',status:'pending',planned_team:'terrorist',email:'c@example.invalid',phone:'67999999999',emergency_name:'Contato',emergency_phone:'67999999998'}];
  const state = () => typeof AirsoftBus !== 'undefined' ? AirsoftBus.read() : {operationName:'Operação de teste'};
  const sessions = [{id:'review-room',join_code:'ABC123',status:'setup',state:{operationName:'Operação de teste'}}];
  const query = table => ({ select(){return this},eq(){return this},neq(){return this},order(){return this},range(){return this},or(){return this},update(){return this},insert(){return this},
   async limit(){return {data:sessions}},async single(){return {data:{state:state(),status:'setup',controller_id:window.__reviewControllerId||'review-user',registration_open:true}}},
   async maybeSingle(){return {data:null}},then(resolve){resolve({data:table==='game_sessions'?sessions:table==='game_registrations'?registrations:[],count:table==='game_registrations'?registrations.length:0,error:null})} });
- const client={auth:{onAuthStateChange(cb){listener=cb},async getSession(){return {data:{session:window.__reviewUser?{user}:null}}},
-  async signInWithPassword(){window.__reviewUser=user;listener?.('SIGNED_IN',{user});return {data:{user}}},
+ const client={auth:{onAuthStateChange(cb){listeners.add(cb)},async getSession(){return {data:{session:window.__reviewUser?{user}:null}}},
+  async signInWithPassword(){window.__reviewUser=user;emit('SIGNED_IN',{user});return {data:{user}}},
   async signUp(){return {data:{session:null}}},async resend(){return {error:null}},async resetPasswordForEmail(){return {error:null}},async updateUser(){return {error:null}},
-  async signOut(){window.__reviewUser=null;listener?.('SIGNED_OUT',null);return {error:null}}},from:query,
+  async signOut(){window.__reviewUser=null;emit('SIGNED_OUT',null);return {error:null}}},from:query,
   async rpc(name,args){
    if(name==='import_registration_forces')return {data:{imported:2,state:{...state(),players:registrations.map(r=>({id:'P-'+r.id,registrationId:r.id,name:r.name,organization:r.organization,status:r.planned_team?'approved':'pending',team:r.planned_team}))}}};
    if(name==='registration_force_summary')return {data:{unassigned:registrations.filter(r=>!r.planned_team).length,ct:registrations.filter(r=>r.planned_team==='ct').length,terrorist:registrations.filter(r=>r.planned_team==='terrorist').length,rejected:0,pending_import:3}};
@@ -27,7 +27,7 @@ const mock = `(() => {
    return {data:name==='my_waitlist_events'?[]:[{session_id:'review-room',join_code:'ABC123',member_id:'review-member',session_state:state()}]}},
   channel(){return {on(){return this},subscribe(cb){cb('SUBSCRIBED');return this}}},async removeChannel(){}};
  window.supabase={createClient(){return client}};
- window.__reviewLogin=()=>{window.__reviewUser=user;listener?.('SIGNED_IN',{user})};
+ window.__reviewLogin=()=>{window.__reviewUser=user;emit('SIGNED_IN',{user})};
 })();`;
 const server = http.createServer((req, res) => {
  const file = path.resolve(root, '.' + new URL(req.url, 'http://localhost').pathname);

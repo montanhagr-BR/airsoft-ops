@@ -10,7 +10,7 @@
   <script src="airsoft-shared.js?v=20261002-9"></script>
   <script src="airsoft-audio.js?v=20261007-explosao"></script>
   <script src="portal.js?v=20261006-revisado" defer></script>
-  <script src="pre-registration.js?v=20261006-revisado" defer></script>
+  <script src="pre-registration.js?v=20261008-fluxo" defer></script>
   <script src="subscription.js?v=20261007-trial" defer></script>
 </head>
 <body>
@@ -241,13 +241,6 @@
     </section>
     <section id="organizerSection" class="portalBox" hidden>
       <button class="btnSecondary" type="button" onclick="AirsoftPortal.menu()">Voltar ao painel</button>
-      <div id="organizerSelectScreen" hidden>
-        <h2>Gerenciar pré-cadastro</h2>
-        <form id="organizerSelectForm" class="registrationGrid">
-          <label>Código do evento<input id="organizerCode" required maxlength="6" pattern="[A-Za-z0-9]{6}"></label>
-          <button class="btnPrimary" type="submit">Abrir inscrições do evento</button>
-        </form>
-      </div>
       <div id="organizerRosterScreen">
       <h2 id="organizerTitle">Pré-inscrição · Organização das forças</h2>
       <p id="enrollmentOpenStatus" role="status"></p>

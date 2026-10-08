@@ -1,0 +1,1 @@
+Historical prototypes and development test pages. These files are not part of the published app. Runtime pages are index, jogador, controle, bomba and admin. Relative references in these historical snapshots describe their original location in outputs.
